@@ -18,6 +18,10 @@ class ChatbotController extends Controller
             return response()->json(['error' => 'Chatbot is not enabled.'], 503);
         }
 
+        if (!$project->chatbot_enabled) {
+            return response()->json(['error' => 'Chatbot is not enabled for this project.'], 503);
+        }
+
         if (!in_array($project->status, ['public', 'unlisted'])) {
             return response()->json(['error' => 'Project not accessible.'], 403);
         }

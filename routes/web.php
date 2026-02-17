@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ProjectSettingsController;
 use App\Http\Controllers\Admin\FileUploadController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\ChatbotAdminController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
 use App\Http\Controllers\Admin\ConstructionProgressController;
@@ -118,6 +119,11 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     // Analytics
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index')->middleware('feature:analytics');
     Route::get('analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data')->middleware('feature:analytics');
+
+    // Chatbot Admin
+    Route::get('chatbot', [ChatbotAdminController::class, 'index'])->name('chatbot.index')->middleware('feature:chatbot');
+    Route::get('chatbot/{conversation}', [ChatbotAdminController::class, 'show'])->name('chatbot.show')->middleware('feature:chatbot');
+    Route::delete('chatbot/{conversation}', [ChatbotAdminController::class, 'destroy'])->name('chatbot.destroy')->middleware('feature:chatbot');
 
     // Currencies
     Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');

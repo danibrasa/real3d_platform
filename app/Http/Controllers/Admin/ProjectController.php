@@ -111,6 +111,10 @@ class ProjectController extends Controller
                 'appreciation_rate_annual' => 'nullable|numeric|min:0',
                 'management_fee' => 'nullable|numeric|min:0|max:100',
                 'property_tax_rate' => 'nullable|numeric|min:0',
+                'chatbot_enabled' => 'sometimes|boolean',
+                'chatbot_welcome_es' => 'nullable|string|max:1000',
+                'chatbot_welcome_en' => 'nullable|string|max:1000',
+                'chatbot_instructions' => 'nullable|string|max:2000',
             ]);
         } elseif ($user->isInmobiliaria()) {
             Gate::authorize('edit-project-commercial', $project);
@@ -128,6 +132,10 @@ class ProjectController extends Controller
                 'whatsapp_message_en' => 'nullable|string|max:500',
                 'contact_email' => 'nullable|email|max:255',
                 'analytics_id' => 'nullable|string|max:50',
+                'chatbot_enabled' => 'sometimes|boolean',
+                'chatbot_welcome_es' => 'nullable|string|max:1000',
+                'chatbot_welcome_en' => 'nullable|string|max:1000',
+                'chatbot_instructions' => 'nullable|string|max:2000',
             ]);
         } else {
             abort(403);

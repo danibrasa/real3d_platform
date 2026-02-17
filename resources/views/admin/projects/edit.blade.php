@@ -163,6 +163,36 @@
                             </div>
                             @endcan
 
+                            {{-- Chatbot Configuration --}}
+                            @can('use-chatbot')
+                            @can('edit-project-commercial', $project)
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">{{ __('chatbot.project_settings_title') }}</h4>
+                                <div class="mb-3">
+                                    <label class="flex items-center gap-2 text-sm">
+                                        <input type="hidden" name="chatbot_enabled" value="0">
+                                        <input type="checkbox" name="chatbot_enabled" value="1" {{ old('chatbot_enabled', $project->chatbot_enabled) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600">
+                                        {{ __('chatbot.enable_for_project') }}
+                                    </label>
+                                    <p class="text-xs text-gray-400 mt-1">{{ __('chatbot.enable_help') }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('chatbot.welcome_es') }}</label>
+                                    <textarea name="chatbot_welcome_es" rows="2" maxlength="1000" placeholder="{{ __('chatbot.welcome_placeholder_es') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('chatbot_welcome_es', $project->chatbot_welcome_es) }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('chatbot.welcome_en') }}</label>
+                                    <textarea name="chatbot_welcome_en" rows="2" maxlength="1000" placeholder="{{ __('chatbot.welcome_placeholder_en') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('chatbot_welcome_en', $project->chatbot_welcome_en) }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">{{ __('chatbot.custom_instructions') }}</label>
+                                    <textarea name="chatbot_instructions" rows="3" maxlength="2000" placeholder="{{ __('chatbot.instructions_placeholder') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('chatbot_instructions', $project->chatbot_instructions) }}</textarea>
+                                    <p class="text-xs text-gray-400 mt-1">{{ __('chatbot.instructions_help') }}</p>
+                                </div>
+                            </div>
+                            @endcan
+                            @endcan
+
                             @can('edit-project-technical', $project)
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Visibilidad</label>

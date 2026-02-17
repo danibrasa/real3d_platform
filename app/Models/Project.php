@@ -39,11 +39,16 @@ class Project extends Model
         "description_en",
         "tagline_en",
         "location_en",
+        "chatbot_enabled",
+        "chatbot_welcome_es",
+        "chatbot_welcome_en",
+        "chatbot_instructions",
     ];
 
     protected $casts = [
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
+        'chatbot_enabled' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -88,6 +93,11 @@ class Project extends Model
     public function inquiries(): HasMany
     {
         return $this->hasMany(Inquiry::class);
+    }
+
+    public function chatbotConversations(): HasMany
+    {
+        return $this->hasMany(ChatbotConversation::class);
     }
 
     public function galleryImages(): HasMany

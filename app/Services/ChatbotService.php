@@ -108,7 +108,7 @@ class ChatbotService
 
         $lang = $isEn ? 'English' : 'Spanish';
 
-        return <<<PROMPT
+        $prompt = <<<PROMPT
 You are a friendly and professional real estate sales assistant for the project "{$project->name}".
 You MUST respond in {$lang}.
 You help potential buyers learn about the project, its units, prices, and amenities.
@@ -142,6 +142,12 @@ RULES:
 - Prices are in USD.
 - Do not discuss legal or contractual matters. Suggest consulting with the sales team.
 PROMPT;
+
+        if (!empty($project->chatbot_instructions)) {
+            $prompt .= "\n\nADDITIONAL INSTRUCTIONS:\n" . $project->chatbot_instructions;
+        }
+
+        return $prompt;
     }
 
     private function callOpenAI(string $systemPrompt, $history): string

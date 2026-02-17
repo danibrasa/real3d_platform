@@ -34,6 +34,11 @@
                                     Analytics
                                 </x-nav-link>
                             @endcan
+                            @can('use-chatbot')
+                                <x-nav-link :href="route('admin.chatbot.index')" :active="request()->routeIs('admin.chatbot.*')">
+                                    Chatbot
+                                </x-nav-link>
+                            @endcan
                             @can('manage-agents')
                                 <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                                     {{ auth()->user()->isSuperadmin() ? __('general.users') : __('general.my_agents') }}
@@ -208,6 +213,11 @@
                     @can('use-analytics')
                         <x-responsive-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
                             Analytics
+                        </x-responsive-nav-link>
+                    @endcan
+                    @can('use-chatbot')
+                        <x-responsive-nav-link :href="route('admin.chatbot.index')" :active="request()->routeIs('admin.chatbot.*')">
+                            Chatbot
                         </x-responsive-nav-link>
                     @endcan
                     @can('manage-agents')

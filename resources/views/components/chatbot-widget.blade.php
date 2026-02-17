@@ -1,6 +1,6 @@
 @props(['project', 'enabled' => false])
 
-@if($enabled)
+@if($enabled && $project->chatbot_enabled)
 <div x-data="chatbotWidget()" x-cloak class="fixed bottom-6 right-6 z-50" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
 
     {{-- Chat button --}}
@@ -129,6 +129,13 @@ function chatbotWidget() {
         messagesCount: 0,
         leadAfter: {{ config('chatbot.lead_capture_after_messages', 3) }},
 
+        generateUUID() {
+            if (crypto.randomUUID) return crypto.randomUUID();
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        },
+
         init() {
             // Try to restore session
             const key = 'chatbot_' + this.slug;
@@ -136,18 +143,27 @@ function chatbotWidget() {
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
-                    this.sessionId = data.sessionId;
-                    this.messages = data.messages || [];
-                    this.leadCaptured = data.leadCaptured || false;
-                    this.messagesCount = data.messagesCount || 0;
-                    return;
+                    if (data.sessionId) {
+                        this.sessionId = data.sessionId;
+                        this.messages = data.messages || [];
+                        this.leadCaptured = data.leadCaptured || false;
+                        this.messagesCount = data.messagesCount || 0;
+                        return;
+                    }
                 } catch (e) {}
             }
-            this.sessionId = crypto.randomUUID();
-            this.addBotMessage(this.locale === 'en'
-                ? `Hi! I'm the virtual assistant for {{ $project->name }}. How can I help you? Ask me about units, prices, availability, or anything about the project.`
-                : `Hola! Soy el asistente virtual de {{ $project->name }}. ¿En que puedo ayudarte? Preguntame sobre unidades, precios, disponibilidad o cualquier aspecto del proyecto.`
-            );
+            this.sessionId = this.generateUUID();
+            const customWelcome = this.locale === 'en'
+                ? @json($project->chatbot_welcome_en)
+                : @json($project->chatbot_welcome_es);
+            if (customWelcome) {
+                this.addBotMessage(customWelcome);
+            } else {
+                this.addBotMessage(this.locale === 'en'
+                    ? `Hi! I'm the virtual assistant for {{ $project->name }}. How can I help you? Ask me about units, prices, availability, or anything about the project.`
+                    : `Hola! Soy el asistente virtual de {{ $project->name }}. ¿En que puedo ayudarte? Preguntame sobre unidades, precios, disponibilidad o cualquier aspecto del proyecto.`
+                );
+            }
         },
 
         addBotMessage(content) {
@@ -158,6 +174,8 @@ function chatbotWidget() {
         async sendMessage() {
             const text = this.input.trim();
             if (!text || this.isLoading || this.limitReached) return;
+
+            if (!this.sessionId) this.sessionId = this.generateUUID();
 
             this.messages.push({ role: 'user', content: text });
             this.input = '';
