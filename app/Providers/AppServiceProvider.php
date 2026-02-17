@@ -2,12 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\ApiToken;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,7 +23,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Sanctum::usePersonalAccessTokenModel(ApiToken::class);
+
         $this->defineGates();
+        $this->defineRateLimiters();
         $this->registerViewComposers();
     }
 
@@ -112,6 +120,23 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('manage-currencies', function (User $user) {
             return $user->isSuperadmin();
+        });
+
+        Gate::define('manage-api-tokens', function (User $user) {
+            return $user->isSuperadmin();
+        });
+    }
+
+    private function defineRateLimiters(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            $token = $request->user()?->currentAccessToken();
+            $limit = $token?->rate_limit ?? 60;
+            return Limit::perMinute($limit)->by($token?->id ?? $request->ip());
+        });
+
+        RateLimiter::for('chatbot', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
         });
     }
 

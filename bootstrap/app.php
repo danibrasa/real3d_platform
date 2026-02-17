@@ -15,13 +15,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'role' => \App\Http\Middleware\EnsureRole::class,
+            'token.project' => \App\Http\Middleware\EnsureTokenProjectAccess::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\SetCurrency::class,
         ]);
+        $middleware->statefulApi();
         $middleware->validateCsrfTokens(except: [
             'api/viewer-events',
+            'api/projects/*/chat',
+            'api/projects/*/chat/lead',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

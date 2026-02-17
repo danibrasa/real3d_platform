@@ -933,4 +933,7 @@
         });
     </script>
     <script src="/js/viewer-analytics.js" defer></script>
+
+    {{-- AI Chatbot Widget --}}
+    <x-chatbot-widget :project="$project" :enabled="config('chatbot.enabled')" />
 </x-app-layout>

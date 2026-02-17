@@ -10,13 +10,16 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
 use App\Http\Controllers\Admin\ConstructionProgressController;
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\StrategicAnalysisController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypologyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ViewerController;
+use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ProjectApiController;
 use App\Http\Controllers\Api\ViewerEventController;
 use App\Http\Controllers\ProfileController;
@@ -107,6 +110,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
     Route::put('currencies', [CurrencyController::class, 'update'])->name('currencies.update');
 
+    // API Tokens
+    Route::resource('api-tokens', ApiTokenController::class)->except('show');
+
     // Strategic Analysis
     Route::get('strategic-analysis', [StrategicAnalysisController::class, 'index'])->name('strategic-analysis.index');
     Route::get('strategic-analysis/pdf', [StrategicAnalysisController::class, 'downloadPdf'])->name('strategic-analysis.pdf');
@@ -121,7 +127,15 @@ Route::prefix('api')->group(function () {
     Route::get('/projects/{project}/gallery/{image}', [ProjectApiController::class, 'serveGalleryImage']);
     Route::get('/projects/{project}/construction/{image}', [ConstructionProgressController::class, 'serveImage'])->name('api.construction.image');
     Route::post('/viewer-events', [ViewerEventController::class, 'store']);
+
+    // Chatbot
+    Route::post('/projects/{project:slug}/chat', [ChatbotController::class, 'sendMessage'])
+        ->middleware('throttle:chatbot');
+    Route::post('/projects/{project:slug}/chat/lead', [ChatbotController::class, 'captureLead']);
 });
+
+// Embeddable widget
+Route::get('/embed/{slug}', [EmbedController::class, 'show'])->name('embed.show');
 
 // Public viewer
 Route::get('/projects', [ViewerController::class, 'index'])->name('viewer.index');

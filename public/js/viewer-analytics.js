@@ -51,6 +51,9 @@
         'payment_plan_viewed': 'engagement',
         'gallery_viewed': 'engagement',
         'viewer_3d_opened': 'viewer_3d',
+        'chatbot_opened': 'engagement',
+        'chatbot_message_sent': 'engagement',
+        'chatbot_lead_captured': 'lead_generation',
     };
 
     // Track an event
@@ -123,6 +126,7 @@
         flush: flush,
         sessionId: sessionId,
     };
+    window.trackEvent = track;
 
     // ---- Auto-track common interactions ----
 

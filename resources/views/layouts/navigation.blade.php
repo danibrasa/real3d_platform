@@ -38,6 +38,11 @@
                                     Monedas
                                 </x-nav-link>
                             @endcan
+                            @can('manage-api-tokens')
+                                <x-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
+                                    API
+                                </x-nav-link>
+                            @endcan
                             @can('create-project')
                                 <x-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
                                     Estrategia
@@ -157,6 +162,11 @@
                     @can('manage-agents')
                         <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                             {{ auth()->user()->isSuperadmin() ? 'Usuarios' : 'Mis Agentes' }}
+                        </x-responsive-nav-link>
+                    @endcan
+                    @can('manage-api-tokens')
+                        <x-responsive-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
+                            API Tokens
                         </x-responsive-nav-link>
                     @endcan
                     @can('create-project')
