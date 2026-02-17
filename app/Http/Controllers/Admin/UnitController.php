@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Unit;
+use App\Services\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -164,7 +165,16 @@ class UnitController extends Controller
             abort(403, 'Los agentes solo pueden marcar unidades como reservadas.');
         }
 
+        $oldStatus = $unit->status;
         $unit->update($validated);
+
+        if ($oldStatus !== $validated['status']) {
+            WebhookService::dispatch('unit_status_changed', [
+                'unit_identifier' => $unit->identifier,
+                'old_status' => $oldStatus,
+                'new_status' => $unit->status,
+            ], $project->id);
+        }
 
         return back()->with('success', "Unidad {$unit->identifier} actualizada a {$validated['status']}.");
     }

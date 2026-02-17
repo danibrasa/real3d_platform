@@ -93,4 +93,24 @@ return [
     // WhatsApp
     'whatsapp_default_message' => "Hi, I'm interested in the :project project",
     'whatsapp_unit_message' => "Hi, I'm interested in unit :unit of the :project project",
+
+    // Payment flow
+    'payment_flow' => 'Payment flow',
+    'payment_flow_subtitle' => 'Learn about each step until unit delivery',
+    'milestone_reservation' => 'Reservation',
+    'milestone_signing' => 'Signing',
+    'milestone_construction' => 'Construction',
+    'milestone_delivery' => 'Delivery',
+    'milestone_other' => 'Other',
+    'cumulative' => 'Cumulative',
+    'amount' => 'Amount',
+    'estimated_date' => 'Est. date',
+    'download_payment_schedule' => 'Download payment schedule',
+    'simulate_with_price' => 'Simulate with unit price',
+    'payment_summary' => 'Payment summary',
+    'total' => 'Total',
+    'pdf_disclaimer' => 'Amounts and dates shown are estimates and subject to change. This document does not constitute a contractual commitment.',
+    'select_unit_to_simulate' => 'Select a unit to see amounts',
+    'milestone' => 'Milestone',
+    'when' => 'When',
 ];

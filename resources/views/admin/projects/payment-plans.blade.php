@@ -57,11 +57,23 @@
                     <div class="space-y-3 mb-4">
                         <template x-for="(ms, idx) in milestones" :key="idx">
                             <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold" x-text="idx + 1"></div>
-                                <div class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold"
+                                     :style="'background-color: ' + typeColor(ms.milestone_type, idx)"
+                                     x-text="idx + 1"></div>
+                                <div class="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3">
                                     <div>
                                         <label class="block text-xs text-gray-500 mb-1">Nombre *</label>
                                         <input type="text" :name="'milestones['+idx+'][name]'" x-model="ms.name" required placeholder="Ej: Reserva, Firma" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Tipo</label>
+                                        <select :name="'milestones['+idx+'][milestone_type]'" x-model="ms.milestone_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            <option value="reservation">Reserva</option>
+                                            <option value="signing">Firma</option>
+                                            <option value="construction">Construccion</option>
+                                            <option value="delivery">Entrega</option>
+                                            <option value="other">Otro</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-500 mb-1">Porcentaje *</label>
@@ -94,7 +106,7 @@
                         <div class="flex h-6 rounded-full overflow-hidden bg-gray-200">
                             <template x-for="(ms, idx) in milestones" :key="idx">
                                 <div class="flex items-center justify-center text-[10px] font-bold text-white transition-all"
-                                     :style="'width: ' + ms.percentage + '%; background-color: ' + colors[idx % colors.length]"
+                                     :style="'width: ' + ms.percentage + '%; background-color: ' + typeColor(ms.milestone_type, idx)"
                                      x-text="ms.percentage > 5 ? ms.percentage + '%' : ''">
                                 </div>
                             </template>
@@ -140,12 +152,32 @@
                         percentage: parseFloat(m.percentage),
                         description: m.description || '',
                         due_description: m.due_description || '',
+                        milestone_type: m.milestone_type || 'other',
                     }))
-                    : [{ name: '', percentage: 0, description: '', due_description: '' }],
-                colors: ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0891b2'],
+                    : [{ name: '', percentage: 0, description: '', due_description: '', milestone_type: 'other' }],
+
+                typeColorMap: {
+                    reservation: '#2563eb',
+                    signing: '#3b82f6',
+                    construction: '#d97706',
+                    delivery: '#059669',
+                    other: '#6b7280',
+                },
+
+                typeColor(type, idx) {
+                    if (type && type !== 'other') {
+                        return this.typeColorMap[type] || '#6b7280';
+                    }
+                    // Heuristic fallback
+                    const total = this.milestones.length;
+                    if (total <= 1) return '#6b7280';
+                    if (idx === 0) return '#2563eb';
+                    if (idx === total - 1) return '#059669';
+                    return '#d97706';
+                },
 
                 addMilestone() {
-                    this.milestones.push({ name: '', percentage: 0, description: '', due_description: '' });
+                    this.milestones.push({ name: '', percentage: 0, description: '', due_description: '', milestone_type: 'other' });
                 },
 
                 removeMilestone(idx) {

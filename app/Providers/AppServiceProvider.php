@@ -125,6 +125,15 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-api-tokens', function (User $user) {
             return $user->isSuperadmin();
         });
+
+        Gate::define('view-audit-logs', fn (User $user) => $user->isSuperadmin());
+
+        // SaaS feature gates
+        Gate::define('use-chatbot', fn (User $user) => $user->hasFeature('chatbot'));
+        Gate::define('use-analytics', fn (User $user) => $user->hasFeature('analytics'));
+        Gate::define('use-api', fn (User $user) => $user->hasFeature('api_access'));
+        Gate::define('use-embed-widget', fn (User $user) => $user->hasFeature('embed_widget'));
+        Gate::define('use-webhooks', fn (User $user) => $user->hasFeature('api_access'));
     }
 
     private function defineRateLimiters(): void

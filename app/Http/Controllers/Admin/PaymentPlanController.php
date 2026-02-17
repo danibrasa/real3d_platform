@@ -50,6 +50,7 @@ class PaymentPlanController extends Controller
             'milestones.*.percentage' => 'required|numeric|min:0|max:100',
             'milestones.*.description' => 'nullable|string|max:500',
             'milestones.*.due_description' => 'nullable|string|max:255',
+            'milestones.*.milestone_type' => 'nullable|in:reservation,signing,construction,delivery,other',
         ]);
 
         // If setting as default, unset others
@@ -70,6 +71,7 @@ class PaymentPlanController extends Controller
                 'percentage' => $ms['percentage'],
                 'description' => $ms['description'] ?? null,
                 'due_description' => $ms['due_description'] ?? null,
+                'milestone_type' => $ms['milestone_type'] ?? 'other',
                 'sort_order' => $i,
             ]);
         }

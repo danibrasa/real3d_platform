@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'role' => \App\Http\Middleware\EnsureRole::class,
             'token.project' => \App\Http\Middleware\EnsureTokenProjectAccess::class,
+            'feature' => \App\Http\Middleware\EnsureFeature::class,
+            'storage.quota' => \App\Http\Middleware\EnsureStorageQuota::class,
+            'onboarding' => \App\Http\Middleware\EnsureOnboardingComplete::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
@@ -26,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/viewer-events',
             'api/projects/*/chat',
             'api/projects/*/chat/lead',
+            'stripe/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

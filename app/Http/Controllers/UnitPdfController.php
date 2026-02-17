@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PaymentMilestone;
 use App\Models\Project;
 use App\Models\Unit;
+use App\Services\CurrencyService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class UnitPdfController extends Controller
 {
@@ -73,6 +76,86 @@ class UnitPdfController extends Controller
             ->setOption('defaultFont', 'sans-serif');
 
         $filename = 'ficha-' . $project->slug . '-' . $unit->identifier . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    public function paymentSchedule(Request $request, Project $project, Unit $unit)
+    {
+        if ($unit->project_id !== $project->id) {
+            abort(404);
+        }
+
+        $unit->load('typology');
+        $project->load('paymentPlans.milestones');
+
+        // Select plan
+        $planId = $request->query('plan');
+        if ($planId) {
+            $plan = $project->paymentPlans->firstWhere('id', $planId);
+        }
+        if (!isset($plan) || !$plan) {
+            $plan = $project->paymentPlans->firstWhere('is_default', true) ?? $project->paymentPlans->first();
+        }
+
+        if (!$plan || $plan->milestones->isEmpty()) {
+            abort(404, 'No payment plan available');
+        }
+
+        // Currency
+        $currencyCode = $request->query('currency', CurrencyService::getCurrentCode());
+        $currencyService = app(CurrencyService::class);
+        $formattedPrice = $unit->price ? $currencyService->format($unit->price, $currencyCode) : '-';
+
+        // Build milestones data with cumulative
+        $milestones = $plan->milestones->sortBy('sort_order')->values();
+        $total = $milestones->count();
+        $cumPct = 0;
+        $milestonesData = [];
+
+        foreach ($milestones as $i => $ms) {
+            $cumPct += $ms->percentage;
+            $amount = $unit->price ? $unit->price * $ms->percentage / 100 : 0;
+            $cumAmount = $unit->price ? $unit->price * $cumPct / 100 : 0;
+
+            $computedDate = null;
+            if ($project->estimated_delivery && $cumPct > 0) {
+                $totalMonths = now()->diffInMonths($project->estimated_delivery);
+                $computedDate = now()->addMonths(round($totalMonths * $cumPct / 100))->translatedFormat('M Y');
+            }
+
+            $milestonesData[] = [
+                'name' => $ms->name,
+                'pct' => $ms->percentage,
+                'cumPct' => $cumPct,
+                'due_description' => $ms->due_description,
+                'color' => $ms->phaseColor($i, $total),
+                'formattedAmount' => $unit->price ? $currencyService->format($amount, $currencyCode) : '-',
+                'formattedCumAmount' => $unit->price ? $currencyService->format($cumAmount, $currencyCode) : '-',
+                'computedDate' => $computedDate,
+            ];
+        }
+
+        // QR pointing to landing#planes-de-pago
+        $landingUrl = route('viewer.landing', $project->slug) . '#planes-de-pago';
+        $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+            ->size(120)
+            ->margin(0)
+            ->generate($landingUrl);
+
+        $pdf = Pdf::loadView('pdf.payment-schedule', compact(
+            'project',
+            'unit',
+            'plan',
+            'milestonesData',
+            'formattedPrice',
+            'qrSvg',
+            'landingUrl',
+        ))
+            ->setPaper('a4')
+            ->setOption('defaultFont', 'sans-serif');
+
+        $filename = 'plan-pagos-' . $project->slug . '-' . $unit->identifier . '.pdf';
 
         return $pdf->download($filename);
     }

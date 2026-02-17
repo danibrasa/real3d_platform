@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectSetting;
+use App\Services\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,14 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         Gate::authorize('create-project');
+
+        // Project quota check for inmobiliaria
+        $user = $request->user();
+        if ($user->isInmobiliaria() && $user->companyProfile) {
+            if (!$user->companyProfile->canCreateProject()) {
+                return back()->with('error', __('billing.project_limit_reached'));
+            }
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -124,7 +133,16 @@ class ProjectController extends Controller
             abort(403);
         }
 
+        $oldStatus = $project->status;
         $project->update($validated);
+
+        // Dispatch webhook if project was just published
+        if (isset($validated['status']) && $validated['status'] === 'public' && $oldStatus !== 'public') {
+            WebhookService::dispatch('project_published', [
+                'project_slug' => $project->slug,
+                'project_name' => $project->name,
+            ], $project->id);
+        }
 
         return redirect()->route('admin.projects.edit', $project)
             ->with('success', 'Proyecto actualizado.');

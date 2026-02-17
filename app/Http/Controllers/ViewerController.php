@@ -25,7 +25,7 @@ class ViewerController extends Controller
 
     public function index()
     {
-        $query = Project::with(['files', 'units' => fn ($q) => $q->where('status', 'available')->select('id', 'project_id', 'price', 'status')])->withCount([
+        $query = Project::with(['files', 'assignedAgencies.companyProfile', 'units' => fn ($q) => $q->where('status', 'available')->select('id', 'project_id', 'price', 'status')])->withCount([
             'units',
             'units as available_units_count' => function ($q) {
                 $q->where('status', 'available');

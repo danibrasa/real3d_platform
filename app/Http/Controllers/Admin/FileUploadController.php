@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\UploadChunk;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -78,6 +79,15 @@ class FileUploadController extends Controller
             ->where('project_id', $project->id)
             ->firstOrFail();
 
+        // Storage quota check for inmobiliaria tenants
+        $agency = $project->assignedAgencies()->first();
+        if ($agency) {
+            $company = $agency->companyProfile;
+            if ($company && !$company->hasStorageAvailable($upload->total_size ?? 0)) {
+                return response()->json(['error' => __('billing.storage_quota_exceeded')], 403);
+            }
+        }
+
         // Determine destination path
         $typeDir = match($upload->file_type) {
             'video_360' => 'video',
@@ -123,6 +133,12 @@ class FileUploadController extends Controller
             'file_size' => filesize($destFullPath),
             'upload_complete' => true,
         ]);
+
+        // Recalculate storage for tenant
+        $agency = $project->assignedAgencies()->first();
+        if ($agency?->companyProfile) {
+            $agency->companyProfile->recalculateStorage();
+        }
 
         // Cleanup temp chunks
         Storage::deleteDirectory($upload->temp_directory);

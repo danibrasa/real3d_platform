@@ -869,6 +869,11 @@
                         }
                     }
 
+                    // Dispatch price to payment plans simulator
+                    window.dispatchEvent(new CustomEvent('unit-selected-price', {
+                        detail: { price: parseFloat(d.unitRawPrice) }
+                    }));
+
                     // Show modal
                     document.getElementById('modal-title').textContent = 'Unidad ' + d.unitName;
 

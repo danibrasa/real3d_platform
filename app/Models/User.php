@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, Auditable, Billable, HasFactory, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
     const ROLE_GESTOR = 'gestor';
@@ -86,6 +89,27 @@ class User extends Authenticatable
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles);
+    }
+
+    // --- Company Profile (SaaS) ---
+
+    public function companyProfile(): HasOne
+    {
+        return $this->hasOne(CompanyProfile::class);
+    }
+
+    public function hasFeature(string $feature): bool
+    {
+        if ($this->isSuperadmin() || $this->isGestor()) {
+            return true;
+        }
+        if ($this->isInmobiliaria()) {
+            return $this->companyProfile?->hasFeature($feature) ?? false;
+        }
+        if ($this->isAgente() && $this->agency_id) {
+            return User::find($this->agency_id)?->companyProfile?->hasFeature($feature) ?? false;
+        }
+        return false;
     }
 
     // --- Relationships ---

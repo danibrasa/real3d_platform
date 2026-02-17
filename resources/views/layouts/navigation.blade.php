@@ -48,6 +48,24 @@
                                     Estrategia
                                 </x-nav-link>
                             @endcan
+                            @if(auth()->user()->isInmobiliaria())
+                                <x-nav-link :href="route('admin.company-profile.edit')" :active="request()->routeIs('admin.company-profile.*')">
+                                    {{ __('billing.my_company') }}
+                                </x-nav-link>
+                                <x-nav-link :href="route('admin.subscription.index')" :active="request()->routeIs('admin.subscription.*')">
+                                    {{ __('billing.subscription') }}
+                                </x-nav-link>
+                                @if(auth()->user()->hasFeature('api_access'))
+                                    <x-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
+                                        Webhooks
+                                    </x-nav-link>
+                                @endif
+                            @endif
+                            @can('view-audit-logs')
+                                <x-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
+                                    Audit Log
+                                </x-nav-link>
+                            @endcan
                         @endif
                     @endauth
                     <x-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">
@@ -172,6 +190,19 @@
                     @can('create-project')
                         <x-responsive-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
                             Estrategia
+                        </x-responsive-nav-link>
+                    @endcan
+                    @if(auth()->user()->isInmobiliaria())
+                        <x-responsive-nav-link :href="route('admin.company-profile.edit')" :active="request()->routeIs('admin.company-profile.*')">
+                            {{ __('billing.my_company') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.subscription.index')" :active="request()->routeIs('admin.subscription.*')">
+                            {{ __('billing.subscription') }}
+                        </x-responsive-nav-link>
+                    @endif
+                    @can('view-audit-logs')
+                        <x-responsive-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
+                            Audit Log
                         </x-responsive-nav-link>
                     @endcan
                 @endif

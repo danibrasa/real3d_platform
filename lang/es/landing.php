@@ -93,4 +93,24 @@ return [
     // WhatsApp
     'whatsapp_default_message' => 'Hola, me interesa el proyecto :project',
     'whatsapp_unit_message' => 'Hola, me interesa la unidad :unit del proyecto :project',
+
+    // Payment flow
+    'payment_flow' => 'Flujo de pagos',
+    'payment_flow_subtitle' => 'Conoce cada paso hasta la entrega de tu unidad',
+    'milestone_reservation' => 'Reserva',
+    'milestone_signing' => 'Firma',
+    'milestone_construction' => 'Construccion',
+    'milestone_delivery' => 'Entrega',
+    'milestone_other' => 'Otro',
+    'cumulative' => 'Acumulado',
+    'amount' => 'Monto',
+    'estimated_date' => 'Fecha est.',
+    'download_payment_schedule' => 'Descargar plan de pagos',
+    'simulate_with_price' => 'Simular con precio de unidad',
+    'payment_summary' => 'Resumen de pagos',
+    'total' => 'Total',
+    'pdf_disclaimer' => 'Los montos y fechas indicados son estimativos y sujetos a modificacion. Este documento no constituye un compromiso contractual.',
+    'select_unit_to_simulate' => 'Selecciona una unidad para ver montos',
+    'milestone' => 'Hito',
+    'when' => 'Cuando',
 ];

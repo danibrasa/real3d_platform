@@ -332,29 +332,68 @@
         {{-- Payment plan --}}
         @php
             $defaultPlan = $project->paymentPlans->firstWhere('is_default', true) ?? $project->paymentPlans->first();
+            $brochureColorMap = [
+                'blue'  => '#2563eb',
+                'amber' => '#d97706',
+                'green' => '#059669',
+                'gray'  => '#6b7280',
+            ];
         @endphp
         @if($defaultPlan && $defaultPlan->milestones->count())
         <div class="section-title">Plan de Pago — {{ $defaultPlan->name }}</div>
-        <table class="data-grid" style="margin-bottom: 12px;">
-            @foreach($defaultPlan->milestones as $ms)
+
+        {{-- Progress bar --}}
+        @php
+            $brochureMilestones = $defaultPlan->milestones->sortBy('sort_order')->values();
+            $brochureTotal = $brochureMilestones->count();
+        @endphp
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
             <tr>
-                <td class="data-label" style="width: 40%;">{{ $ms->name }}@if($ms->due_description) <span style="font-weight: normal; font-size: 7pt;"><br>{{ $ms->due_description }}</span>@endif</td>
-                <td class="data-value" style="text-align: center; width: 15%; font-weight: bold; color: #1e40af;">{{ number_format($ms->percentage, 0) }}%</td>
-                <td class="data-value" style="width: 45%;">
+                @foreach($brochureMilestones as $bIdx => $bMs)
+                @php
+                    $bColor = $bMs->phaseColor($bIdx, $brochureTotal);
+                    $bBarColor = $brochureColorMap[$bColor] ?? '#6b7280';
+                    $bRadius = '';
+                    if ($brochureTotal === 1) $bRadius = 'border-radius: 8px;';
+                    elseif ($bIdx === 0) $bRadius = 'border-radius: 8px 0 0 8px;';
+                    elseif ($bIdx === $brochureTotal - 1) $bRadius = 'border-radius: 0 8px 8px 0;';
+                @endphp
+                <td style="width: {{ $bMs->percentage }}%; background-color: {{ $bBarColor }}; height: 12px; text-align: center; font-size: 7pt; font-weight: bold; color: #fff; {{ $bRadius }}">
+                    @if($bMs->percentage > 8){{ number_format($bMs->percentage, 0) }}%@endif
+                </td>
+                @endforeach
+            </tr>
+        </table>
+
+        {{-- Milestones table with cumulative --}}
+        @php $brochureCumPct = 0; @endphp
+        <table class="data-grid" style="margin-bottom: 12px;">
+            @foreach($brochureMilestones as $bIdx => $bMs)
+            @php
+                $brochureCumPct += $bMs->percentage;
+                $bColor = $bMs->phaseColor($bIdx, $brochureTotal);
+                $bBarColor = $brochureColorMap[$bColor] ?? '#6b7280';
+            @endphp
+            <tr>
+                <td class="data-label" style="width: 35%; border-left: 3px solid {{ $bBarColor }};">{{ $bMs->name }}@if($bMs->due_description) <span style="font-weight: normal; font-size: 7pt;"><br>{{ $bMs->due_description }}</span>@endif</td>
+                <td class="data-value" style="text-align: center; width: 10%; font-weight: bold; color: #1e40af;">{{ number_format($bMs->percentage, 0) }}%</td>
+                <td class="data-value" style="width: 25%;">
                     @if($unit->price)
-                        USD {{ number_format($unit->price * $ms->percentage / 100, 0, '.', ',') }}
+                        USD {{ number_format($unit->price * $bMs->percentage / 100, 0, '.', ',') }}
                     @endif
-                    @if($ms->description)
-                        <span style="font-size: 8pt; color: #6b7280;">— {{ $ms->description }}</span>
+                </td>
+                <td class="data-value" style="width: 30%; font-size: 9pt; color: #6b7280;">
+                    @if($unit->price)
+                        USD {{ number_format($unit->price * $brochureCumPct / 100, 0, '.', ',') }} ({{ number_format($brochureCumPct, 0) }}%)
                     @endif
                 </td>
             </tr>
             @endforeach
             @if($unit->price)
             <tr>
-                <td class="data-label" style="font-weight: bold;">TOTAL</td>
-                <td class="data-value" style="text-align: center; font-weight: bold;">{{ number_format($defaultPlan->milestones->sum('percentage'), 0) }}%</td>
-                <td class="data-value" style="font-weight: bold; color: #1e40af;">{{ $unit->formatted_price }}</td>
+                <td class="data-label" style="font-weight: bold; background-color: #dbeafe;">TOTAL</td>
+                <td class="data-value" style="text-align: center; font-weight: bold; background-color: #dbeafe;">{{ number_format($defaultPlan->milestones->sum('percentage'), 0) }}%</td>
+                <td class="data-value" style="font-weight: bold; color: #1e40af; background-color: #dbeafe;" colspan="2">{{ $unit->formatted_price }}</td>
             </tr>
             @endif
         </table>

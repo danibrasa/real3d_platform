@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController as AdminInquiryController;
@@ -13,11 +15,16 @@ use App\Http\Controllers\Admin\ConstructionProgressController;
 use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\StrategicAnalysisController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypologyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WebhookController;
+use App\Http\Controllers\Auth\OnboardingController;
+use App\Http\Controllers\DeveloperDirectoryController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\ViewerController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ProjectApiController;
@@ -35,13 +42,19 @@ Route::get('/', [ViewerController::class, 'welcome'])->name('welcome');
 
 // Dashboard route (Breeze redirects here after login)
 Route::get('/dashboard', function () {
-    return auth()->user()->hasAdminAccess()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('viewer.index');
+    $user = auth()->user();
+    if ($user->hasAdminAccess()) {
+        // If inmobiliaria without company profile, redirect to onboarding
+        if ($user->isInmobiliaria() && !$user->companyProfile) {
+            return redirect()->route('onboarding.company');
+        }
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('viewer.index');
 })->middleware('auth')->name('dashboard');
 
 // Admin routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectController::class);
     Route::put('projects/{project}/settings', [ProjectSettingsController::class, 'update'])
@@ -103,20 +116,60 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('notifications/recent', [NotificationController::class, 'recent'])->name('notifications.recent');
 
     // Analytics
-    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
-    Route::get('analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index')->middleware('feature:analytics');
+    Route::get('analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data')->middleware('feature:analytics');
 
     // Currencies
     Route::get('currencies', [CurrencyController::class, 'index'])->name('currencies.index');
     Route::put('currencies', [CurrencyController::class, 'update'])->name('currencies.update');
 
     // API Tokens
-    Route::resource('api-tokens', ApiTokenController::class)->except('show');
+    Route::resource('api-tokens', ApiTokenController::class)->except('show')->middleware('feature:api_access');
 
     // Strategic Analysis
     Route::get('strategic-analysis', [StrategicAnalysisController::class, 'index'])->name('strategic-analysis.index');
     Route::get('strategic-analysis/pdf', [StrategicAnalysisController::class, 'downloadPdf'])->name('strategic-analysis.pdf');
+
+    // Audit Logs
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // Company Profile
+    Route::get('company-profile', [CompanyProfileController::class, 'edit'])->name('company-profile.edit');
+    Route::put('company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
+
+    // Subscription / Billing
+    Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::post('subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+    Route::get('subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
+    Route::post('subscription/portal', [SubscriptionController::class, 'portal'])->name('subscription.portal');
+    Route::post('subscription/change-plan', [SubscriptionController::class, 'changePlan'])->name('subscription.change-plan');
+
+    // Webhooks
+    Route::resource('webhooks', WebhookController::class)->except('show')->middleware('feature:api_access');
+    Route::get('webhooks/{webhook}/deliveries', [WebhookController::class, 'deliveries'])->name('webhooks.deliveries');
 });
+
+// Stripe Webhook (no CSRF, no auth)
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('stripe.webhook');
+
+// Registro SaaS
+Route::middleware('guest')->group(function () {
+    Route::get('register/business', [OnboardingController::class, 'showRegistrationForm'])->name('register.business');
+    Route::post('register/business', [OnboardingController::class, 'register']);
+});
+
+// Onboarding (auth, NO admin middleware)
+Route::middleware('auth')->prefix('onboarding')->name('onboarding.')->group(function () {
+    Route::get('company', [OnboardingController::class, 'showCompanyForm'])->name('company');
+    Route::post('company', [OnboardingController::class, 'storeCompany'])->name('company.store');
+    Route::get('plan', [OnboardingController::class, 'showPlanSelection'])->name('plan');
+    Route::post('plan', [OnboardingController::class, 'selectPlan'])->name('plan.select');
+    Route::get('complete', [OnboardingController::class, 'complete'])->name('complete');
+});
+
+// Developer Directory
+Route::get('/developers', [DeveloperDirectoryController::class, 'index'])->name('directory.index');
+Route::get('/developers/{developer:slug}', [DeveloperDirectoryController::class, 'show'])->name('directory.show');
 
 // API routes (access control handled in controller)
 Route::prefix('api')->group(function () {
@@ -141,6 +194,7 @@ Route::get('/embed/{slug}', [EmbedController::class, 'show'])->name('embed.show'
 Route::get('/projects', [ViewerController::class, 'index'])->name('viewer.index');
 Route::get('/projects/{project:slug}/info', [ViewerController::class, 'landing'])->name('viewer.landing');
 Route::get('/projects/{project:slug}/units/{unit}/pdf', [UnitPdfController::class, 'generate'])->name('viewer.unit.pdf');
+Route::get('/projects/{project:slug}/units/{unit}/payment-schedule', [UnitPdfController::class, 'paymentSchedule'])->name('viewer.payment-schedule.pdf');
 Route::post('/projects/{project:slug}/inquiry', [InquiryController::class, 'store'])->name('viewer.inquiry');
 Route::get('/projects/{project:slug}', [ViewerController::class, 'show'])->name('viewer.show');
 

@@ -53,6 +53,7 @@
                 <div class="hidden md:flex items-center gap-8">
                     <a href="#features" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Caracteristicas</a>
                     <a href="#projects" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Proyectos</a>
+                    <a href="#pricing" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Precios</a>
                     <a href="#tech" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Tecnologia</a>
                     <a href="#contact" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Contacto</a>
                 </div>
@@ -411,6 +412,9 @@
         </div>
     </section>
 
+    {{-- Pricing Section --}}
+    <x-pricing-section />
+
     {{-- CTA Section --}}
     <section class="relative py-24 lg:py-32 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-cyan-500/10"></div>
@@ -424,7 +428,7 @@
             <h2 class="text-3xl sm:text-4xl font-bold mb-6">Listo para transformar tu negocio inmobiliario?</h2>
             <p class="text-lg text-slate-400 mb-10 max-w-xl mx-auto">Lleva tus proyectos al siguiente nivel con visualizacion 3D interactiva y herramientas de gestion avanzadas.</p>
             @guest
-                <a href="{{ route('register') }}" class="btn-glow animate-glow-pulse px-8 py-4 rounded-xl text-lg font-semibold text-white inline-flex items-center gap-2">
+                <a href="{{ route('register.business') }}" class="btn-glow animate-glow-pulse px-8 py-4 rounded-xl text-lg font-semibold text-white inline-flex items-center gap-2">
                     Comenzar Ahora
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>

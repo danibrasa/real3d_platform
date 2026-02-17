@@ -7,6 +7,7 @@ use App\Mail\NewInquiryNotification;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -26,6 +27,15 @@ class InquiryController extends Controller
 
         $inquiry = Inquiry::create($validated);
         $inquiry->load(['project', 'unit']);
+
+        WebhookService::dispatch('inquiry_created', [
+            'inquiry_id' => $inquiry->id,
+            'project_slug' => $project->slug,
+            'name' => $inquiry->name,
+            'email' => $inquiry->email,
+            'phone' => $inquiry->phone,
+            'unit_id' => $inquiry->unit_id,
+        ], $project->id);
 
         // QW1: Notify project contact + superadmins
         $recipients = collect();
