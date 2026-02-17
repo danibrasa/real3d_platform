@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /projects
+Allow: /projects/*
+
+Disallow: /admin/
+Disallow: /api/
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard
+
+Sitemap: https://realestate3d.com/sitemap.xml
