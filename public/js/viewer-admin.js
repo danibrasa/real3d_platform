@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 const state = {
     scene: null, camera: null, renderer: null, controls: null, clock: new THREE.Clock(),
@@ -237,44 +238,62 @@ function loadVideoFromURL(url) {
 // =============================================================
 //  Model Loading
 // =============================================================
+function getModelFormat(url) {
+    const clean = url.split('?')[0].split('#')[0];
+    const ext = clean.split('.').pop().toLowerCase();
+    if (ext === 'fbx') return 'fbx';
+    return 'gltf';
+}
+
+function setupLoadedModel(model, animations) {
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scaleFactor = 20 / maxDim;
+    model.scale.setScalar(scaleFactor);
+    model.position.x = -center.x * scaleFactor;
+    model.position.z = -center.z * scaleFactor;
+    model.position.y = -box.min.y * scaleFactor;
+
+    model.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+    model.userData.baseScale = scaleFactor;
+    model.userData.baseY = model.position.y;
+
+    state.currentModel = model;
+    state.scene.add(model);
+
+    if (animations?.length > 0) {
+        state.modelMixer = new THREE.AnimationMixer(model);
+        animations.forEach((clip) => state.modelMixer.clipAction(clip).play());
+    }
+
+    if (pendingSettings) {
+        applyModelSettings(pendingSettings);
+        pendingSettings = null;
+    }
+}
+
 function loadModelFromURL(url) {
     if (state.currentModel) { state.scene.remove(state.currentModel); state.currentModel = null; state.modelMixer = null; }
 
-    const loader = new GLTFLoader();
-    const draco = new DRACOLoader();
-    draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/draco/');
-    loader.setDRACOLoader(draco);
+    const format = getModelFormat(url);
 
-    loader.load(url, (gltf) => {
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scaleFactor = 20 / maxDim;
-        model.scale.setScalar(scaleFactor);
-        model.position.x = -center.x * scaleFactor;
-        model.position.z = -center.z * scaleFactor;
-        model.position.y = -box.min.y * scaleFactor;
-
-        model.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-        model.userData.baseScale = scaleFactor;
-        model.userData.baseY = model.position.y;
-
-        state.currentModel = model;
-        state.scene.add(model);
-
-        if (gltf.animations?.length > 0) {
-            state.modelMixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach((clip) => state.modelMixer.clipAction(clip).play());
-        }
-
-        if (pendingSettings) {
-            applyModelSettings(pendingSettings);
-            pendingSettings = null;
-        }
-    }, undefined, (err) => { console.error('Error loading model:', err); });
+    if (format === 'fbx') {
+        const loader = new FBXLoader();
+        loader.load(url, (group) => {
+            setupLoadedModel(group, group.animations);
+        }, undefined, (err) => { console.error('Error loading model:', err); });
+    } else {
+        const loader = new GLTFLoader();
+        const draco = new DRACOLoader();
+        draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/draco/');
+        loader.setDRACOLoader(draco);
+        loader.load(url, (gltf) => {
+            setupLoadedModel(gltf.scene, gltf.animations);
+        }, undefined, (err) => { console.error('Error loading model:', err); });
+    }
 }
 
 // =============================================================

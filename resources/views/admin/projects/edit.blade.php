@@ -240,12 +240,12 @@
 
                         <!-- Modelo 3D -->
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Modelo 3D (.glb / .gltf)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Modelo 3D (.glb / .gltf / .fbx)</label>
                             @php $modelFile = $project->getFileByType('model_3d'); @endphp
                             @if($modelFile)
                                 <div class="text-xs text-green-600 mb-1">{{ $modelFile->original_name }} ({{ number_format($modelFile->file_size / 1048576, 1) }} MB)</div>
                             @endif
-                            <input type="file" accept=".glb,.gltf" class="upload-input w-full text-sm" data-file-type="model_3d" data-project-id="{{ $project->id }}">
+                            <input type="file" accept=".glb,.gltf,.fbx" class="upload-input w-full text-sm" data-file-type="model_3d" data-project-id="{{ $project->id }}">
                             <div class="upload-progress hidden mt-1"><div class="h-2 bg-blue-200 rounded overflow-hidden"><div class="h-full bg-blue-600 rounded transition-all" style="width: 0%"></div></div></div>
                         </div>
 

@@ -155,6 +155,7 @@ class FileUploadController extends Controller
             'webm' => 'video/webm',
             'glb' => 'model/gltf-binary',
             'gltf' => 'model/gltf+json',
+            'fbx' => 'application/octet-stream',
             'png' => 'image/png',
             'jpg', 'jpeg' => 'image/jpeg',
             'webp' => 'image/webp',

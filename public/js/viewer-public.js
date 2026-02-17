@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 // =============================================================
 //  Device Detection & Quality Tiers
@@ -293,73 +294,98 @@ function loadVideoFromURL(url) {
 // =============================================================
 //  Model Loading
 // =============================================================
+function getModelFormat(url) {
+    const clean = url.split('?')[0].split('#')[0];
+    const ext = clean.split('.').pop().toLowerCase();
+    if (ext === 'fbx') return 'fbx';
+    return 'gltf'; // glb and gltf both use GLTFLoader
+}
+
+function setupLoadedModel(model, animations) {
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scaleFactor = 20 / maxDim;
+    model.scale.setScalar(scaleFactor);
+    model.position.x = -center.x * scaleFactor;
+    model.position.z = -center.z * scaleFactor;
+    model.position.y = -box.min.y * scaleFactor;
+
+    model.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+    model.userData.baseScale = scaleFactor;
+    model.userData.baseY = model.position.y;
+
+    state.currentModel = model;
+    state.scene.add(model);
+
+    // Compute world-space bounds after positioning
+    const worldBox = new THREE.Box3().setFromObject(model);
+    const worldSize = worldBox.getSize(new THREE.Vector3());
+    const worldCenter = worldBox.getCenter(new THREE.Vector3());
+    state.modelBounds = {
+        min: { x: worldBox.min.x, y: worldBox.min.y, z: worldBox.min.z },
+        max: { x: worldBox.max.x, y: worldBox.max.y, z: worldBox.max.z },
+        size: { x: worldSize.x, y: worldSize.y, z: worldSize.z },
+        center: { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z },
+    };
+
+    if (animations?.length > 0) {
+        state.modelMixer = new THREE.AnimationMixer(model);
+        animations.forEach((clip) => state.modelMixer.clipAction(clip).play());
+    }
+
+    // Apply pending settings now that model is loaded
+    if (pendingSettings) {
+        applyModelSettings(pendingSettings);
+        // Recompute bounds after settings (scale/elevation may have changed)
+        updateModelBounds();
+        pendingSettings = null;
+    }
+
+    // Process pending units now that model is loaded
+    if (state.pendingUnits) {
+        processRegisteredUnits();
+        state.pendingUnits = null;
+    }
+
+    checkAllLoaded();
+}
+
+function onModelProgress(progress) {
+    if (progress.lengthComputable) {
+        const pct = Math.round((progress.loaded / progress.total) * 100);
+        setLoading('Cargando modelo 3D... ' + pct + '%');
+        setProgress(pct);
+    }
+}
+
+function onModelError(err) {
+    console.error('Error loading model:', err);
+    setLoading('Error cargando modelo.');
+}
+
 function loadModelFromURL(url) {
     setLoading('Cargando modelo 3D...');
     if (state.currentModel) { state.scene.remove(state.currentModel); state.currentModel = null; state.modelMixer = null; }
 
-    const loader = new GLTFLoader();
-    const draco = new DRACOLoader();
-    draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/draco/');
-    loader.setDRACOLoader(draco);
+    const format = getModelFormat(url);
 
-    loader.load(url, (gltf) => {
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scaleFactor = 20 / maxDim;
-        model.scale.setScalar(scaleFactor);
-        model.position.x = -center.x * scaleFactor;
-        model.position.z = -center.z * scaleFactor;
-        model.position.y = -box.min.y * scaleFactor;
-
-        model.traverse((child) => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-        model.userData.baseScale = scaleFactor;
-        model.userData.baseY = model.position.y;
-
-        state.currentModel = model;
-        state.scene.add(model);
-
-        // Compute world-space bounds after positioning
-        const worldBox = new THREE.Box3().setFromObject(model);
-        const worldSize = worldBox.getSize(new THREE.Vector3());
-        const worldCenter = worldBox.getCenter(new THREE.Vector3());
-        state.modelBounds = {
-            min: { x: worldBox.min.x, y: worldBox.min.y, z: worldBox.min.z },
-            max: { x: worldBox.max.x, y: worldBox.max.y, z: worldBox.max.z },
-            size: { x: worldSize.x, y: worldSize.y, z: worldSize.z },
-            center: { x: worldCenter.x, y: worldCenter.y, z: worldCenter.z },
-        };
-
-        if (gltf.animations?.length > 0) {
-            state.modelMixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach((clip) => state.modelMixer.clipAction(clip).play());
-        }
-
-        // Apply pending settings now that model is loaded
-        if (pendingSettings) {
-            applyModelSettings(pendingSettings);
-            // Recompute bounds after settings (scale/elevation may have changed)
-            updateModelBounds();
-            pendingSettings = null;
-        }
-
-        // Process pending units now that model is loaded
-        if (state.pendingUnits) {
-            processRegisteredUnits();
-            state.pendingUnits = null;
-        }
-
-        checkAllLoaded();
-    }, (progress) => {
-        if (progress.lengthComputable) {
-            const pct = Math.round((progress.loaded / progress.total) * 100);
-            setLoading('Cargando modelo 3D... ' + pct + '%');
-            setProgress(pct);
-        }
-    }, (err) => { console.error('Error loading model:', err); setLoading('Error cargando modelo.'); });
+    if (format === 'fbx') {
+        const loader = new FBXLoader();
+        loader.load(url, (group) => {
+            setupLoadedModel(group, group.animations);
+        }, onModelProgress, onModelError);
+    } else {
+        const loader = new GLTFLoader();
+        const draco = new DRACOLoader();
+        draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/draco/');
+        loader.setDRACOLoader(draco);
+        loader.load(url, (gltf) => {
+            setupLoadedModel(gltf.scene, gltf.animations);
+        }, onModelProgress, onModelError);
+    }
 }
 
 function updateModelBounds() {
