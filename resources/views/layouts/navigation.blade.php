@@ -8,68 +8,89 @@
                     </a>
                 </div>
 
+                {{-- Desktop Navigation --}}
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     @auth
                         @if(auth()->user()->hasAdminAccess())
+                            {{-- Core --}}
                             <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                                 Dashboard
                             </x-nav-link>
                             <x-nav-link :href="route('admin.projects.index')" :active="request()->routeIs('admin.projects.*')">
-                                Proyectos
+                                {{ __('general.projects') }}
                             </x-nav-link>
                             @can('view-inquiries')
                                 <x-nav-link :href="route('admin.inquiries.index')" :active="request()->routeIs('admin.inquiries.*')">
-                                    Consultas
+                                    {{ __('general.inquiries') }}
                                     @if(($unreadInquiries ?? 0) > 0)
                                         <span class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">{{ $unreadInquiries }}</span>
                                     @endif
                                 </x-nav-link>
                             @endcan
-                            <x-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
-                                Analytics
-                            </x-nav-link>
+
+                            {{-- Business --}}
+                            @can('use-analytics')
+                                <x-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
+                                    Analytics
+                                </x-nav-link>
+                            @endcan
                             @can('manage-agents')
                                 <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                                    {{ auth()->user()->isSuperadmin() ? 'Usuarios' : 'Mis Agentes' }}
+                                    {{ auth()->user()->isSuperadmin() ? __('general.users') : __('general.my_agents') }}
                                 </x-nav-link>
                             @endcan
-                            @can('manage-currencies')
-                                <x-nav-link :href="route('admin.currencies.index')" :active="request()->routeIs('admin.currencies.*')">
-                                    Monedas
-                                </x-nav-link>
-                            @endcan
+
+                            {{-- Integrations --}}
                             @can('manage-api-tokens')
                                 <x-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
                                     API
                                 </x-nav-link>
                             @endcan
-                            @can('create-project')
-                                <x-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
-                                    Estrategia
+                            @can('use-webhooks')
+                                @if(auth()->user()->isSuperadmin() || auth()->user()->isInmobiliaria())
+                                    <x-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
+                                        Webhooks
+                                    </x-nav-link>
+                                @endif
+                            @endcan
+
+                            {{-- Platform admin --}}
+                            @can('manage-currencies')
+                                <x-nav-link :href="route('admin.currencies.index')" :active="request()->routeIs('admin.currencies.*')">
+                                    {{ __('general.currencies') }}
                                 </x-nav-link>
                             @endcan
-                            @if(auth()->user()->isInmobiliaria())
+                            @can('create-project')
+                                <x-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
+                                    {{ __('general.strategy') }}
+                                </x-nav-link>
+                            @endcan
+                            @can('view-audit-logs')
+                                <x-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
+                                    Audit Log
+                                </x-nav-link>
+                            @endcan
+
+                            {{-- Tenant / Companies --}}
+                            @if(auth()->user()->isSuperadmin())
+                                <x-nav-link :href="route('admin.companies.index')" :active="request()->routeIs('admin.companies.*')">
+                                    {{ __('billing.companies') }}
+                                </x-nav-link>
+                                <x-nav-link :href="route('admin.subscriptions.index')" :active="request()->routeIs('admin.subscriptions.*')">
+                                    {{ __('billing.subscriptions_nav') }}
+                                </x-nav-link>
+                            @elseif(auth()->user()->isInmobiliaria())
                                 <x-nav-link :href="route('admin.company-profile.edit')" :active="request()->routeIs('admin.company-profile.*')">
                                     {{ __('billing.my_company') }}
                                 </x-nav-link>
                                 <x-nav-link :href="route('admin.subscription.index')" :active="request()->routeIs('admin.subscription.*')">
                                     {{ __('billing.subscription') }}
                                 </x-nav-link>
-                                @if(auth()->user()->hasFeature('api_access'))
-                                    <x-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
-                                        Webhooks
-                                    </x-nav-link>
-                                @endif
                             @endif
-                            @can('view-audit-logs')
-                                <x-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
-                                    Audit Log
-                                </x-nav-link>
-                            @endcan
                         @endif
                     @endauth
                     <x-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">
-                        Ver Proyectos
+                        {{ __('general.view_projects') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -93,12 +114,12 @@
                              class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden"
                              style="display: none;">
                             <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                                <span class="text-sm font-semibold text-gray-700">Notificaciones</span>
-                                <span x-show="unread > 0" class="text-xs text-gray-500" x-text="unread + ' sin leer'"></span>
+                                <span class="text-sm font-semibold text-gray-700">{{ __('general.notifications') }}</span>
+                                <span x-show="unread > 0" class="text-xs text-gray-500" x-text="unread + ' {{ __('general.unread') }}'"></span>
                             </div>
                             <div class="max-h-64 overflow-y-auto">
                                 <template x-if="recentItems.length === 0">
-                                    <div class="px-4 py-6 text-center text-sm text-gray-400">Sin notificaciones nuevas</div>
+                                    <div class="px-4 py-6 text-center text-sm text-gray-400">{{ __('general.no_notifications') }}</div>
                                 </template>
                                 <template x-for="item in recentItems" :key="item.id">
                                     <a :href="'{{ route('admin.inquiries.index') }}'" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50 transition">
@@ -116,7 +137,7 @@
                                 </template>
                             </div>
                             <a href="{{ route('admin.inquiries.index') }}" class="block px-4 py-2.5 text-center text-xs font-medium text-blue-600 hover:bg-gray-50 border-t border-gray-100">
-                                Ver todas las consultas
+                                {{ __('general.view_all_inquiries') }}
                             </a>
                         </div>
                     </div>
@@ -137,17 +158,17 @@
                             @if(auth()->user()->hasAdminAccess())
                                 <x-dropdown-link :href="route('admin.dashboard')">Admin Panel</x-dropdown-link>
                             @endif
-                            <x-dropdown-link :href="route('profile.edit')">Perfil</x-dropdown-link>
+                            <x-dropdown-link :href="route('profile.edit')">{{ __('general.profile') }}</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                                    Cerrar Sesion
+                                    {{ __('general.logout') }}
                                 </x-dropdown-link>
                             </form>
                         </x-slot>
                     </x-dropdown>
                 @else
-                    <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-gray-900">Iniciar sesion</a>
+                    <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('general.login') }}</a>
                 @endauth
             </div>
 
@@ -162,37 +183,79 @@
         </div>
     </div>
 
+    {{-- Mobile Navigation --}}
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             @auth
                 @if(auth()->user()->hasAdminAccess())
-                    <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('admin.projects.index')" :active="request()->routeIs('admin.projects.*')">Proyectos</x-responsive-nav-link>
+                    {{-- Core --}}
+                    <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        Dashboard
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.projects.index')" :active="request()->routeIs('admin.projects.*')">
+                        {{ __('general.projects') }}
+                    </x-responsive-nav-link>
                     @can('view-inquiries')
                         <x-responsive-nav-link :href="route('admin.inquiries.index')" :active="request()->routeIs('admin.inquiries.*')">
-                            Consultas
+                            {{ __('general.inquiries') }}
                             @if(($unreadInquiries ?? 0) > 0)
                                 <span class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">{{ $unreadInquiries }}</span>
                             @endif
                         </x-responsive-nav-link>
                     @endcan
-                    <x-responsive-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">Analytics</x-responsive-nav-link>
-                    @can('manage-agents')
-                        <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                            {{ auth()->user()->isSuperadmin() ? 'Usuarios' : 'Mis Agentes' }}
+
+                    {{-- Business --}}
+                    @can('use-analytics')
+                        <x-responsive-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
+                            Analytics
                         </x-responsive-nav-link>
                     @endcan
+                    @can('manage-agents')
+                        <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                            {{ auth()->user()->isSuperadmin() ? __('general.users') : __('general.my_agents') }}
+                        </x-responsive-nav-link>
+                    @endcan
+
+                    {{-- Integrations --}}
                     @can('manage-api-tokens')
                         <x-responsive-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
                             API Tokens
                         </x-responsive-nav-link>
                     @endcan
-                    @can('create-project')
-                        <x-responsive-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
-                            Estrategia
+                    @can('use-webhooks')
+                        @if(auth()->user()->isSuperadmin() || auth()->user()->isInmobiliaria())
+                            <x-responsive-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
+                                Webhooks
+                            </x-responsive-nav-link>
+                        @endif
+                    @endcan
+
+                    {{-- Platform admin --}}
+                    @can('manage-currencies')
+                        <x-responsive-nav-link :href="route('admin.currencies.index')" :active="request()->routeIs('admin.currencies.*')">
+                            {{ __('general.currencies') }}
                         </x-responsive-nav-link>
                     @endcan
-                    @if(auth()->user()->isInmobiliaria())
+                    @can('create-project')
+                        <x-responsive-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
+                            {{ __('general.strategy') }}
+                        </x-responsive-nav-link>
+                    @endcan
+                    @can('view-audit-logs')
+                        <x-responsive-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
+                            Audit Log
+                        </x-responsive-nav-link>
+                    @endcan
+
+                    {{-- Tenant / Companies --}}
+                    @if(auth()->user()->isSuperadmin())
+                        <x-responsive-nav-link :href="route('admin.companies.index')" :active="request()->routeIs('admin.companies.*')">
+                            {{ __('billing.companies') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.subscriptions.index')" :active="request()->routeIs('admin.subscriptions.*')">
+                            {{ __('billing.subscriptions_nav') }}
+                        </x-responsive-nav-link>
+                    @elseif(auth()->user()->isInmobiliaria())
                         <x-responsive-nav-link :href="route('admin.company-profile.edit')" :active="request()->routeIs('admin.company-profile.*')">
                             {{ __('billing.my_company') }}
                         </x-responsive-nav-link>
@@ -200,14 +263,11 @@
                             {{ __('billing.subscription') }}
                         </x-responsive-nav-link>
                     @endif
-                    @can('view-audit-logs')
-                        <x-responsive-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
-                            Audit Log
-                        </x-responsive-nav-link>
-                    @endcan
                 @endif
             @endauth
-            <x-responsive-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">{{ __('general.view_projects') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">
+                {{ __('general.view_projects') }}
+            </x-responsive-nav-link>
             <div class="px-4 py-2 flex items-center gap-2">
                 <a href="{{ request()->fullUrlWithQuery(['lang' => 'es']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'es' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">ES</a>
                 <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'en' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">EN</a>
@@ -228,11 +288,11 @@
                     <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
                 </div>
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('profile.edit')">Perfil</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('profile.edit')">{{ __('general.profile') }}</x-responsive-nav-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                            Cerrar Sesion
+                            {{ __('general.logout') }}
                         </x-responsive-nav-link>
                     </form>
                 </div>
@@ -240,7 +300,7 @@
         @else
             <div class="pt-4 pb-1 border-t border-gray-200">
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('login')">Iniciar sesion</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('login')">{{ __('general.login') }}</x-responsive-nav-link>
                 </div>
             </div>
         @endauth
@@ -265,7 +325,7 @@
         </button>
     </div>
     <div class="mt-2 flex items-center justify-between">
-        <a href="{{ route('admin.inquiries.index') }}" class="text-xs font-medium text-blue-600 hover:underline">Ver consulta</a>
+        <a href="{{ route('admin.inquiries.index') }}" class="text-xs font-medium text-blue-600 hover:underline">{{ __('general.view_inquiry') }}</a>
         <div class="h-0.5 flex-1 ml-3 bg-gray-100 rounded overflow-hidden">
             <div id="toast-progress" class="h-full bg-blue-500 rounded transition-all" style="width: 100%;"></div>
         </div>
@@ -328,7 +388,7 @@ function notificationBell() {
             const subtitle = document.getElementById('toast-subtitle');
             const progress = document.getElementById('toast-progress');
 
-            title.textContent = 'Nueva consulta de ' + inquiry.name;
+            title.textContent = '{{ __("general.new_inquiry_from") }} ' + inquiry.name;
             subtitle.textContent = inquiry.project_name + ' — ' + inquiry.time_ago;
 
             toast.style.display = 'block';

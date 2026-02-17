@@ -3,39 +3,75 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CompanyProfileController extends Controller
 {
-    public function edit()
+    /**
+     * Superadmin: list all company profiles.
+     */
+    public function index()
     {
         $user = auth()->user();
-        if (!$user->isInmobiliaria()) {
+        if (!$user->isSuperadmin()) {
             abort(403);
         }
 
-        $profile = $user->companyProfile;
-        if (!$profile) {
-            return redirect()->route('onboarding.company');
-        }
+        $companies = CompanyProfile::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(20);
 
-        return view('admin.company-profile.edit', compact('profile'));
+        return view('admin.companies.index', compact('companies'));
     }
 
-    public function update(Request $request)
+    /**
+     * Edit company profile.
+     * - Inmobiliaria: edits own profile
+     * - Superadmin: edits any profile by ID
+     */
+    public function edit(Request $request, ?CompanyProfile $company = null)
     {
-        $user = $request->user();
-        if (!$user->isInmobiliaria()) {
+        $user = auth()->user();
+
+        if ($user->isSuperadmin() && $company) {
+            $profile = $company;
+        } elseif ($user->isInmobiliaria()) {
+            $profile = $user->companyProfile;
+            if (!$profile) {
+                return redirect()->route('onboarding.company');
+            }
+        } else {
             abort(403);
         }
 
-        $profile = $user->companyProfile;
-        if (!$profile) {
-            return redirect()->route('onboarding.company');
+        $isSuperadminEditing = $user->isSuperadmin() && $company;
+
+        return view('admin.company-profile.edit', compact('profile', 'isSuperadminEditing'));
+    }
+
+    /**
+     * Update company profile.
+     * - Inmobiliaria: updates own profile
+     * - Superadmin: updates any profile by ID
+     */
+    public function update(Request $request, ?CompanyProfile $company = null)
+    {
+        $user = $request->user();
+
+        if ($user->isSuperadmin() && $company) {
+            $profile = $company;
+        } elseif ($user->isInmobiliaria()) {
+            $profile = $user->companyProfile;
+            if (!$profile) {
+                return redirect()->route('onboarding.company');
+            }
+        } else {
+            abort(403);
         }
 
-        $validated = $request->validate([
+        $rules = [
             'company_name' => 'required|string|max:255',
             'legal_name' => 'nullable|string|max:255',
             'tax_id' => 'nullable|string|max:50',
@@ -48,7 +84,15 @@ class CompanyProfileController extends Controller
             'address' => 'nullable|string|max:500',
             'logo' => 'nullable|image|max:2048',
             'show_in_directory' => 'boolean',
-        ]);
+        ];
+
+        // Superadmin can also toggle verified and change plan
+        if ($user->isSuperadmin()) {
+            $rules['is_verified'] = 'boolean';
+            $rules['plan_tier'] = 'nullable|in:starter,professional,enterprise';
+        }
+
+        $validated = $request->validate($rules);
 
         if ($request->hasFile('logo')) {
             if ($profile->logo_path) {
@@ -60,7 +104,23 @@ class CompanyProfileController extends Controller
 
         $validated['show_in_directory'] = $request->boolean('show_in_directory');
 
+        if ($user->isSuperadmin()) {
+            $validated['is_verified'] = $request->boolean('is_verified');
+
+            // If superadmin changed the plan tier, sync limits
+            if (!empty($validated['plan_tier']) && $validated['plan_tier'] !== $profile->plan_tier) {
+                $limits = CompanyProfile::PLAN_LIMITS[$validated['plan_tier']] ?? CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
+                $validated['max_projects'] = $limits['max_projects'];
+                $validated['max_storage_bytes'] = $limits['max_storage_bytes'];
+            }
+        }
+
         $profile->update($validated);
+
+        if ($user->isSuperadmin() && $company) {
+            return redirect()->route('admin.companies.index')
+                ->with('success', __('billing.company_updated'));
+        }
 
         return redirect()->route('admin.company-profile.edit')
             ->with('success', __('billing.company_updated'));

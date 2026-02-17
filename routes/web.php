@@ -133,11 +133,20 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     // Audit Logs
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
-    // Company Profile
+    // Company Profile (inmobiliaria own profile)
     Route::get('company-profile', [CompanyProfileController::class, 'edit'])->name('company-profile.edit');
     Route::put('company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
 
-    // Subscription / Billing
+    // Superadmin: manage all companies
+    Route::get('companies', [CompanyProfileController::class, 'index'])->name('companies.index');
+    Route::get('companies/{company}/edit', [CompanyProfileController::class, 'edit'])->name('companies.edit');
+    Route::put('companies/{company}', [CompanyProfileController::class, 'update'])->name('companies.update');
+
+    // Superadmin: subscriptions overview
+    Route::get('subscriptions', [SubscriptionController::class, 'companies'])->name('subscriptions.index');
+    Route::patch('companies/{company}/plan', [SubscriptionController::class, 'updatePlan'])->name('companies.update-plan');
+
+    // Subscription / Billing (inmobiliaria own)
     Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
     Route::post('subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
     Route::get('subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');

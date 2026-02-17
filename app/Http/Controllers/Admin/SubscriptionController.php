@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
+    /**
+     * Inmobiliaria: view own subscription.
+     */
     public function index()
     {
         $user = auth()->user();
@@ -27,6 +30,44 @@ class SubscriptionController extends Controller
         }
 
         return view('admin.subscription.index', compact('user', 'profile', 'plans', 'currentPlan', 'subscription', 'invoices'));
+    }
+
+    /**
+     * Superadmin: view all companies with their subscription/plan info.
+     */
+    public function companies()
+    {
+        $user = auth()->user();
+        if (!$user->isSuperadmin()) {
+            abort(403);
+        }
+
+        $companies = CompanyProfile::with('user')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        $planLimits = CompanyProfile::PLAN_LIMITS;
+
+        return view('admin.companies.subscriptions', compact('companies', 'planLimits'));
+    }
+
+    /**
+     * Superadmin: update a company's plan tier directly.
+     */
+    public function updatePlan(Request $request, CompanyProfile $company)
+    {
+        $user = $request->user();
+        if (!$user->isSuperadmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'plan_tier' => 'required|in:starter,professional,enterprise',
+        ]);
+
+        $this->syncPlanLimits($company, $validated['plan_tier']);
+
+        return back()->with('success', __('billing.plan_changed'));
     }
 
     public function checkout(Request $request)
@@ -69,7 +110,10 @@ class SubscriptionController extends Controller
     {
         $plan = $request->query('plan', 'starter');
         $user = $request->user();
-        $this->syncPlanLimits($user, $plan);
+        $profile = $user->companyProfile;
+        if ($profile) {
+            $this->syncPlanLimits($profile, $plan);
+        }
 
         return redirect()->route('admin.dashboard')
             ->with('success', __('billing.subscription_activated'));
@@ -109,20 +153,18 @@ class SubscriptionController extends Controller
         $subscription = $user->subscription('default');
         if ($subscription) {
             $subscription->swap($priceId);
-            $this->syncPlanLimits($user, $plan);
+            $profile = $user->companyProfile;
+            if ($profile) {
+                $this->syncPlanLimits($profile, $plan);
+            }
             return back()->with('success', __('billing.plan_changed'));
         }
 
         return back()->with('error', __('billing.no_active_subscription'));
     }
 
-    private function syncPlanLimits(User $user, string $tier): void
+    private function syncPlanLimits(CompanyProfile $profile, string $tier): void
     {
-        $profile = $user->companyProfile;
-        if (!$profile) {
-            return;
-        }
-
         $limits = CompanyProfile::PLAN_LIMITS[$tier] ?? CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
 
         $profile->update([

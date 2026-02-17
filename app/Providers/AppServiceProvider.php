@@ -123,7 +123,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('manage-api-tokens', function (User $user) {
-            return $user->isSuperadmin();
+            if ($user->isSuperadmin()) return true;
+            return $user->isInmobiliaria() && $user->hasFeature('api_access');
         });
 
         Gate::define('view-audit-logs', fn (User $user) => $user->isSuperadmin());

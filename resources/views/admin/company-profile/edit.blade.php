@@ -1,7 +1,16 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('billing.my_company') }}</x-slot>
+    <x-slot name="title">{{ ($isSuperadminEditing ?? false) ? $profile->company_name : __('billing.my_company') }}</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('billing.my_company') }}</h2>
+        <div class="flex items-center gap-3">
+            @if($isSuperadminEditing ?? false)
+                <a href="{{ route('admin.companies.index') }}" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+            @endif
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ ($isSuperadminEditing ?? false) ? __('billing.edit_company') . ': ' . $profile->company_name : __('billing.my_company') }}
+            </h2>
+        </div>
     </x-slot>
 
     <div class="py-6">
@@ -11,7 +20,9 @@
             @endif
 
             <div class="bg-white rounded-lg shadow-sm border p-6">
-                <form method="POST" action="{{ route('admin.company-profile.update') }}" enctype="multipart/form-data" class="space-y-5">
+                <form method="POST"
+                      action="{{ ($isSuperadminEditing ?? false) ? route('admin.companies.update', $profile) : route('admin.company-profile.update') }}"
+                      enctype="multipart/form-data" class="space-y-5">
                     @csrf
                     @method('PUT')
 
@@ -94,6 +105,51 @@
                                class="rounded border-gray-300 text-emerald-600 shadow-sm focus:ring-emerald-500">
                         <label for="show_in_directory" class="text-sm text-gray-700">{{ __('billing.show_in_directory') }}</label>
                     </div>
+
+                    {{-- Superadmin-only fields --}}
+                    @if($isSuperadminEditing ?? false)
+                        <div class="border-t pt-5 mt-5 space-y-4">
+                            <h3 class="text-sm font-semibold text-gray-800 uppercase tracking-wide">{{ __('billing.admin_settings') }}</h3>
+
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="is_verified" value="0">
+                                <input type="checkbox" name="is_verified" value="1" id="is_verified"
+                                       {{ old('is_verified', $profile->is_verified) ? 'checked' : '' }}
+                                       class="rounded border-gray-300 text-emerald-600 shadow-sm focus:ring-emerald-500">
+                                <label for="is_verified" class="text-sm text-gray-700">{{ __('billing.verified_company') }}</label>
+                            </div>
+
+                            <div class="max-w-xs">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('billing.plan') }}</label>
+                                <select name="plan_tier" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="starter" {{ old('plan_tier', $profile->plan_tier) === 'starter' ? 'selected' : '' }}>Starter</option>
+                                    <option value="professional" {{ old('plan_tier', $profile->plan_tier) === 'professional' ? 'selected' : '' }}>Professional</option>
+                                    <option value="enterprise" {{ old('plan_tier', $profile->plan_tier) === 'enterprise' ? 'selected' : '' }}>Enterprise</option>
+                                </select>
+                                <p class="text-xs text-gray-400 mt-1">{{ __('billing.plan_change_note') }}</p>
+                            </div>
+
+                            {{-- Usage info (read-only) --}}
+                            @php
+                                $owner = $profile->user;
+                                $projectCount = $owner ? $owner->assignedProjects()->count() : 0;
+                                $usedMB = round($profile->storage_used_bytes / 1048576);
+                                $maxMB = round($profile->max_storage_bytes / 1048576);
+                                $usedLabel = $usedMB >= 1024 ? round($usedMB / 1024, 1) . ' GB' : $usedMB . ' MB';
+                                $maxLabel = $maxMB >= 1024 ? round($maxMB / 1024, 1) . ' GB' : $maxMB . ' MB';
+                            @endphp
+                            <div class="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-4">
+                                <div>
+                                    <div class="text-xs text-gray-500 uppercase">{{ __('billing.projects_col') }}</div>
+                                    <div class="text-sm font-medium text-gray-800">{{ $projectCount }} / {{ $profile->max_projects >= 999 ? '∞' : $profile->max_projects }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500 uppercase">{{ __('billing.storage') }}</div>
+                                    <div class="text-sm font-medium text-gray-800">{{ $usedLabel }} / {{ $maxLabel }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="flex justify-end pt-4 border-t">
                         <button type="submit" class="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition">

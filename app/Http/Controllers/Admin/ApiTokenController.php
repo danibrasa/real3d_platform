@@ -15,9 +15,17 @@ class ApiTokenController extends Controller
     {
         Gate::authorize('manage-api-tokens');
 
-        $tokens = ApiToken::with('tokenable')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $user = auth()->user();
+
+        if ($user->isSuperadmin()) {
+            $tokens = ApiToken::with('tokenable')->orderByDesc('created_at')->paginate(20);
+        } else {
+            // Inmobiliaria: only their own tokens
+            $tokens = ApiToken::where('tokenable_id', $user->id)
+                ->where('tokenable_type', User::class)
+                ->orderByDesc('created_at')
+                ->paginate(20);
+        }
 
         return view('admin.api-tokens.index', compact('tokens'));
     }
@@ -26,7 +34,10 @@ class ApiTokenController extends Controller
     {
         Gate::authorize('manage-api-tokens');
 
-        $projects = Project::orderBy('name')->get(['id', 'name', 'slug']);
+        $user = auth()->user();
+        $projects = $user->isSuperadmin()
+            ? Project::orderBy('name')->get(['id', 'name', 'slug'])
+            : $user->accessibleProjects()->orderBy('name')->get(['id', 'name', 'slug']);
 
         return view('admin.api-tokens.create', compact('projects'));
     }
@@ -44,7 +55,22 @@ class ApiTokenController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Inmobiliaria: enforce project_ids within accessible projects
+        if ($user->isInmobiliaria() && !empty($validated['project_ids'])) {
+            $accessibleIds = $user->accessibleProjects()->pluck('projects.id')->toArray();
+            $validated['project_ids'] = array_values(array_intersect(
+                array_map('intval', $validated['project_ids']),
+                $accessibleIds
+            ));
+        }
+
         $projectIds = !empty($validated['project_ids']) ? array_map('intval', $validated['project_ids']) : null;
+
+        // Inmobiliaria must scope tokens to their projects (can't create "all projects" tokens)
+        if ($user->isInmobiliaria() && is_null($projectIds)) {
+            $projectIds = $user->accessibleProjects()->pluck('projects.id')->map(fn ($id) => (int) $id)->toArray();
+        }
 
         $token = $user->createToken(
             $validated['name'],
@@ -66,8 +92,12 @@ class ApiTokenController extends Controller
     public function edit(ApiToken $apiToken)
     {
         Gate::authorize('manage-api-tokens');
+        $this->authorizeTokenAccess($apiToken);
 
-        $projects = Project::orderBy('name')->get(['id', 'name', 'slug']);
+        $user = auth()->user();
+        $projects = $user->isSuperadmin()
+            ? Project::orderBy('name')->get(['id', 'name', 'slug'])
+            : $user->accessibleProjects()->orderBy('name')->get(['id', 'name', 'slug']);
 
         return view('admin.api-tokens.edit', compact('apiToken', 'projects'));
     }
@@ -75,6 +105,7 @@ class ApiTokenController extends Controller
     public function update(Request $request, ApiToken $apiToken)
     {
         Gate::authorize('manage-api-tokens');
+        $this->authorizeTokenAccess($apiToken);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -99,10 +130,19 @@ class ApiTokenController extends Controller
     public function destroy(ApiToken $apiToken)
     {
         Gate::authorize('manage-api-tokens');
+        $this->authorizeTokenAccess($apiToken);
 
         $apiToken->delete();
 
         return redirect()->route('admin.api-tokens.index')
             ->with('success', 'Token revocado.');
+    }
+
+    private function authorizeTokenAccess(ApiToken $apiToken): void
+    {
+        $user = auth()->user();
+        if (!$user->isSuperadmin() && $apiToken->tokenable_id !== $user->id) {
+            abort(403);
+        }
     }
 }
