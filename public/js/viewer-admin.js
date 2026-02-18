@@ -10,6 +10,8 @@ const state = {
     currentModel: null, modelMixer: null,
     sunLight: null, ambientLight: null, hemisphereLight: null,
     gridHelper: null, groundMesh: null,
+    // 360 file URLs for background switching
+    videoURL: null, imageURL: null,
 };
 
 let pendingSettings = null;
@@ -235,10 +237,69 @@ function loadVideoFromURL(url) {
     video.addEventListener('error', () => { console.error('Error loading admin preview video'); });
 }
 
+function loadImageFromURL(url) {
+    if (state.videoElement) { state.videoElement.pause(); state.videoElement.remove(); state.videoElement = null; }
+    if (state.videoTexture) { state.videoTexture.dispose(); state.videoTexture = null; }
+
+    const loader = new THREE.TextureLoader();
+    loader.load(url, (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        state.videoSphere.material.map = texture;
+        state.videoSphere.material.color.setHex(0xffffff);
+        state.videoSphere.material.opacity = 1;
+        state.videoSphere.material.needsUpdate = true;
+        state.videoSphere.visible = true;
+        state.scene.background = null;
+        state.scene.fog = null;
+    }, undefined, (err) => { console.error('Error loading 360 image:', err); });
+}
+
+function clear360Background() {
+    if (state.videoElement) { state.videoElement.pause(); state.videoElement.remove(); state.videoElement = null; }
+    if (state.videoTexture) { state.videoTexture.dispose(); state.videoTexture = null; }
+    if (state.videoSphere) {
+        if (state.videoSphere.material.map) { state.videoSphere.material.map.dispose(); }
+        state.videoSphere.material.map = null;
+        state.videoSphere.material.color.setHex(0x000000);
+        state.videoSphere.material.opacity = 0;
+        state.videoSphere.material.needsUpdate = true;
+        state.videoSphere.visible = false;
+    }
+    state.videoPlaying = false;
+    state.scene.background = new THREE.Color(0x87ceeb);
+    state.scene.fog = new THREE.FogExp2(0x87ceeb, 0.002);
+}
+
+function switch360Background(type) {
+    clear360Background();
+    if (type === 'video' && state.videoURL) {
+        loadVideoFromURL(state.videoURL);
+    } else if (type === 'image' && state.imageURL) {
+        loadImageFromURL(state.imageURL);
+    } else if (type === 'video' && state.imageURL) {
+        // Fallback: selected video but only image available
+        loadImageFromURL(state.imageURL);
+    } else if (type === 'image' && state.videoURL) {
+        // Fallback: selected image but only video available
+        loadVideoFromURL(state.videoURL);
+    }
+}
+
 // =============================================================
 //  Model Loading
 // =============================================================
 function getModelFormat(url) {
+    // Check filename hint in query param (API URLs don't have extensions)
+    try {
+        const u = new URL(url, window.location.origin);
+        const fname = u.searchParams.get('f');
+        if (fname && fname.toLowerCase().endsWith('.fbx')) return 'fbx';
+    } catch (e) {}
+    // Fallback: check path extension
     const clean = url.split('?')[0].split('#')[0];
     const ext = clean.split('.').pop().toLowerCase();
     if (ext === 'fbx') return 'fbx';
@@ -403,6 +464,13 @@ function bindSliders() {
             applySettings({ ground_visible: groundCheck.checked });
         });
     }
+
+    const bgSelect = document.getElementById('s-background-type');
+    if (bgSelect) {
+        bgSelect.addEventListener('change', () => {
+            switch360Background(bgSelect.value);
+        });
+    }
 }
 
 // =============================================================
@@ -425,15 +493,32 @@ function boot() {
 
     const data = JSON.parse(dataEl.textContent);
 
+    // Store 360 URLs for live switching
+    state.videoURL = data.files?.video_360 || null;
+    state.imageURL = data.files?.image_360 || null;
+
+    // Determine which 360 background to use based on settings
+    const bgType = data.settings?.background_type || 'video';
+    const use360Video = bgType === 'video' && state.videoURL;
+    const use360Image = bgType === 'image' && state.imageURL;
+    const load360Video = use360Video || (!use360Image && state.videoURL);
+    const load360Image = !load360Video && state.imageURL;
+    const has360 = load360Video || load360Image;
+
     // Only init viewer if there are files to show
-    if (!data.files?.video_360 && !data.files?.model_3d) return;
+    if (!has360 && !data.files?.model_3d) return;
 
     init();
     applySettings(data.settings);
     bindSliders();
 
-    if (data.files.video_360) loadVideoFromURL(data.files.video_360);
-    if (data.files.model_3d) loadModelFromURL(data.files.model_3d);
+    // Load 360 background based on setting
+    if (load360Video) {
+        loadVideoFromURL(data.files.video_360);
+    } else if (load360Image) {
+        loadImageFromURL(data.files.image_360);
+    }
+    if (data.files?.model_3d) loadModelFromURL(data.files.model_3d);
 }
 
 boot();

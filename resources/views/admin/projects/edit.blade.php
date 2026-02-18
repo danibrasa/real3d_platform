@@ -238,6 +238,18 @@
                             <div class="upload-progress hidden mt-1"><div class="h-2 bg-blue-200 rounded overflow-hidden"><div class="h-full bg-blue-600 rounded transition-all" style="width: 0%"></div></div></div>
                         </div>
 
+                        <!-- Imagen 360 -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Imagen 360 (.jpg / .png / .webp)</label>
+                            @php $imgFile = $project->getFileByType('image_360'); @endphp
+                            @if($imgFile)
+                                <div class="text-xs text-green-600 mb-1">{{ $imgFile->original_name }} ({{ number_format($imgFile->file_size / 1048576, 1) }} MB)</div>
+                            @endif
+                            <input type="file" accept="image/jpeg,image/png,image/webp" class="upload-input w-full text-sm" data-file-type="image_360" data-project-id="{{ $project->id }}">
+                            <div class="upload-progress hidden mt-1"><div class="h-2 bg-blue-200 rounded overflow-hidden"><div class="h-full bg-blue-600 rounded transition-all" style="width: 0%"></div></div></div>
+                            <p class="text-xs text-gray-400 mt-1">Imagen equirectangular 360. Se usa si no hay video 360.</p>
+                        </div>
+
                         <!-- Modelo 3D -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Modelo 3D (.glb / .gltf / .fbx)</label>
@@ -335,6 +347,13 @@
                                 <input type="range" id="s-video-opacity" min="0" max="100" value="{{ $project->settings->video_opacity ?? 100 }}" class="w-full accent-blue-600">
                             </div>
                             <div>
+                                <label class="block text-xs text-gray-500 mb-1">Fondo 360</label>
+                                <select id="s-background-type" class="w-full rounded-md border-gray-300 text-sm">
+                                    <option value="video" {{ ($project->settings->background_type ?? 'video') === 'video' ? 'selected' : '' }}>Video 360</option>
+                                    <option value="image" {{ ($project->settings->background_type ?? 'video') === 'image' ? 'selected' : '' }}>Imagen 360</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="block text-xs text-gray-500 mb-1">Textura suelo</label>
                                 <select id="s-ground-texture" class="w-full rounded-md border-gray-300 text-sm">
                                     <option value="grass" {{ ($project->settings->ground_texture_type ?? 'grass') === 'grass' ? 'selected' : '' }}>Pasto</option>
@@ -373,7 +392,8 @@
             'settings' => $project->settings,
             'files' => [
                 'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->id . '/files/video_360' : null,
-                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d' : null,
+                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->id . '/files/image_360' : null,
+                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
             ],
             'routes' => [
                 'settings_update' => route('admin.projects.settings.update', $project),
@@ -384,7 +404,7 @@
             'csrf' => csrf_token(),
         ]) !!}
     </script>
-    <script src="/js/admin-upload.js"></script>
+    <script src="/js/admin-upload.js?v={{ filemtime(public_path('js/admin-upload.js')) }}"></script>
     <script type="module" src="/js/viewer-admin.js"></script>
 
     @push('importmap')

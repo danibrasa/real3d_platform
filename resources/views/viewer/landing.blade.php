@@ -566,7 +566,8 @@
             'settings' => $project->settings,
             'files' => [
                 'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->id . '/files/video_360' : null,
-                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d' : null,
+                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->id . '/files/image_360' : null,
+                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
                 'ground_texture' => $project->getFileByType('ground_texture') ? '/api/projects/' . $project->id . '/files/ground_texture' : null,
             ],
         ]) !!}

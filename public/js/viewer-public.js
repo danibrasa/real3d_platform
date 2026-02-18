@@ -291,14 +291,45 @@ function loadVideoFromURL(url) {
     video.addEventListener('error', () => { setLoading('Error cargando video.'); });
 }
 
+function loadImageFromURL(url) {
+    setLoading('Cargando imagen 360...');
+    if (state.videoElement) { state.videoElement.pause(); state.videoElement.remove(); state.videoElement = null; }
+    if (state.videoTexture) { state.videoTexture.dispose(); state.videoTexture = null; }
+
+    const loader = new THREE.TextureLoader();
+    loader.load(url, (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        state.videoSphere.material.map = texture;
+        state.videoSphere.material.color.setHex(0xffffff);
+        state.videoSphere.material.opacity = 1;
+        state.videoSphere.material.needsUpdate = true;
+        state.videoSphere.visible = true;
+        state.scene.background = null;
+        state.scene.fog = null;
+
+        checkAllLoaded();
+    }, undefined, () => { setLoading('Error cargando imagen 360.'); });
+}
+
 // =============================================================
 //  Model Loading
 // =============================================================
 function getModelFormat(url) {
+    // Check filename hint in query param (API URLs don't have extensions)
+    try {
+        const u = new URL(url, window.location.origin);
+        const fname = u.searchParams.get('f');
+        if (fname && fname.toLowerCase().endsWith('.fbx')) return 'fbx';
+    } catch (e) {}
+    // Fallback: check path extension
     const clean = url.split('?')[0].split('#')[0];
     const ext = clean.split('.').pop().toLowerCase();
     if (ext === 'fbx') return 'fbx';
-    return 'gltf'; // glb and gltf both use GLTFLoader
+    return 'gltf';
 }
 
 function setupLoadedModel(model, animations) {
@@ -871,19 +902,32 @@ function boot() {
 
     const data = JSON.parse(dataEl.textContent);
 
+    // Determine which 360 background to use based on settings
+    const bgType = data.settings?.background_type || 'video';
+    const use360Video = bgType === 'video' && data.files?.video_360;
+    const use360Image = bgType === 'image' && data.files?.image_360;
+    // Fallback: if chosen type is missing, try the other
+    const load360Video = use360Video || (!use360Image && data.files?.video_360);
+    const load360Image = !load360Video && data.files?.image_360;
+    const has360 = load360Video || load360Image;
+
     // Track what needs loading
-    if (data.files?.video_360) loadChecks.video = 'pending';
+    if (has360) loadChecks.video = 'pending';
     if (data.files?.model_3d) loadChecks.model = 'pending';
 
     // Apply settings first (non-model ones apply immediately)
     applySettings(data.settings);
 
-    // Load files
-    if (data.files?.video_360) loadVideoFromURL(data.files.video_360);
+    // Load 360 background
+    if (load360Video) {
+        loadVideoFromURL(data.files.video_360);
+    } else if (load360Image) {
+        loadImageFromURL(data.files.image_360);
+    }
     if (data.files?.model_3d) loadModelFromURL(data.files.model_3d);
 
     // If nothing to load, hide overlay
-    if (!data.files?.video_360 && !data.files?.model_3d) {
+    if (!has360 && !data.files?.model_3d) {
         const overlay = document.getElementById('loading-overlay');
         if (overlay) overlay.style.display = 'none';
     }

@@ -22,6 +22,7 @@ class ProjectSettingsController extends Controller
             'ground_visible' => 'boolean',
             'video_opacity' => 'numeric|min:0|max:100',
             'video_autoplay' => 'boolean',
+            'background_type' => 'in:video,image',
             'lighting_preset' => 'in:morning,noon,evening',
             'camera_position_x' => 'numeric',
             'camera_position_y' => 'numeric',

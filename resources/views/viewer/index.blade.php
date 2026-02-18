@@ -140,7 +140,7 @@
 
                                 @php
                                     $has3d = $project->files->where('file_type', 'model_3d')->first();
-                                    $has360 = $project->files->where('file_type', 'video_360')->first();
+                                    $has360 = $project->files->where('file_type', 'video_360')->first() ?? $project->files->where('file_type', 'image_360')->first();
                                 @endphp
                                 @if($has3d || $has360)
                                     <div class="absolute top-3 right-3 flex gap-1">

@@ -18,7 +18,7 @@ class FileUploadController extends Controller
     {
         Gate::authorize('upload-files');
         $validated = $request->validate([
-            'file_type' => 'required|in:video_360,model_3d,ground_texture,thumbnail',
+            'file_type' => 'required|in:video_360,model_3d,ground_texture,thumbnail,image_360',
             'original_name' => 'required|string|max:255',
             'total_size' => 'required|integer|min:1',
             'total_chunks' => 'required|integer|min:1',
@@ -94,6 +94,7 @@ class FileUploadController extends Controller
             'model_3d' => 'model',
             'ground_texture' => 'texture',
             'thumbnail' => 'thumbnail',
+            'image_360' => 'image360',
         };
         $destDir = "projects/{$project->id}/{$typeDir}";
         Storage::makeDirectory($destDir);
