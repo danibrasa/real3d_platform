@@ -211,6 +211,7 @@ Route::get('/projects/{project:slug}/info', [ViewerController::class, 'landing']
 Route::get('/projects/{project:slug}/units/{unit}/pdf', [UnitPdfController::class, 'generate'])->name('viewer.unit.pdf');
 Route::get('/projects/{project:slug}/units/{unit}/payment-schedule', [UnitPdfController::class, 'paymentSchedule'])->name('viewer.payment-schedule.pdf');
 Route::post('/projects/{project:slug}/inquiry', [InquiryController::class, 'store'])->name('viewer.inquiry');
+Route::get('/projects/{project:slug}/units/{unit}', [ViewerController::class, 'unitDetail'])->name('viewer.unit.detail');
 Route::get('/projects/{project:slug}', [ViewerController::class, 'show'])->name('viewer.show');
 
 // Profile (Breeze)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Unit;
 
 class ViewerController extends Controller
 {
@@ -132,6 +133,38 @@ class ViewerController extends Controller
         $project->load('settings', 'files');
 
         return view('viewer.show', compact('project'));
+    }
+
+    public function unitDetail(Project $project, Unit $unit)
+    {
+        $this->authorizeAccess($project);
+
+        if ($unit->project_id !== $project->id) {
+            abort(404);
+        }
+
+        $project->load([
+            'settings',
+            'files',
+            'typologies',
+            'galleryImages',
+            'paymentPlans.milestones',
+            'units' => fn ($q) => $q->with('typology')->orderBy('floor')->orderBy('sort_order')->orderBy('identifier'),
+        ]);
+
+        $unit->load('typology');
+
+        // Similar units: same typology or same bedrooms, excluding sold and current unit
+        $similarUnits = $project->units
+            ->where('id', '!=', $unit->id)
+            ->where('status', '!=', 'sold')
+            ->filter(function ($u) use ($unit) {
+                return ($unit->typology_id && $u->typology_id === $unit->typology_id)
+                    || $u->bedrooms === $unit->bedrooms;
+            })
+            ->take(4);
+
+        return view('viewer.unit-detail', compact('project', 'unit', 'similarUnits'));
     }
 
     private function authorizeAccess(Project $project): void

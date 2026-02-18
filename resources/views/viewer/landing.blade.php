@@ -338,6 +338,10 @@
                                             <a href="{{ route('viewer.unit.pdf', [$project->slug, $unit->id]) }}" @click.stop title="Descargar ficha PDF" class="text-gray-400 hover:text-red-600 transition">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             </a>
+                                            <!-- Unit detail link -->
+                                            <a href="{{ route('viewer.unit.detail', [$project->slug, $unit->id]) }}" @click.stop title="{{ __('unit_detail.view_full_detail') }}" class="text-gray-400 hover:text-indigo-600 transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            </a>
                                             <!-- Share button -->
                                             <button @click.stop="shareUnit({{ $unit->id }}, '{{ $unit->identifier }}')" class="text-gray-400 hover:text-blue-600 transition" title="Copiar link">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
@@ -544,6 +548,11 @@
                         <a id="modal-pdf-btn" href="#" class="px-4 py-2 bg-red-50 text-red-700 rounded-md text-sm font-semibold hover:bg-red-100 transition inline-flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             PDF
+                        </a>
+                        <!-- Unit detail link -->
+                        <a id="modal-detail-btn" href="#" class="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-md text-sm font-semibold hover:bg-indigo-100 transition inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ __('unit_detail.view_full_detail') }}
                         </a>
                         <!-- Share button -->
                         <button id="modal-share-btn" onclick="shareFromModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-semibold hover:bg-gray-200 transition">Compartir</button>
@@ -918,6 +927,12 @@
                     const pdfBtn = document.getElementById('modal-pdf-btn');
                     if (pdfBtn && d.unitPdf) {
                         pdfBtn.href = d.unitPdf;
+                    }
+
+                    // Unit detail link
+                    const detailBtn = document.getElementById('modal-detail-btn');
+                    if (detailBtn) {
+                        detailBtn.href = '/projects/{{ $project->slug }}/units/' + d.unitId;
                     }
 
                     document.getElementById('unit-modal').classList.remove('hidden');

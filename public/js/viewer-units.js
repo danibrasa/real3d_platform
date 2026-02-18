@@ -173,6 +173,9 @@
             html += '<a class="action-btn btn-info" href="' + landingLink.href + '#contacto">Consultar</a>';
         }
 
+        // Unit detail page link
+        html += '<a class="action-btn btn-detail" href="/projects/' + encodeURIComponent(projectData.slug) + '/units/' + unit.id + '">Ver ficha completa</a>';
+
         // QW2: Share button
         html += '<button class="action-btn btn-share" onclick="shareUnit(' + unit.id + ')">Compartir</button>';
 
