@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/projects/*/chat',
             'api/projects/*/chat/lead',
             'stripe/webhook',
+            'mcp',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

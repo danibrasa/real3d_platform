@@ -4,7 +4,7 @@
             <div class="flex">
                 <div class="shrink-0 flex items-center">
                     <a href="{{ auth()->check() && auth()->user()->hasAdminAccess() ? route('admin.dashboard') : route('viewer.index') }}" class="font-bold text-lg text-gray-800">
-                        RealEstate 3D
+                        Real3D.io
                     </a>
                 </div>
 
@@ -42,6 +42,13 @@
                             @can('manage-agents')
                                 <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                                     {{ auth()->user()->isSuperadmin() ? __('general.users') : __('general.my_agents') }}
+                                </x-nav-link>
+                            @endcan
+
+                            {{-- Blog --}}
+                            @can('manage-blog')
+                                <x-nav-link :href="route('admin.blog.posts.index')" :active="request()->routeIs('admin.blog.*')">
+                                    Blog
                                 </x-nav-link>
                             @endcan
 
@@ -94,6 +101,9 @@
                             @endif
                         @endif
                     @endauth
+                    <x-nav-link :href="route('portal.home')" :active="request()->routeIs('portal.*')">
+                        Portal
+                    </x-nav-link>
                     <x-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">
                         {{ __('general.view_projects') }}
                     </x-nav-link>

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ChatbotAdminController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
 use App\Http\Controllers\Admin\ConstructionProgressController;
+use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\StrategicAnalysisController;
@@ -26,17 +27,31 @@ use App\Http\Controllers\DeveloperDirectoryController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ViewerController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ProjectApiController;
 use App\Http\Controllers\Api\ViewerEventController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\BlogCategoryController;
+use App\Http\Controllers\Admin\BlogPostController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\LlmsTxtController;
+use App\Http\Controllers\McpServerController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\UnitPdfController;
 use Illuminate\Support\Facades\Route;
 
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+// LLMs.txt
+Route::get('/llms.txt', [LlmsTxtController::class, 'show']);
+Route::get('/llms-full.txt', [LlmsTxtController::class, 'full']);
+
+// MCP Server
+Route::get('/.well-known/mcp.json', [McpServerController::class, 'discover']);
+Route::post('/mcp', [McpServerController::class, 'handle']);
 
 // Landing page
 Route::get('/', [ViewerController::class, 'welcome'])->name('welcome');
@@ -108,6 +123,13 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     Route::delete('projects/{project}/construction/updates/{update}', [ConstructionProgressController::class, 'destroyUpdate'])->name('projects.construction.updates.destroy');
     Route::get('projects/{project}/construction/images/{image}', [ConstructionProgressController::class, 'serveImage'])->name('projects.construction.image');
 
+    // Location & POIs
+    Route::get('projects/{project}/location', [LocationController::class, 'index'])->name('projects.location.index');
+    Route::put('projects/{project}/location/coords', [LocationController::class, 'updateCoords'])->name('projects.location.updateCoords');
+    Route::post('projects/{project}/location/pois', [LocationController::class, 'storePoi'])->name('projects.location.storePoi');
+    Route::put('projects/{project}/location/pois/{poi}', [LocationController::class, 'updatePoi'])->name('projects.location.updatePoi');
+    Route::delete('projects/{project}/location/pois/{poi}', [LocationController::class, 'destroyPoi'])->name('projects.location.destroyPoi');
+
     // Users
     Route::resource('users', UserController::class)->except('show')->parameters(['users' => 'editUser']);
     Route::post('users/{user}/assign-projects', [UserController::class, 'assignProjects'])->name('users.assignProjects');
@@ -162,6 +184,10 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     // Webhooks
     Route::resource('webhooks', WebhookController::class)->except('show')->middleware('feature:api_access');
     Route::get('webhooks/{webhook}/deliveries', [WebhookController::class, 'deliveries'])->name('webhooks.deliveries');
+
+    // Blog
+    Route::resource('blog/posts', BlogPostController::class)->names('blog.posts');
+    Route::resource('blog/categories', BlogCategoryController::class)->except(['create', 'show', 'edit'])->names('blog.categories');
 });
 
 // Stripe Webhook (no CSRF, no auth)
@@ -204,6 +230,20 @@ Route::prefix('api')->group(function () {
 
 // Embeddable widget
 Route::get('/embed/{slug}', [EmbedController::class, 'show'])->name('embed.show');
+
+// Public Property Portal
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::get('/', [PortalController::class, 'home'])->name('home');
+    Route::get('/search', [PortalController::class, 'search'])->name('search');
+    Route::get('/api/locations', [PortalController::class, 'locations'])->name('api.locations');
+    Route::get('/api/map-projects', [PortalController::class, 'mapProjects'])->name('api.map-projects');
+});
+
+// Blog (public, outside portal prefix for cleaner URLs)
+Route::get('/portal/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/portal/blog/category/{slug}', [BlogController::class, 'category'])->name('blog.category');
+Route::get('/portal/blog/tag/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
+Route::get('/portal/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
 // Public viewer
 Route::get('/projects', [ViewerController::class, 'index'])->name('viewer.index');

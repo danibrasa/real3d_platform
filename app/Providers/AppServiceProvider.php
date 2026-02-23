@@ -129,6 +129,10 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('view-audit-logs', fn (User $user) => $user->isSuperadmin());
 
+        Gate::define('manage-blog', function (User $user) {
+            return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
+        });
+
         // SaaS feature gates
         Gate::define('use-chatbot', fn (User $user) => $user->hasFeature('chatbot'));
         Gate::define('use-analytics', fn (User $user) => $user->hasFeature('analytics'));
