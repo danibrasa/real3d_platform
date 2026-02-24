@@ -26,6 +26,12 @@ return [
     'category' => 'Category',
     'category_meta' => 'Articles about :name on the Real3D blog.',
 
+    // Article sidebar
+    'about_article' => 'About this article',
+    'cta_title' => 'Ready to invest?',
+    'cta_description' => 'Explore verified real estate projects in Punta Cana with interactive 3D tours.',
+    'cta_button' => 'View properties',
+
     // Home section
     'latest_articles' => 'Latest Articles',
     'latest_articles_subtitle' => 'Guides and analysis about real estate investment in the Caribbean.',

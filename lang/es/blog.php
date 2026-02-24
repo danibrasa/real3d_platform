@@ -26,6 +26,12 @@ return [
     'category' => 'Categoria',
     'category_meta' => 'Articulos sobre :name en el blog de Real3D.',
 
+    // Article sidebar
+    'about_article' => 'Sobre este articulo',
+    'cta_title' => '¿Listo para invertir?',
+    'cta_description' => 'Explora proyectos inmobiliarios verificados en Punta Cana con recorridos 3D interactivos.',
+    'cta_button' => 'Ver propiedades',
+
     // Home section
     'latest_articles' => 'Ultimos Articulos',
     'latest_articles_subtitle' => 'Guias y analisis sobre inversion inmobiliaria en el Caribe.',
