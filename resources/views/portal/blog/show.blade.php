@@ -51,6 +51,7 @@
     <style>
         .blog-body h2 { font-size: 1.625rem; font-weight: 700; color: #111827; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.3; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb; }
         .blog-body h3 { font-size: 1.3rem; font-weight: 600; color: #1f2937; margin-top: 2rem; margin-bottom: 0.75rem; line-height: 1.4; }
+        .blog-body h4 { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-top: 1.5rem; margin-bottom: 0.5rem; line-height: 1.4; }
         .blog-body p { color: #374151; line-height: 1.85; margin-bottom: 1.25rem; font-size: 1.0625rem; }
         .blog-body ul, .blog-body ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
         .blog-body li { color: #374151; line-height: 1.75; margin-bottom: 0.5rem; font-size: 1.0625rem; }
@@ -63,9 +64,55 @@
         .blog-body a:hover { color: #0e7490; }
         .blog-body img { border-radius: 0.75rem; margin: 1.5rem 0; }
         .blog-body hr { border-color: #e5e7eb; margin: 2rem 0; }
-        .blog-body table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9375rem; }
-        .blog-body th { background: #f9fafb; font-weight: 600; text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid #e5e7eb; }
-        .blog-body td { padding: 0.75rem 1rem; border-bottom: 1px solid #f3f4f6; }
+
+        /* Tables — professional financial style */
+        .blog-body table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1.75rem 0;
+            font-size: 0.9rem;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+        .blog-body thead {}
+        .blog-body th {
+            background: linear-gradient(135deg, #0e1a2e 0%, #162033 100%);
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            text-align: left;
+            padding: 0.875rem 1.125rem;
+            border-bottom: none;
+            white-space: nowrap;
+        }
+        .blog-body th:first-child { border-top-left-radius: 0.75rem; }
+        .blog-body th:last-child { border-top-right-radius: 0.75rem; }
+        .blog-body td {
+            padding: 0.8rem 1.125rem;
+            border-bottom: 1px solid #f0f1f3;
+            color: #374151;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .blog-body tr:last-child td { border-bottom: none; }
+        .blog-body tbody tr { background: #ffffff; transition: background 0.15s ease; }
+        .blog-body tbody tr:nth-child(even) { background: #f8fafc; }
+        .blog-body tbody tr:hover { background: #f0f9ff; }
+        .blog-body td:first-child { font-weight: 500; color: #1e293b; }
+        .blog-body td strong { color: #0e7490; font-weight: 700; }
+        .blog-body td del { color: #9ca3af; }
+
+        /* Responsive tables */
+        @media (max-width: 640px) {
+            .blog-body table { font-size: 0.8125rem; }
+            .blog-body th, .blog-body td { padding: 0.625rem 0.75rem; }
+            .blog-body th { font-size: 0.75rem; }
+        }
     </style>
     @endpush
 
