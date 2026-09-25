@@ -76,7 +76,7 @@
             Ver proyecto completo
         </a>
         <div class="powered">
-            Powered by <a href="{{ url('/') }}" target="_blank">RealEstate 3D</a>
+            Powered by <a href="{{ url('/') }}" target="_blank">Real3D.io</a>
         </div>
     </div>
 </body>

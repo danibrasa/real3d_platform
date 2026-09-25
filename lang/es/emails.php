@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'welcome_subject' => 'Bienvenido a RealEstate 3D',
+    'welcome_subject' => 'Bienvenido a Real3D.io',
     'welcome_greeting' => 'Hola :name,',
     'welcome_body' => 'Gracias por registrarte en nuestra plataforma. Ahora puedes explorar proyectos inmobiliarios en 3D, consultar disponibilidad y conectar directamente con desarrolladores.',
     'welcome_cta' => 'Ir al Dashboard',

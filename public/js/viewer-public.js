@@ -337,6 +337,9 @@ function setupLoadedModel(model, animations) {
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
+    // Store original dimensions BEFORE any scaling
+    model.userData.originalSize = { x: size.x, y: size.y, z: size.z };
+
     const maxDim = Math.max(size.x, size.y, size.z);
     const scaleFactor = 20 / maxDim;
     model.scale.setScalar(scaleFactor);
@@ -489,10 +492,31 @@ function applyModelSettings(settings) {
     if (settings.model_rotation !== undefined) {
         model.rotation.y = THREE.MathUtils.degToRad(parseFloat(settings.model_rotation));
     }
-    if (settings.model_scale !== undefined) {
+
+    // Real scale mode vs percentage mode
+    const realScaleEnabled = settings.real_scale_enabled === true || settings.real_scale_enabled === 1 || settings.real_scale_enabled === '1';
+    const realDim = parseFloat(settings.real_dimension_meters);
+
+    if (realScaleEnabled && realDim > 0 && model.userData.originalSize) {
+        const origSize = model.userData.originalSize;
+        const axis = settings.reference_axis || 'height';
+        const originalDim = axis === 'height' ? origSize.y
+                          : axis === 'width'  ? origSize.x
+                          : origSize.z; // depth
+
+        // 1 unit Three.js = 1 meter. Scale so that axis matches real meters.
+        const realScale = realDim / originalDim;
+        model.scale.setScalar(realScale);
+
+        // Reposition on ground
+        const box = new THREE.Box3().setFromObject(model);
+        model.position.y = -box.min.y;
+        model.userData.baseY = model.position.y;
+    } else if (settings.model_scale !== undefined) {
         const pct = parseFloat(settings.model_scale) / 100;
         model.scale.setScalar(model.userData.baseScale * pct);
     }
+
     if (settings.model_elevation !== undefined) {
         model.position.y = model.userData.baseY + parseFloat(settings.model_elevation) * 0.5;
     }

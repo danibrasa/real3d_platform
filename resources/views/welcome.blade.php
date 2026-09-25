@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RealEstate 3D - Visualizacion Inmobiliaria 3D</title>
-    <meta name="description" content="Plataforma de visualizacion inmobiliaria 3D para proyectos pre-construccion. Modelos 3D interactivos, video 360, gestion de unidades y lead capture. Punta Cana, Republica Dominicana.">
+    <title>Real3D — Plataforma de Visualización Inmobiliaria 3D para Promotores</title>
+    <meta name="description" content="Real3D es la plataforma SaaS para promotores inmobiliarios que combina modelos 3D interactivos, video 360° y gestión de unidades en tiempo real. Prueba 14 días gratis.">
     <meta name="keywords" content="visualizacion 3D, inmobiliaria, pre-construccion, Punta Cana, modelos 3D, video 360, real estate, Three.js, visor 3D">
     <link rel="canonical" href="{{ url('/') }}">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="RealEstate 3D - Visualizacion Inmobiliaria 3D">
-    <meta property="og:description" content="Plataforma de visualizacion inmobiliaria 3D para proyectos pre-construccion. Modelos 3D interactivos, video 360 y gestion de unidades.">
+    <meta property="og:title" content="Real3D | El futuro del real estate en tres dimensiones">
+    <meta property="og:description" content="Transforma tus proyectos de nueva construcción en experiencias 3D interactivas. Tus compradores exploran cada unidad antes de que exista. Plataforma SaaS para promotores en Latam.">
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="RealEstate 3D - Visualizacion Inmobiliaria 3D">
-    <meta name="twitter:description" content="Plataforma de visualizacion inmobiliaria 3D para proyectos pre-construccion.">
+    <meta name="twitter:title" content="Real3D | El futuro del real estate en tres dimensiones">
+    <meta name="twitter:description" content="Real3D: plataforma SaaS para promotores con modelos 3D interactivos, video 360° y gestión de unidades en tiempo real.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -23,9 +23,9 @@
     {!! json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'WebSite',
-        'name' => 'RealEstate 3D',
+        'name' => 'Real3D',
         'url' => url('/'),
-        'description' => 'Plataforma de visualizacion inmobiliaria 3D para proyectos pre-construccion',
+        'description' => 'Plataforma SaaS para promotores: modelos 3D interactivos, video 360° y gestión de unidades en tiempo real.',
         'potentialAction' => [
             '@type' => 'SearchAction',
             'target' => url('/projects') . '?q={search_term_string}',
@@ -46,15 +46,15 @@
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
                     </div>
-                    <span class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">RealEstate 3D</span>
+                    <span class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Real3D.io</span>
                 </a>
 
                 {{-- Desktop Nav --}}
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Caracteristicas</a>
+                    <a href="#features" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Características</a>
                     <a href="#projects" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Proyectos</a>
                     <a href="#pricing" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Precios</a>
-                    <a href="#tech" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Tecnologia</a>
+                    <a href="#tech" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Tecnología</a>
                     <a href="#contact" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">Contacto</a>
                 </div>
 
@@ -96,9 +96,9 @@
              x-transition:leave-end="opacity-0 -translate-y-2"
              class="md:hidden bg-[#0a0a1e]/95 backdrop-blur-lg border-t border-white/5">
             <div class="px-4 py-4 space-y-3">
-                <a @click="mobileOpen = false" href="#features" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Caracteristicas</a>
+                <a @click="mobileOpen = false" href="#features" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Características</a>
                 <a @click="mobileOpen = false" href="#projects" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Proyectos</a>
-                <a @click="mobileOpen = false" href="#tech" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Tecnologia</a>
+                <a @click="mobileOpen = false" href="#tech" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Tecnología</a>
                 <a @click="mobileOpen = false" href="#contact" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Contacto</a>
                 <div class="pt-3 border-t border-white/10 flex flex-col gap-2">
                     @guest
@@ -133,19 +133,20 @@
                     <div class="animate-fade-in-up">
                         <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-6">
                             <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                            Powered by Three.js & WebGL
+                            Tecnologia Inmersiva 3D
                         </span>
                     </div>
 
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 animate-fade-in-up-delay-1">
-                        El futuro de la
-                        <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent">visualizacion inmobiliaria</span>
+                        Presenta, impacta
+                        <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent">y cierra la venta</span>
                     </h1>
 
                     <p class="text-lg text-slate-400 mb-8 max-w-lg animate-fade-in-up-delay-2">
-                        Transforma tus proyectos inmobiliarios con modelos 3D interactivos, video 360 inmersivo y gestion inteligente de unidades. Todo en una sola plataforma.
+                        Real3D es la única plataforma que combina modelos 3D interactivos, video 360° inmersivo y gestión de unidades en tiempo real. Todo lo que necesitas para vender nueva construcción — en una sola herramienta.
                     </p>
 
+                    <p class="text-sm text-slate-400 italic mb-4 animate-fade-in-up-delay-2">Real estate. Real 3D.</p>
                     <div class="flex flex-wrap gap-4 animate-fade-in-up-delay-3">
                         <a href="#projects" class="btn-glow px-6 py-3 rounded-xl text-sm font-semibold text-white inline-flex items-center gap-2">
                             {{ __('welcome.explore_projects') }}
@@ -200,8 +201,8 @@
     <section id="features" class="relative py-24 lg:py-32">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Tecnologia que transforma</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto">Herramientas avanzadas para presentar proyectos inmobiliarios de forma inmersiva e interactiva.</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Tecnología que transforma la venta inmobiliaria</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Herramientas de última generación para que tus compradores vivan el proyecto antes de que exista. Interactivo, inmersivo y sin fricciones.</p>
             </div>
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -213,7 +214,7 @@
                         </svg>
                     </div>
                     <h3 class="font-semibold text-lg mb-2">Modelos 3D Interactivos</h3>
-                    <p class="text-sm text-slate-400">Carga modelos GLB/GLTF y permite a tus clientes explorar cada detalle con rotacion y zoom en tiempo real.</p>
+                    <p class="text-sm text-slate-400">Carga modelos GLB/GLTF y permite que tus compradores exploren cada detalle con rotación y zoom en tiempo real. Como estar dentro del proyecto.</p>
                 </div>
 
                 {{-- Feature 2 --}}
@@ -223,8 +224,8 @@
                             <path d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-lg mb-2">Video 360 Inmersivo</h3>
-                    <p class="text-sm text-slate-400">Integra videos esfericos 360 como cielo envolvente, creando una experiencia inmersiva unica para cada proyecto.</p>
+                    <h3 class="font-semibold text-lg mb-2">Video 360° Inmersivo</h3>
+                    <p class="text-sm text-slate-400">Integra vídeos esféricos 360° como entorno envolvente y crea una experiencia cinematográfica única para cada proyecto.</p>
                 </div>
 
                 {{-- Feature 3 --}}
@@ -234,8 +235,8 @@
                             <path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-lg mb-2">Mapeo de Unidades 3D</h3>
-                    <p class="text-sm text-slate-400">Asocia unidades inmobiliarias directamente sobre el modelo 3D con bounding boxes interactivos y estados en tiempo real.</p>
+                    <h3 class="font-semibold text-lg mb-2">Gestión de Unidades 3D</h3>
+                    <p class="text-sm text-slate-400">Asocia apartamentos, villas y locales directamente sobre el modelo 3D. Estados disponible/reservado/vendido en tiempo real, visibles para tus compradores.</p>
                 </div>
 
                 {{-- Feature 4 --}}
@@ -245,8 +246,8 @@
                             <path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
                         </svg>
                     </div>
-                    <h3 class="font-semibold text-lg mb-2">Panel de Administracion</h3>
-                    <p class="text-sm text-slate-400">Gestiona proyectos, ajusta configuraciones del visor, controla unidades y accesos desde un panel intuitivo.</p>
+                    <h3 class="font-semibold text-lg mb-2">Panel de Administración</h3>
+                    <p class="text-sm text-slate-400">Gestiona todos tus proyectos, configura el visor 3D, controla unidades y gestiona accesos desde un panel intuitivo y centralizado.</p>
                 </div>
             </div>
         </div>
@@ -281,8 +282,8 @@
     <section id="projects" class="relative py-24 lg:py-32">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">{{ __('welcome.featured_projects') }}</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto">{{ __('welcome.hero_subtitle') }}</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Proyectos Destacados</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Explora en 3D los proyectos activos en Real3D. Modelos interactivos, video 360° y toda la información de cada unidad disponible — antes de que las llaves existan.</p>
             </div>
 
             @if($projects->count())
@@ -352,8 +353,8 @@
     <section id="tech" class="relative py-24 lg:py-32 border-t border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Stack Tecnologico</h2>
-                <p class="text-slate-400 max-w-2xl mx-auto">Construido con las mejores tecnologias para ofrecer rendimiento, seguridad y experiencias inmersivas.</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Stack Tecnológico</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Construido con las mejores tecnologías para ofrecer rendimiento, seguridad y experiencias inmersivas.</p>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -425,11 +426,11 @@
         <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-[100px]"></div>
 
         <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl sm:text-4xl font-bold mb-6">Listo para transformar tu negocio inmobiliario?</h2>
-            <p class="text-lg text-slate-400 mb-10 max-w-xl mx-auto">Lleva tus proyectos al siguiente nivel con visualizacion 3D interactiva y herramientas de gestion avanzadas.</p>
+            <h2 class="text-3xl sm:text-4xl font-bold mb-6">¿Listo para vender en 3D?</h2>
+            <p class="text-lg text-slate-400 mb-10 max-w-xl mx-auto">Únete a los promotores que ya presentan sus proyectos con Real3D. Empieza gratis durante 14 días — sin tarjeta de crédito.</p>
             @guest
                 <a href="{{ route('register.business') }}" class="btn-glow animate-glow-pulse px-8 py-4 rounded-xl text-lg font-semibold text-white inline-flex items-center gap-2">
-                    Comenzar Ahora
+                    Empezar Gratis — 14 días
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                 </a>
             @else
@@ -451,19 +452,20 @@
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
                         </div>
-                        <span class="text-lg font-bold">RealEstate 3D</span>
+                        <span class="text-lg font-bold">Real3D.io</span>
                     </div>
-                    <p class="text-sm text-slate-500 max-w-xs">Plataforma de visualizacion inmobiliaria 3D con tecnologia de vanguardia para presentar proyectos de forma inmersiva.</p>
+                    <p class="text-sm text-slate-500 max-w-xs">Plataforma SaaS para promotores inmobiliarios. Modelos 3D interactivos, video 360° y gestión de unidades en tiempo real.</p>
                 </div>
 
                 {{-- Quick Links --}}
                 <div>
-                    <h4 class="font-semibold text-sm uppercase tracking-wider text-slate-400 mb-4">Links Rapidos</h4>
+                    <h4 class="font-semibold text-sm uppercase tracking-wider text-slate-400 mb-4">Links Rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="#features" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Caracteristicas</a></li>
+                        <li><a href="#features" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Características</a></li>
                         <li><a href="#projects" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Proyectos</a></li>
-                        <li><a href="#tech" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Tecnologia</a></li>
+                        <li><a href="#tech" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Tecnología</a></li>
                         <li><a href="{{ route('viewer.index') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Todos los Proyectos</a></li>
+                        <li><a href="{{ route('portal.home') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Portal de Propiedades</a></li>
                     </ul>
                 </div>
 
@@ -473,7 +475,7 @@
                     <ul class="space-y-2">
                         <li class="text-sm text-slate-500 flex items-center gap-2">
                             <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
-                            info@realestate3d.com
+                            info@real3d.io
                         </li>
                         <li class="text-sm text-slate-500 flex items-center gap-2">
                             <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
@@ -484,7 +486,7 @@
             </div>
 
             <div class="mt-12 pt-8 border-t border-white/5 text-center">
-                <p class="text-sm text-slate-600">&copy; {{ date('Y') }} RealEstate 3D. Todos los derechos reservados.</p>
+                <p class="text-sm text-slate-600">&copy; {{ date('Y') }} Real3D · real3d.io · Real estate. Real 3D.</p>
             </div>
         </div>
     </footer>

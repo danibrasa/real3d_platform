@@ -109,8 +109,16 @@ class ProjectApiController extends Controller
         ]);
     }
 
+    /**
+     * SECURITY FIX: Added project authorization check before serving floor plan.
+     * Previously, any unit's floor plan could be accessed without verifying project visibility.
+     */
     public function serveFloorPlan(Unit $unit)
     {
+        // Load project and enforce visibility rules
+        $unit->load('project');
+        $this->authorizeAccess($unit->project);
+
         $path = $unit->floor_plan;
         if (!$path) {
             abort(404);
@@ -127,8 +135,21 @@ class ProjectApiController extends Controller
         ]);
     }
 
+    /**
+     * SECURITY FIX: Added project authorization + image ownership verification.
+     * Previously, gallery images could be accessed without verifying project visibility
+     * or that the image belonged to the requested project.
+     */
     public function serveGalleryImage(Project $project, ProjectGalleryImage $image)
     {
+        // Verify the image belongs to this project (prevent IDOR)
+        if ($image->project_id !== $project->id) {
+            abort(404);
+        }
+
+        // Enforce project visibility rules
+        $this->authorizeAccess($project);
+
         $fullPath = Storage::path($image->image_path);
         if (!file_exists($fullPath)) {
             abort(404);

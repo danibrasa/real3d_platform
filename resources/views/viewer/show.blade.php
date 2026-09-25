@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="project-id" content="{{ $project->id }}">
-    <title>{{ $project->name }} - Visor 3D | RealEstate 3D</title>
+    <title>{{ $project->name }} - Visor 3D | Real3D.io</title>
     <meta name="description" content="Visor 3D interactivo de {{ $project->name }}{{ $project->location ? ' en ' . $project->location : '' }}. Explora el modelo 3D, selecciona unidades y consulta disponibilidad en tiempo real.">
     <link rel="canonical" href="{{ route('viewer.show', $project->slug) }}">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">

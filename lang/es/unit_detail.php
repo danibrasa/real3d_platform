@@ -19,4 +19,10 @@ return [
     'actions' => 'Acciones',
     'back_to_project' => 'Volver al proyecto',
     'share_unit' => 'Compartir unidad',
+
+    // CTA banners
+    'cta_interested_title' => '¿Te interesa esta unidad?',
+    'cta_interested_subtitle' => 'Habla con un asesor especializado y agenda una visita.',
+    'cta_urgency_title' => '{1} unidad disponible a este precio|[2,*] unidades disponibles a este precio',
+    'cta_urgency_subtitle' => 'La disponibilidad puede cambiar. Asegura tu unidad hoy.',
 ];

@@ -21,6 +21,9 @@ class PaymentPlanController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'is_default' => 'boolean',
+            'discount_type' => 'nullable|in:percentage,fixed',
+            'discount_value' => 'nullable|numeric|min:0',
+            'discount_label' => 'nullable|string|max:255',
         ]);
 
         // If setting as default, unset others
@@ -32,6 +35,9 @@ class PaymentPlanController extends Controller
             'name' => $validated['name'],
             'is_default' => $request->boolean('is_default'),
             'sort_order' => $project->paymentPlans()->count(),
+            'discount_type' => $validated['discount_type'] ?? null,
+            'discount_value' => $validated['discount_value'] ?? null,
+            'discount_label' => $validated['discount_label'] ?? null,
         ]);
 
         return redirect()->route('admin.projects.payment-plans.index', $project)
@@ -45,6 +51,9 @@ class PaymentPlanController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'is_default' => 'boolean',
+            'discount_type' => 'nullable|in:percentage,fixed',
+            'discount_value' => 'nullable|numeric|min:0',
+            'discount_label' => 'nullable|string|max:255',
             'milestones' => 'required|array|min:1',
             'milestones.*.name' => 'required|string|max:255',
             'milestones.*.percentage' => 'required|numeric|min:0|max:100',
@@ -61,6 +70,9 @@ class PaymentPlanController extends Controller
         $paymentPlan->update([
             'name' => $validated['name'],
             'is_default' => $request->boolean('is_default'),
+            'discount_type' => $validated['discount_type'] ?? null,
+            'discount_value' => $validated['discount_value'] ?? null,
+            'discount_label' => $validated['discount_label'] ?? null,
         ]);
 
         // Sync milestones: delete existing, re-create

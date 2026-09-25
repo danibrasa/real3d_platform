@@ -16,7 +16,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>RealEstate 3D</h1>
+            <h1>Real3D.io</h1>
         </div>
         <div class="body">
             <p>{{ __('emails.subscription_confirmed_greeting', ['name' => $user->name]) }}</p>
@@ -31,7 +31,7 @@
             <p>{{ __('emails.subscription_confirmed_closing') }}</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} RealEstate 3D. {{ __('emails.all_rights_reserved') }}
+            &copy; {{ date('Y') }} Real3D.io. {{ __('emails.all_rights_reserved') }}
         </div>
     </div>
 </body>

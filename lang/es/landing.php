@@ -113,4 +113,37 @@ return [
     'select_unit_to_simulate' => 'Selecciona una unidad para ver montos',
     'milestone' => 'Hito',
     'when' => 'Cuando',
+
+    // Discount
+    'discount' => 'Descuento',
+    'original_price' => 'Precio original',
+    'effective_price' => 'Precio con descuento',
+
+    // CTA banners
+    'cta_interested_title' => '¿Te interesa este proyecto?',
+    'cta_interested_subtitle' => 'Habla con un asesor especializado y resuelve todas tus dudas sin compromiso.',
+    'cta_ready_title' => '¿Listo para reservar tu unidad?',
+    'cta_ready_subtitle' => 'Da el siguiente paso. Nuestro equipo te acompaña en todo el proceso de compra.',
+    'cta_whatsapp_btn' => 'Escribenos por WhatsApp',
+    'cta_contact_btn' => 'Contactar un asesor',
+
+    // Location map
+    'location_title' => 'Ubicacion',
+    'map_view' => 'Mapa',
+    'satellite_view' => 'Satelite',
+
+    // Points of interest
+    'nearby_places' => 'Puntos de interes cercanos',
+    'poi_beach' => 'Playa',
+    'poi_airport' => 'Aeropuerto',
+    'poi_hospital' => 'Hospital',
+    'poi_shopping' => 'Centro comercial',
+    'poi_restaurant' => 'Restaurante',
+    'poi_school' => 'Escuela',
+    'poi_golf' => 'Golf',
+    'poi_marina' => 'Marina',
+    'poi_supermarket' => 'Supermercado',
+    'poi_gas_station' => 'Gasolinera',
+    'poi_pharmacy' => 'Farmacia',
+    'poi_park' => 'Parque',
 ];

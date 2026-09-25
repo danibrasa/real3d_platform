@@ -177,7 +177,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 ground_texture_type: document.getElementById('s-ground-texture').value,
                 lighting_preset: document.getElementById('s-lighting').value,
                 ground_visible: document.getElementById('s-ground-visible').checked ? 1 : 0,
+                real_scale_enabled: document.getElementById('s-real-scale-enabled').checked ? 1 : 0,
+                real_dimension_meters: parseFloat(document.getElementById('s-real-dimension-meters').value) || null,
+                reference_axis: document.getElementById('s-reference-axis').value,
             };
+
+            // Include camera position if viewer is active
+            if (window.getViewerCameraState) {
+                var cam = window.getViewerCameraState();
+                if (cam) Object.assign(settings, cam);
+            }
 
             try {
                 var res = await fetch(projectData.routes.settings_update, {

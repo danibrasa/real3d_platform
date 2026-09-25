@@ -6,6 +6,8 @@ return [
 
     'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
 
+    // SECURITY NOTE: Change '*' to your actual domain when HTTPS is configured
+    // Example: 'allowed_origins' => ['https://tu-dominio.com'],
     'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],

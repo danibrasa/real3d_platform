@@ -8,7 +8,7 @@ Plataforma web Laravel para visualizar promociones inmobiliarias en 3D.
 ## Stack
 - Laravel 11 + Blade + Tailwind (Breeze)
 - Three.js v0.162.0 via CDN importmap
-- MariaDB 10.11 (base: realestate_3d, user: realestate, pass: R3alEst4te_2024!)
+- MariaDB 10.11 (credenciales en el .env de cada entorno, nunca en el repositorio)
 - PHP 8.2-fpm + Nginx
 - Node.js 20 + Vite
 - Almacenamiento local en storage/app/projects/
@@ -25,8 +25,7 @@ Plataforma web Laravel para visualizar promociones inmobiliarias en 3D.
 
 ## Base de datos
 DB: realestate_3d
-User: realestate
-Pass: R3alEst4te_2024!
+User y Pass: ver .env (no se versionan)
 Host: localhost
 
 ### Tablas:

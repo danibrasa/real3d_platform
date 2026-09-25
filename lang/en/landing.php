@@ -113,4 +113,37 @@ return [
     'select_unit_to_simulate' => 'Select a unit to see amounts',
     'milestone' => 'Milestone',
     'when' => 'When',
+
+    // Discount
+    'discount' => 'Discount',
+    'original_price' => 'Original price',
+    'effective_price' => 'Price with discount',
+
+    // CTA banners
+    'cta_interested_title' => 'Interested in this project?',
+    'cta_interested_subtitle' => 'Talk to a specialized advisor and get all your questions answered, no commitment.',
+    'cta_ready_title' => 'Ready to reserve your unit?',
+    'cta_ready_subtitle' => 'Take the next step. Our team will guide you through the entire purchase process.',
+    'cta_whatsapp_btn' => 'Write us on WhatsApp',
+    'cta_contact_btn' => 'Contact an advisor',
+
+    // Location map
+    'location_title' => 'Location',
+    'map_view' => 'Map',
+    'satellite_view' => 'Satellite',
+
+    // Points of interest
+    'nearby_places' => 'Nearby places',
+    'poi_beach' => 'Beach',
+    'poi_airport' => 'Airport',
+    'poi_hospital' => 'Hospital',
+    'poi_shopping' => 'Shopping center',
+    'poi_restaurant' => 'Restaurant',
+    'poi_school' => 'School/University',
+    'poi_golf' => 'Golf',
+    'poi_marina' => 'Marina',
+    'poi_supermarket' => 'Supermarket',
+    'poi_gas_station' => 'Gas station',
+    'poi_pharmacy' => 'Pharmacy',
+    'poi_park' => 'Park',
 ];

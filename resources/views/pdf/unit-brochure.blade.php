@@ -248,6 +248,47 @@
             border-radius: 6px;
             border: 1px solid #e5e7eb;
         }
+
+        /* Discount banner */
+        .discount-banner {
+            background-color: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+            font-size: 8pt;
+        }
+
+        /* KPI grid for investment */
+        .kpi-grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px;
+            margin-bottom: 10px;
+        }
+        .kpi-grid td {
+            width: 50%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+        .kpi-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .kpi-value {
+            font-size: 14pt;
+            font-weight: bold;
+        }
+
+        /* Avoid page-break inside key sections */
+        .plan-block, .investment-block {
+            page-break-inside: avoid;
+        }
     </style>
 </head>
 <body>
@@ -329,84 +370,6 @@
             @endif
         </table>
 
-        {{-- Payment plan --}}
-        @php
-            $defaultPlan = $project->paymentPlans->firstWhere('is_default', true) ?? $project->paymentPlans->first();
-            $brochureColorMap = [
-                'blue'  => '#2563eb',
-                'amber' => '#d97706',
-                'green' => '#059669',
-                'gray'  => '#6b7280',
-            ];
-        @endphp
-        @if($defaultPlan && $defaultPlan->milestones->count())
-        <div class="section-title">Plan de Pago — {{ $defaultPlan->name }}</div>
-
-        {{-- Progress bar --}}
-        @php
-            $brochureMilestones = $defaultPlan->milestones->sortBy('sort_order')->values();
-            $brochureTotal = $brochureMilestones->count();
-        @endphp
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
-            <tr>
-                @foreach($brochureMilestones as $bIdx => $bMs)
-                @php
-                    $bColor = $bMs->phaseColor($bIdx, $brochureTotal);
-                    $bBarColor = $brochureColorMap[$bColor] ?? '#6b7280';
-                    $bRadius = '';
-                    if ($brochureTotal === 1) $bRadius = 'border-radius: 8px;';
-                    elseif ($bIdx === 0) $bRadius = 'border-radius: 8px 0 0 8px;';
-                    elseif ($bIdx === $brochureTotal - 1) $bRadius = 'border-radius: 0 8px 8px 0;';
-                @endphp
-                <td style="width: {{ $bMs->percentage }}%; background-color: {{ $bBarColor }}; height: 12px; text-align: center; font-size: 7pt; font-weight: bold; color: #fff; {{ $bRadius }}">
-                    @if($bMs->percentage > 8){{ number_format($bMs->percentage, 0) }}%@endif
-                </td>
-                @endforeach
-            </tr>
-        </table>
-
-        {{-- Milestones table with cumulative --}}
-        @php $brochureCumPct = 0; @endphp
-        <table class="data-grid" style="margin-bottom: 12px;">
-            @foreach($brochureMilestones as $bIdx => $bMs)
-            @php
-                $brochureCumPct += $bMs->percentage;
-                $bColor = $bMs->phaseColor($bIdx, $brochureTotal);
-                $bBarColor = $brochureColorMap[$bColor] ?? '#6b7280';
-            @endphp
-            <tr>
-                <td class="data-label" style="width: 35%; border-left: 3px solid {{ $bBarColor }};">{{ $bMs->name }}@if($bMs->due_description) <span style="font-weight: normal; font-size: 7pt;"><br>{{ $bMs->due_description }}</span>@endif</td>
-                <td class="data-value" style="text-align: center; width: 10%; font-weight: bold; color: #1e40af;">{{ number_format($bMs->percentage, 0) }}%</td>
-                <td class="data-value" style="width: 25%;">
-                    @if($unit->price)
-                        USD {{ number_format($unit->price * $bMs->percentage / 100, 0, '.', ',') }}
-                    @endif
-                </td>
-                <td class="data-value" style="width: 30%; font-size: 9pt; color: #6b7280;">
-                    @if($unit->price)
-                        USD {{ number_format($unit->price * $brochureCumPct / 100, 0, '.', ',') }} ({{ number_format($brochureCumPct, 0) }}%)
-                    @endif
-                </td>
-            </tr>
-            @endforeach
-            @if($unit->price)
-            <tr>
-                <td class="data-label" style="font-weight: bold; background-color: #dbeafe;">TOTAL</td>
-                <td class="data-value" style="text-align: center; font-weight: bold; background-color: #dbeafe;">{{ number_format($defaultPlan->milestones->sum('percentage'), 0) }}%</td>
-                <td class="data-value" style="font-weight: bold; color: #1e40af; background-color: #dbeafe;" colspan="2">{{ $unit->formatted_price }}</td>
-            </tr>
-            @endif
-        </table>
-        @endif
-
-        {{-- Floor plan --}}
-        @if($floorPlanBase64)
-        <div class="section-title">Plano de Planta</div>
-        <div class="floor-plan-container">
-            <img src="{{ $floorPlanBase64 }}" alt="Plano de {{ $unit->identifier }}">
-        </div>
-        @endif
-
         {{-- Project description --}}
         @if($project->description)
         <div class="section-title">Sobre el Proyecto</div>
@@ -426,6 +389,156 @@
                 @endfor
             </tr>
         </table>
+        @endif
+
+        {{-- Floor plan --}}
+        @if($floorPlanBase64)
+        <div class="section-title">Plano de Planta</div>
+        <div class="floor-plan-container">
+            <img src="{{ $floorPlanBase64 }}" alt="Plano de {{ $unit->identifier }}">
+        </div>
+        @endif
+
+        {{-- All Payment Plans --}}
+        @php
+            $brochureColorMap = [
+                'blue'  => '#2563eb',
+                'amber' => '#d97706',
+                'green' => '#059669',
+                'gray'  => '#6b7280',
+            ];
+        @endphp
+        @foreach($allPlansData as $planData)
+        <div class="plan-block">
+            <div class="section-title">
+                {{ $planData['plan']->name }}
+                @if($planData['plan']->is_default) — Plan por defecto @endif
+            </div>
+
+            {{-- Discount banner --}}
+            @if($planData['hasDiscount'])
+            <div class="discount-banner">
+                <strong style="color: #b45309;">{{ $planData['discountLabel'] }}</strong>:
+                Precio original <span style="text-decoration: line-through; color: #9ca3af;">{{ $unit->formatted_price }}</span>
+                &rarr; Precio con descuento <strong style="color: #059669;">USD {{ number_format($planData['effectivePrice'], 0, '.', ',') }}</strong>
+                <span style="color: #dc2626;">(-USD {{ number_format($planData['discountAmount'], 0, '.', ',') }})</span>
+            </div>
+            @endif
+
+            {{-- Progress bar --}}
+            @php $msCount = count($planData['milestones']); @endphp
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                <tr>
+                    @foreach($planData['milestones'] as $bIdx => $ms)
+                    @php
+                        $bBarColor = $brochureColorMap[$ms['color']] ?? '#6b7280';
+                        $bRadius = '';
+                        if ($msCount === 1) $bRadius = 'border-radius: 8px;';
+                        elseif ($bIdx === 0) $bRadius = 'border-radius: 8px 0 0 8px;';
+                        elseif ($bIdx === $msCount - 1) $bRadius = 'border-radius: 0 8px 8px 0;';
+                    @endphp
+                    <td style="width: {{ $ms['pct'] }}%; background-color: {{ $bBarColor }}; height: 12px; text-align: center; font-size: 7pt; font-weight: bold; color: #fff; {{ $bRadius }}">
+                        @if($ms['pct'] > 8){{ number_format($ms['pct'], 0) }}%@endif
+                    </td>
+                    @endforeach
+                </tr>
+            </table>
+
+            {{-- Milestones table --}}
+            <table class="data-grid" style="margin-bottom: 12px;">
+                @foreach($planData['milestones'] as $bIdx => $ms)
+                @php $bBarColor = $brochureColorMap[$ms['color']] ?? '#6b7280'; @endphp
+                <tr>
+                    <td class="data-label" style="width: 35%; border-left: 3px solid {{ $bBarColor }};">{{ $ms['name'] }}@if($ms['due_description']) <span style="font-weight: normal; font-size: 7pt;"><br>{{ $ms['due_description'] }}</span>@endif</td>
+                    <td class="data-value" style="text-align: center; width: 10%; font-weight: bold; color: #1e40af;">{{ number_format($ms['pct'], 0) }}%</td>
+                    <td class="data-value" style="width: 25%;">
+                        @if($ms['amount'] > 0)
+                            USD {{ number_format($ms['amount'], 0, '.', ',') }}
+                        @endif
+                    </td>
+                    <td class="data-value" style="width: 30%; font-size: 9pt; color: #6b7280;">
+                        @if($ms['cumAmount'] > 0)
+                            USD {{ number_format($ms['cumAmount'], 0, '.', ',') }} ({{ number_format($ms['cumPct'], 0) }}%)
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+                @if($planData['effectivePrice'] > 0)
+                <tr>
+                    <td class="data-label" style="font-weight: bold; background-color: #dbeafe;">TOTAL</td>
+                    <td class="data-value" style="text-align: center; font-weight: bold; background-color: #dbeafe;">{{ number_format(collect($planData['milestones'])->sum('pct'), 0) }}%</td>
+                    <td class="data-value" style="font-weight: bold; color: #1e40af; background-color: #dbeafe;" colspan="2">USD {{ number_format($planData['effectivePrice'], 0, '.', ',') }}</td>
+                </tr>
+                @endif
+            </table>
+        </div>
+        @endforeach
+
+        {{-- Investment Simulation --}}
+        @if($investmentData)
+        <div class="investment-block">
+            <div class="section-title">Simulacion de Inversion</div>
+
+            {{-- KPI grid 2x2 --}}
+            <table class="kpi-grid">
+                <tr>
+                    <td style="background-color: #f0fdf4; border-color: #bbf7d0;">
+                        <div class="kpi-label" style="color: #166534;">Ingreso neto mensual</div>
+                        <div class="kpi-value" style="color: #059669;">USD {{ number_format($investmentData['monthlyNet'], 0, '.', ',') }}</div>
+                    </td>
+                    <td style="background-color: #eff6ff; border-color: #bfdbfe;">
+                        <div class="kpi-label" style="color: #1e40af;">ROI anual</div>
+                        <div class="kpi-value" style="color: #2563eb;">{{ $investmentData['roiAnnual'] }}%</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background-color: #eef2ff; border-color: #c7d2fe;">
+                        <div class="kpi-label" style="color: #3730a3;">Payback estimado</div>
+                        <div class="kpi-value" style="color: #4f46e5;">{{ $investmentData['paybackYears'] ? $investmentData['paybackYears'] . ' anos' : 'N/A' }}</div>
+                    </td>
+                    <td style="background-color: #faf5ff; border-color: #e9d5ff;">
+                        <div class="kpi-label" style="color: #6b21a8;">Valor en {{ $investmentData['years'] }} anos</div>
+                        <div class="kpi-value" style="color: #7c3aed;">USD {{ number_format($investmentData['futureValue'], 0, '.', ',') }}</div>
+                    </td>
+                </tr>
+            </table>
+
+            {{-- Breakdown table --}}
+            <table class="data-grid" style="margin-bottom: 8px;">
+                <tr>
+                    <td class="data-label">Tarifa por noche</td>
+                    <td class="data-value">USD {{ number_format($investmentData['nightlyRate'], 0, '.', ',') }}</td>
+                    <td class="data-label">Ocupacion</td>
+                    <td class="data-value">{{ $investmentData['occupancy'] }}%</td>
+                </tr>
+                <tr>
+                    <td class="data-label">Ingreso bruto anual</td>
+                    <td class="data-value" colspan="3" style="color: #059669; font-weight: bold;">USD {{ number_format($investmentData['grossAnnual'], 0, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td class="data-label">Administracion ({{ $investmentData['mgmtFee'] }}%)</td>
+                    <td class="data-value" style="color: #dc2626;">-USD {{ number_format($investmentData['mgmtCost'], 0, '.', ',') }}</td>
+                    <td class="data-label">Impuestos ({{ $investmentData['taxRate'] }}%)</td>
+                    <td class="data-value" style="color: #dc2626;">-USD {{ number_format($investmentData['taxCost'], 0, '.', ',') }}</td>
+                </tr>
+                <tr style="background-color: #f0fdf4;">
+                    <td class="data-label" style="font-weight: bold; background-color: #dcfce7;">Ingreso neto anual</td>
+                    <td class="data-value" style="font-weight: bold; color: #059669;">USD {{ number_format($investmentData['netAnnual'], 0, '.', ',') }}</td>
+                    <td class="data-label" style="background-color: #dcfce7;">Apreciacion anual</td>
+                    <td class="data-value" style="font-weight: bold; color: #7c3aed;">{{ $investmentData['appreciation'] }}%</td>
+                </tr>
+                <tr style="background-color: #dbeafe;">
+                    <td class="data-label" style="font-weight: bold; background-color: #bfdbfe;">Ganancia total ({{ $investmentData['years'] }} anos)</td>
+                    <td class="data-value" colspan="3" style="font-size: 12pt; font-weight: bold; color: #1e40af;">USD {{ number_format($investmentData['totalReturn'], 0, '.', ',') }}</td>
+                </tr>
+            </table>
+
+            {{-- Disclaimer --}}
+            <div class="notes-box">
+                <p class="notes-label">Nota importante</p>
+                <p>Proyeccion estimativa basada en datos de mercado de la zona. Los rendimientos reales pueden variar segun condiciones del mercado, ocupacion efectiva y otros factores. Esta simulacion no constituye una garantia de retorno.</p>
+            </div>
+        </div>
         @endif
 
         {{-- Notes --}}
@@ -455,7 +568,7 @@
                     <p style="font-size: 8pt; color: #6b7280; margin-top: 4px;">{{ $unitUrl }}</p>
                 </td>
                 <td class="footer-brand">
-                    <div class="footer-brand-name">RealEstate 3D</div>
+                    <div class="footer-brand-name">Real3D.io</div>
                     <div class="footer-brand-url">{{ url('/') }}</div>
                     <div class="footer-brand-date">Generado: {{ now()->format('d/m/Y') }}</div>
                 </td>

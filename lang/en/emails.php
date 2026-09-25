@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'welcome_subject' => 'Welcome to RealEstate 3D',
+    'welcome_subject' => 'Welcome to Real3D.io',
     'welcome_greeting' => 'Hello :name,',
     'welcome_body' => 'Thank you for signing up on our platform. You can now explore real estate projects in 3D, check availability, and connect directly with developers.',
     'welcome_cta' => 'Go to Dashboard',

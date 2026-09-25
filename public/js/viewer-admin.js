@@ -311,6 +311,9 @@ function setupLoadedModel(model, animations) {
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
+    // Store original dimensions BEFORE any scaling
+    model.userData.originalSize = { x: size.x, y: size.y, z: size.z };
+
     const maxDim = Math.max(size.x, size.y, size.z);
     const scaleFactor = 20 / maxDim;
     model.scale.setScalar(scaleFactor);
@@ -325,6 +328,9 @@ function setupLoadedModel(model, animations) {
     state.currentModel = model;
     state.scene.add(model);
 
+    // Show original dimensions in admin UI
+    showModelDimensions(size);
+
     if (animations?.length > 0) {
         state.modelMixer = new THREE.AnimationMixer(model);
         animations.forEach((clip) => state.modelMixer.clipAction(clip).play());
@@ -333,6 +339,15 @@ function setupLoadedModel(model, animations) {
     if (pendingSettings) {
         applyModelSettings(pendingSettings);
         pendingSettings = null;
+    }
+}
+
+function showModelDimensions(size) {
+    const infoEl = document.getElementById('model-dimensions-info');
+    const textEl = document.getElementById('model-dim-text');
+    if (infoEl && textEl) {
+        textEl.textContent = `Ancho: ${size.x.toFixed(1)}u | Alto: ${size.y.toFixed(1)}u | Prof: ${size.z.toFixed(1)}u`;
+        infoEl.classList.remove('hidden');
     }
 }
 
@@ -410,10 +425,39 @@ function applyModelSettings(settings) {
     if (settings.model_rotation !== undefined) {
         model.rotation.y = THREE.MathUtils.degToRad(parseFloat(settings.model_rotation));
     }
-    if (settings.model_scale !== undefined) {
+
+    // Real scale mode vs percentage mode
+    const realScaleEnabled = settings.real_scale_enabled === true || settings.real_scale_enabled === 1 || settings.real_scale_enabled === '1';
+    const realDim = parseFloat(settings.real_dimension_meters);
+
+    if (realScaleEnabled && realDim > 0 && model.userData.originalSize) {
+        const origSize = model.userData.originalSize;
+        const axis = settings.reference_axis || 'height';
+        const originalDim = axis === 'height' ? origSize.y
+                          : axis === 'width'  ? origSize.x
+                          : origSize.z; // depth
+
+        // 1 unit Three.js = 1 meter. Scale so that axis matches real meters.
+        const realScale = realDim / originalDim;
+        model.scale.setScalar(realScale);
+
+        // Reposition on ground
+        const box = new THREE.Box3().setFromObject(model);
+        model.position.y = -box.min.y;
+        model.userData.baseY = model.position.y;
+
+        // Disable scale slider
+        const scaleSlider = document.getElementById('s-model-scale');
+        if (scaleSlider) scaleSlider.disabled = true;
+    } else if (settings.model_scale !== undefined) {
         const pct = parseFloat(settings.model_scale) / 100;
         model.scale.setScalar(model.userData.baseScale * pct);
+
+        // Enable scale slider
+        const scaleSlider = document.getElementById('s-model-scale');
+        if (scaleSlider) scaleSlider.disabled = false;
     }
+
     if (settings.model_elevation !== undefined) {
         model.position.y = model.userData.baseY + parseFloat(settings.model_elevation) * 0.5;
     }
@@ -471,7 +515,64 @@ function bindSliders() {
             switch360Background(bgSelect.value);
         });
     }
+
+    // Real scale controls
+    const realScaleCheck = document.getElementById('s-real-scale-enabled');
+    const realScaleControls = document.getElementById('real-scale-controls');
+    const realDimInput = document.getElementById('s-real-dimension-meters');
+    const refAxisSelect = document.getElementById('s-reference-axis');
+
+    if (realScaleCheck) {
+        realScaleCheck.addEventListener('change', () => {
+            // Toggle controls visibility
+            if (realScaleControls) {
+                realScaleControls.classList.toggle('hidden', !realScaleCheck.checked);
+            }
+            applyRealScaleFromUI();
+        });
+    }
+    if (realDimInput) {
+        realDimInput.addEventListener('input', () => {
+            applyRealScaleFromUI();
+        });
+    }
+    if (refAxisSelect) {
+        refAxisSelect.addEventListener('change', () => {
+            applyRealScaleFromUI();
+        });
+    }
 }
+
+function applyRealScaleFromUI() {
+    const enabled = document.getElementById('s-real-scale-enabled')?.checked;
+    const dim = parseFloat(document.getElementById('s-real-dimension-meters')?.value);
+    const axis = document.getElementById('s-reference-axis')?.value || 'height';
+    const scale = parseFloat(document.getElementById('s-model-scale')?.value || 100);
+    const elevation = parseFloat(document.getElementById('s-model-elevation')?.value || 0);
+
+    applyModelSettings({
+        real_scale_enabled: enabled,
+        real_dimension_meters: dim,
+        reference_axis: axis,
+        model_scale: scale,
+        model_elevation: elevation,
+    });
+}
+
+// =============================================================
+//  Expose camera state for admin-upload.js
+// =============================================================
+window.getViewerCameraState = function () {
+    if (!state.camera || !state.controls) return null;
+    return {
+        camera_position_x: parseFloat(state.camera.position.x.toFixed(2)),
+        camera_position_y: parseFloat(state.camera.position.y.toFixed(2)),
+        camera_position_z: parseFloat(state.camera.position.z.toFixed(2)),
+        camera_target_x: parseFloat(state.controls.target.x.toFixed(2)),
+        camera_target_y: parseFloat(state.controls.target.y.toFixed(2)),
+        camera_target_z: parseFloat(state.controls.target.z.toFixed(2)),
+    };
+};
 
 // =============================================================
 //  Render Loop

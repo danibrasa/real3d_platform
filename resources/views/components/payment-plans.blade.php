@@ -58,7 +58,14 @@
                 'type' => $ms->milestone_type ?? 'other',
             ];
         }
-        $plansData[$plan->id] = $msData;
+        $plansData[$plan->id] = [
+            'milestones' => $msData,
+            'discount' => $plan->hasDiscount() ? [
+                'type'  => $plan->discount_type,
+                'value' => $plan->discount_value,
+                'label' => $plan->discountDisplayLabel(),
+            ] : null,
+        ];
     }
 
     // Check if any units are available (for download button)
@@ -133,7 +140,7 @@
 
     {{-- Plan content --}}
     @foreach($plans as $plan)
-    @php $milestones = $plansData[$plan->id] ?? []; @endphp
+    @php $milestones = $plansData[$plan->id]['milestones'] ?? []; @endphp
     <div x-show="activePlan === {{ $plan->id }}" x-transition.opacity
          class="bg-white rounded-xl shadow-sm overflow-hidden"
          style="{{ $plan->id !== $defaultPlan->id ? 'display:none' : '' }}">
@@ -276,6 +283,17 @@
                                placeholder="150000">
                     </div>
                     <p x-show="unitPrice <= 0" class="text-xs text-gray-400 mt-2">{{ __('landing.select_unit_to_simulate') }}</p>
+                    {{-- Effective price display when discount active --}}
+                    <div x-show="unitPrice > 0 && activeDiscount()" x-transition class="mt-3 space-y-1">
+                        <div class="text-xs text-gray-400 line-through" x-text="fmt(unitPrice)"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded font-medium"
+                                  x-text="activeDiscount() ? activeDiscount().label : ''"></span>
+                            <span class="text-sm text-red-600 font-medium"
+                                  x-text="'- ' + fmt(discountAmount())"></span>
+                        </div>
+                        <div class="text-base font-bold text-green-700" x-text="fmt(effectivePrice())"></div>
+                    </div>
                 </div>
 
                 {{-- Summary table --}}
@@ -291,6 +309,23 @@
                                     <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">{{ __('landing.cumulative') }}</th>
                                 </tr>
                             </thead>
+                            <tbody x-show="activeDiscount()">
+                                <tr class="bg-gray-50">
+                                    <td class="px-3 py-1.5 text-gray-500 text-xs" colspan="2">{{ __('landing.original_price') }}</td>
+                                    <td class="px-3 py-1.5 text-right text-gray-400 text-xs line-through" x-text="fmt(unitPrice)"></td>
+                                    <td class="px-3 py-1.5"></td>
+                                </tr>
+                                <tr class="bg-yellow-50">
+                                    <td class="px-3 py-1.5 text-yellow-800 text-xs font-medium" colspan="2" x-text="activeDiscount() ? activeDiscount().label : ''"></td>
+                                    <td class="px-3 py-1.5 text-right text-red-600 text-xs font-medium" x-text="'- ' + fmt(discountAmount())"></td>
+                                    <td class="px-3 py-1.5"></td>
+                                </tr>
+                                <tr class="bg-green-50">
+                                    <td class="px-3 py-1.5 text-green-800 text-xs font-semibold" colspan="2">{{ __('landing.effective_price') }}</td>
+                                    <td class="px-3 py-1.5 text-right text-green-700 text-sm font-bold" x-text="fmt(effectivePrice())"></td>
+                                    <td class="px-3 py-1.5"></td>
+                                </tr>
+                            </tbody>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($milestones as $i => $ms)
                                 <tr class="hover:bg-gray-50">
@@ -311,7 +346,7 @@
                                 <tr class="bg-blue-50 font-bold">
                                     <td class="px-3 py-2 text-gray-800">{{ __('landing.total') }}</td>
                                     <td class="px-3 py-2 text-center text-gray-800">{{ number_format(array_sum(array_column($milestones, 'pct')), 0) }}%</td>
-                                    <td class="px-3 py-2 text-right text-blue-700" x-text="fmt(unitPrice)"></td>
+                                    <td class="px-3 py-2 text-right text-blue-700" x-text="fmt(effectivePrice())"></td>
                                     <td class="px-3 py-2 text-right"></td>
                                 </tr>
                             </tfoot>
@@ -329,9 +364,28 @@
         return {
             activePlan: {{ $defaultPlan->id }},
             unitPrice: {{ $priceMin ?? 0 }},
+            discounts: @json(collect($plans)->mapWithKeys(fn($p) => [$p->id => $plansData[$p->id]['discount'] ?? null])),
 
             selectPlan(id) {
                 this.activePlan = id;
+            },
+
+            activeDiscount() {
+                return this.discounts[this.activePlan] || null;
+            },
+
+            effectivePrice() {
+                if (this.unitPrice <= 0) return 0;
+                const d = this.activeDiscount();
+                if (!d) return this.unitPrice;
+                if (d.type === 'percentage') {
+                    return Math.round(this.unitPrice * (1 - d.value / 100));
+                }
+                return Math.max(0, this.unitPrice - d.value);
+            },
+
+            discountAmount() {
+                return this.unitPrice - this.effectivePrice();
             },
 
             currencySymbol() {
@@ -343,7 +397,7 @@
             },
 
             milestoneAmt(pct) {
-                return this.unitPrice > 0 ? Math.round(this.unitPrice * pct / 100) : 0;
+                return this.effectivePrice() > 0 ? Math.round(this.effectivePrice() * pct / 100) : 0;
             },
 
             cumulativeAt(milestones, idx) {
@@ -353,7 +407,7 @@
             },
 
             cumulativeAmt(milestones, idx) {
-                return this.unitPrice > 0 ? Math.round(this.unitPrice * this.cumulativeAt(milestones, idx) / 100) : 0;
+                return this.effectivePrice() > 0 ? Math.round(this.effectivePrice() * this.cumulativeAt(milestones, idx) / 100) : 0;
             },
         };
     }

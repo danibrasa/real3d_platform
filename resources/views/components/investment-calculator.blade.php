@@ -10,7 +10,9 @@
     $defaultPrice = $priceMin ?? 150000;
 @endphp
 
-<section x-data="investCalc({{ $defaultPrice }}, {{ $nightlyRate }}, {{ $occupancy }}, {{ $appreciation }}, {{ $mgmtFee }}, {{ $taxRate }})" class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 md:p-8">
+<section x-data="investCalc({{ $defaultPrice }}, {{ $nightlyRate }}, {{ $occupancy }}, {{ $appreciation }}, {{ $mgmtFee }}, {{ $taxRate }})"
+         @unit-selected-price.window="price = $event.detail.price"
+         class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 md:p-8">
     <h2 class="text-2xl font-bold text-gray-800 mb-2">Calculadora de Inversion</h2>
     <p class="text-sm text-gray-500 mb-6">Proyecta el rendimiento de tu inversion inmobiliaria</p>
 

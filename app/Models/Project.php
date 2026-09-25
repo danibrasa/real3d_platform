@@ -39,6 +39,8 @@ class Project extends Model
         "description_en",
         "tagline_en",
         "location_en",
+        "latitude",
+        "longitude",
         "chatbot_enabled",
         "chatbot_welcome_es",
         "chatbot_welcome_en",
@@ -48,6 +50,8 @@ class Project extends Model
     protected $casts = [
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'chatbot_enabled' => 'boolean',
     ];
 
@@ -120,6 +124,11 @@ class Project extends Model
         return $this->hasMany(ConstructionUpdate::class)->orderByDesc('date');
     }
 
+    public function pointsOfInterest(): HasMany
+    {
+        return $this->hasMany(PointOfInterest::class)->orderBy('sort_order');
+    }
+
     /** Inmobiliarias assigned to this project */
     public function assignedAgencies(): BelongsToMany
     {
@@ -172,6 +181,13 @@ class Project extends Model
         return Attribute::make(
             get: fn () => $this->units()->where('status', 'available')->count(),
         );
+    }
+
+    public function scopePortalVisible($query)
+    {
+        return $query->where('status', 'public')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude');
     }
 
     protected function priceRange(): Attribute

@@ -61,25 +61,27 @@
                 </div>
             </div>
 
-            {{-- Lead capture form --}}
-            <div x-show="showLeadForm && !leadCaptured" class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-                <p class="text-sm font-medium text-emerald-800 mb-2" x-text="locale === 'en' ? 'Want an advisor to contact you?' : 'Quieres que un asesor te contacte?'"></p>
-                <div class="space-y-2">
-                    <input x-model="leadForm.name" type="text" :placeholder="locale === 'en' ? 'Your name' : 'Tu nombre'"
-                           class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
-                    <input x-model="leadForm.email" type="email" :placeholder="locale === 'en' ? 'Email' : 'Email'"
-                           class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
-                    <input x-model="leadForm.phone" type="tel" :placeholder="locale === 'en' ? 'Phone (optional)' : 'Telefono (opcional)'"
-                           class="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
-                    <div class="flex gap-2">
-                        <button @click="submitLead()" :disabled="!leadForm.name || !leadForm.email || leadSubmitting"
-                                class="flex-1 bg-emerald-600 text-white text-sm py-1.5 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
-                            <span x-show="!leadSubmitting" x-text="locale === 'en' ? 'Send' : 'Enviar'"></span>
-                            <span x-show="leadSubmitting">...</span>
-                        </button>
-                        <button @click="showLeadForm = false"
-                                class="px-3 text-sm text-gray-500 hover:text-gray-700" x-text="locale === 'en' ? 'Later' : 'Despues'">
-                        </button>
+            {{-- Lead capture (inline, non-invasive) --}}
+            <div x-show="showLeadForm && !leadCaptured" x-transition class="flex justify-start">
+                <div class="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%]">
+                    <p class="text-xs text-gray-500 mb-2" x-text="locale === 'en' ? 'Leave your details and an advisor will reach out:' : 'Deja tus datos y un asesor te contactara:'"></p>
+                    <div class="space-y-1.5">
+                        <input x-model="leadForm.name" type="text" :placeholder="locale === 'en' ? 'Name' : 'Nombre'"
+                               class="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
+                        <input x-model="leadForm.email" type="email" placeholder="Email"
+                               class="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
+                        <input x-model="leadForm.phone" type="tel" :placeholder="locale === 'en' ? 'Phone (optional)' : 'Telefono (opcional)'"
+                               class="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:ring-emerald-500 focus:border-emerald-500">
+                        <div class="flex gap-2 pt-1">
+                            <button @click="submitLead()" :disabled="!leadForm.name || !leadForm.email || leadSubmitting"
+                                    class="flex-1 bg-emerald-600 text-white text-xs py-1.5 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition">
+                                <span x-show="!leadSubmitting" x-text="locale === 'en' ? 'Send' : 'Enviar'"></span>
+                                <span x-show="leadSubmitting">...</span>
+                            </button>
+                            <button @click="showLeadForm = false; leadDismissed = true"
+                                    class="px-2 text-xs text-gray-400 hover:text-gray-600" x-text="locale === 'en' ? 'No thanks' : 'No, gracias'">
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,6 +128,7 @@ function chatbotWidget() {
         leadSubmitting: false,
         limitReached: false,
         leadForm: { name: '', email: '', phone: '' },
+        leadDismissed: false,
         messagesCount: 0,
         leadAfter: {{ config('chatbot.lead_capture_after_messages', 3) }},
 
@@ -147,6 +150,7 @@ function chatbotWidget() {
                         this.sessionId = data.sessionId;
                         this.messages = data.messages || [];
                         this.leadCaptured = data.leadCaptured || false;
+                        this.leadDismissed = data.leadDismissed || false;
                         this.messagesCount = data.messagesCount || 0;
                         return;
                     }
@@ -204,8 +208,8 @@ function chatbotWidget() {
                     this.messagesCount = data.messages_count || this.messagesCount;
                     this.limitReached = data.limit_reached || false;
 
-                    // Show lead form after N messages
-                    if (data.suggest_lead && !this.leadCaptured && !this.showLeadForm) {
+                    // Show lead form once after N messages (only if not dismissed)
+                    if (data.suggest_lead && !this.leadCaptured && !this.showLeadForm && !this.leadDismissed) {
                         this.showLeadForm = true;
                     }
                 }
@@ -265,8 +269,9 @@ function chatbotWidget() {
             const key = 'chatbot_' + this.slug;
             sessionStorage.setItem(key, JSON.stringify({
                 sessionId: this.sessionId,
-                messages: this.messages.slice(-30), // Keep last 30 messages
+                messages: this.messages.slice(-30),
                 leadCaptured: this.leadCaptured,
+                leadDismissed: this.leadDismissed,
                 messagesCount: this.messagesCount,
             }));
         },

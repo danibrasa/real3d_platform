@@ -110,7 +110,7 @@ class ChatbotService
 
         $prompt = <<<PROMPT
 You are a friendly and professional real estate sales assistant for the project "{$project->name}".
-You MUST respond in {$lang}.
+You MUST detect the language the user writes in and respond in that same language. If unsure, default to {$lang}.
 You help potential buyers learn about the project, its units, prices, and amenities.
 
 PROJECT INFORMATION:

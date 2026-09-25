@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Analisis Estrategico - RealEstate 3D</title>
+    <title>Analisis Estrategico - Real3D.io</title>
     <style>
         /* Reset */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -195,7 +195,7 @@
 <body>
     {{-- Cover Page --}}
     <div class="cover">
-        <div class="cover-logo">RealEstate 3D</div>
+        <div class="cover-logo">Real3D.io</div>
         <div class="cover-subtitle">Plataforma de Visualizacion Inmobiliaria 3D</div>
         <div class="cover-line"></div>
         <div class="cover-title">Analisis Estrategico</div>
@@ -213,7 +213,7 @@
     </div>
 
     <div class="page-footer">
-        RealEstate 3D - Analisis Estrategico | Confidencial | {{ now()->format('d/m/Y') }}
+        Real3D.io - Analisis Estrategico | Confidencial | {{ now()->format('d/m/Y') }}
     </div>
 </body>
 </html>

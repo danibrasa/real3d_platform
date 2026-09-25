@@ -15,12 +15,26 @@ class InquiryController extends Controller
 {
     public function store(Request $request, Project $project)
     {
+        // Only allow inquiries for public/unlisted projects
+        if (!in_array($project->status, ['public', 'unlisted'])) {
+            abort(404);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:30',
             'message' => 'nullable|string|max:2000',
-            'unit_id' => 'nullable|exists:units,id',
+            // SECURITY FIX: Verify unit belongs to this project (prevent IDOR cross-project)
+            'unit_id' => [
+                'nullable',
+                'integer',
+                function ($attribute, $value, $fail) use ($project) {
+                    if ($value && !$project->units()->where('id', $value)->exists()) {
+                        $fail('The selected unit is invalid.');
+                    }
+                },
+            ],
         ]);
 
         $validated['project_id'] = $project->id;
@@ -37,7 +51,7 @@ class InquiryController extends Controller
             'unit_id' => $inquiry->unit_id,
         ], $project->id);
 
-        // QW1: Notify project contact + superadmins
+        // Notify project contact + superadmins
         $recipients = collect();
 
         if ($project->contact_email) {
@@ -53,7 +67,7 @@ class InquiryController extends Controller
             }
         }
 
-        // QW6: Auto-reply to the buyer
+        // Auto-reply to the buyer
         Mail::to($inquiry->email)->queue(new InquiryAutoReply($inquiry));
 
         return back()->with('success', 'Gracias por tu consulta. Nos pondremos en contacto pronto.');

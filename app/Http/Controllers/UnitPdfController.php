@@ -13,6 +13,11 @@ class UnitPdfController extends Controller
 {
     public function generate(Project $project, Unit $unit)
     {
+        // SECURITY FIX: Verify project is publicly accessible before generating PDF
+        if (!in_array($project->status, ['public', 'unlisted'])) {
+            abort(404);
+        }
+
         // Ensure unit belongs to project
         if ($unit->project_id !== $project->id) {
             abort(404);
@@ -62,6 +67,69 @@ class UnitPdfController extends Controller
             }
         }
 
+        // All payment plans with discounts
+        $allPlansData = [];
+        foreach ($project->paymentPlans as $plan) {
+            if ($plan->milestones->isEmpty()) continue;
+
+            $effectivePrice = $plan->effectivePrice($unit->price ?? 0);
+            $hasDiscount = $plan->hasDiscount() && $unit->price;
+
+            $milestones = $plan->milestones->sortBy('sort_order')->values();
+            $cumPct = 0;
+            $msData = [];
+            foreach ($milestones as $i => $ms) {
+                $cumPct += $ms->percentage;
+                $msData[] = [
+                    'name' => $ms->name,
+                    'pct' => $ms->percentage,
+                    'cumPct' => $cumPct,
+                    'due_description' => $ms->due_description,
+                    'color' => $ms->phaseColor($i, $milestones->count()),
+                    'amount' => $effectivePrice > 0 ? $effectivePrice * $ms->percentage / 100 : 0,
+                    'cumAmount' => $effectivePrice > 0 ? $effectivePrice * $cumPct / 100 : 0,
+                ];
+            }
+
+            $allPlansData[] = [
+                'plan' => $plan,
+                'milestones' => $msData,
+                'effectivePrice' => $effectivePrice,
+                'hasDiscount' => $hasDiscount,
+                'discountAmount' => $hasDiscount ? ($unit->price - $effectivePrice) : 0,
+                'discountLabel' => $hasDiscount ? $plan->discountDisplayLabel() : null,
+            ];
+        }
+
+        // Investment calculator data
+        $investmentData = null;
+        if ($unit->price) {
+            $yield = $project->rental_yield_annual ?? 10;
+            $occupancy = $project->average_occupancy ?? 70;
+            $appreciation = $project->appreciation_rate_annual ?? 6;
+            $mgmtFee = $project->management_fee ?? 20;
+            $taxRate = $project->property_tax_rate ?? 1;
+            $nightlyRate = $project->avg_nightly_rate ?? 120;
+            $years = 5;
+            $price = $unit->price;
+
+            $grossAnnual = $nightlyRate * 365 * ($occupancy / 100);
+            $mgmtCost = $grossAnnual * ($mgmtFee / 100);
+            $taxCost = $price * ($taxRate / 100);
+            $netAnnual = $grossAnnual - $mgmtCost - $taxCost;
+            $monthlyNet = round($netAnnual / 12);
+            $roiAnnual = $price > 0 ? round($netAnnual / $price * 100, 1) : 0;
+            $paybackYears = $netAnnual > 0 ? round($price / $netAnnual, 1) : null;
+            $futureValue = round($price * pow(1 + $appreciation / 100, $years));
+            $totalReturn = round($netAnnual * $years + ($futureValue - $price));
+
+            $investmentData = compact(
+                'grossAnnual', 'mgmtCost', 'taxCost', 'netAnnual', 'monthlyNet',
+                'roiAnnual', 'paybackYears', 'futureValue', 'totalReturn',
+                'nightlyRate', 'occupancy', 'appreciation', 'mgmtFee', 'taxRate', 'years'
+            );
+        }
+
         $pdf = Pdf::loadView('pdf.unit-brochure', compact(
             'project',
             'unit',
@@ -70,6 +138,8 @@ class UnitPdfController extends Controller
             'galleryBase64',
             'thumbnailBase64',
             'unitUrl',
+            'allPlansData',
+            'investmentData',
         ))
             ->setPaper('a4')
             ->setOption('isRemoteEnabled', true)
@@ -82,6 +152,11 @@ class UnitPdfController extends Controller
 
     public function paymentSchedule(Request $request, Project $project, Unit $unit)
     {
+        // SECURITY FIX: Verify project is publicly accessible
+        if (!in_array($project->status, ['public', 'unlisted'])) {
+            abort(404);
+        }
+
         if ($unit->project_id !== $project->id) {
             abort(404);
         }
@@ -107,6 +182,17 @@ class UnitPdfController extends Controller
         $currencyService = app(CurrencyService::class);
         $formattedPrice = $unit->price ? $currencyService->format($unit->price, $currencyCode) : '-';
 
+        // Discount
+        $effectivePrice = $plan->effectivePrice($unit->price ?? 0);
+        $hasDiscount = $plan->hasDiscount() && $unit->price;
+        $formattedEffectivePrice = $hasDiscount
+            ? $currencyService->format($effectivePrice, $currencyCode)
+            : $formattedPrice;
+        $discountAmount = $hasDiscount
+            ? $currencyService->format($unit->price - $effectivePrice, $currencyCode)
+            : null;
+        $discountLabel = $hasDiscount ? $plan->discountDisplayLabel() : null;
+
         // Build milestones data with cumulative
         $milestones = $plan->milestones->sortBy('sort_order')->values();
         $total = $milestones->count();
@@ -115,8 +201,8 @@ class UnitPdfController extends Controller
 
         foreach ($milestones as $i => $ms) {
             $cumPct += $ms->percentage;
-            $amount = $unit->price ? $unit->price * $ms->percentage / 100 : 0;
-            $cumAmount = $unit->price ? $unit->price * $cumPct / 100 : 0;
+            $amount = $effectivePrice > 0 ? $effectivePrice * $ms->percentage / 100 : 0;
+            $cumAmount = $effectivePrice > 0 ? $effectivePrice * $cumPct / 100 : 0;
 
             $computedDate = null;
             if ($project->estimated_delivery && $cumPct > 0) {
@@ -149,6 +235,10 @@ class UnitPdfController extends Controller
             'plan',
             'milestonesData',
             'formattedPrice',
+            'formattedEffectivePrice',
+            'hasDiscount',
+            'discountAmount',
+            'discountLabel',
             'qrSvg',
             'landingUrl',
         ))

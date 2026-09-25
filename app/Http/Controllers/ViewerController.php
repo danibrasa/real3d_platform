@@ -109,6 +109,7 @@ class ViewerController extends Controller
             'paymentPlans.milestones',
             'constructionPhases',
             'constructionUpdates' => fn ($q) => $q->with('phase', 'images')->orderByDesc('date'),
+            'pointsOfInterest',
             'units' => fn ($q) => $q->with('typology')->orderBy('floor')->orderBy('sort_order')->orderBy('identifier'),
         ]);
 

@@ -31,6 +31,9 @@ class ProjectSettingsController extends Controller
             'camera_target_y' => 'numeric',
             'camera_target_z' => 'numeric',
             'wireframe' => 'boolean',
+            'real_scale_enabled' => 'boolean',
+            'real_dimension_meters' => 'nullable|numeric|min:0.1|max:9999',
+            'reference_axis' => 'in:height,width,depth',
         ]);
 
         $project->settings()->updateOrCreate(

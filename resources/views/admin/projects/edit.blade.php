@@ -33,6 +33,9 @@
                     <a href="{{ route('admin.projects.construction.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-orange-50 text-orange-700 rounded-md text-sm font-medium hover:bg-orange-100 transition">
                         Progreso de obra
                     </a>
+                    <a href="{{ route('admin.projects.location.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-teal-50 text-teal-700 rounded-md text-sm font-medium hover:bg-teal-100 transition">
+                        Ubicacion y POIs
+                    </a>
                     <span class="inline-flex items-center px-4 py-2 bg-amber-50 text-amber-700 rounded-md text-sm font-medium">
                         Galeria ({{ $project->gallery_images_count ?? 0 }})
                     </span>
@@ -316,10 +319,13 @@
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-semibold">Configuracion del visor</h3>
-                            <button id="btn-save-settings" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition">
-                                Guardar settings
-                            </button>
+                            <div class="flex gap-2">
+                                <button id="btn-save-settings" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition">
+                                    Guardar settings
+                                </button>
+                            </div>
                         </div>
+                        <p class="text-xs text-gray-400 mb-4">Posiciona la camara en el visor antes de guardar. La posicion actual se guardara automaticamente.</p>
 
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div>
@@ -374,6 +380,35 @@
                                     <input type="checkbox" id="s-ground-visible" {{ ($project->settings->ground_visible ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600">
                                     Mostrar suelo
                                 </label>
+                            </div>
+                        </div>
+
+                        <!-- Real Scale Section -->
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex items-center gap-3 mb-3">
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <input type="checkbox" id="s-real-scale-enabled" {{ ($project->settings->real_scale_enabled ?? false) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600">
+                                    Escala real
+                                </label>
+                            </div>
+                            <div id="real-scale-controls" class="{{ ($project->settings->real_scale_enabled ?? false) ? '' : 'hidden' }}">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Eje de referencia</label>
+                                        <select id="s-reference-axis" class="w-full rounded-md border-gray-300 text-sm">
+                                            <option value="height" {{ ($project->settings->reference_axis ?? 'height') === 'height' ? 'selected' : '' }}>Altura</option>
+                                            <option value="width" {{ ($project->settings->reference_axis ?? '') === 'width' ? 'selected' : '' }}>Ancho</option>
+                                            <option value="depth" {{ ($project->settings->reference_axis ?? '') === 'depth' ? 'selected' : '' }}>Profundidad</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Dimension real (metros)</label>
+                                        <input type="number" id="s-real-dimension-meters" step="0.1" min="0.1" max="9999" value="{{ $project->settings->real_dimension_meters ?? '' }}" placeholder="ej: 12.5" class="w-full rounded-md border-gray-300 text-sm">
+                                    </div>
+                                </div>
+                                <div id="model-dimensions-info" class="mt-2 text-xs text-gray-400 hidden">
+                                    Dimensiones del modelo: <span id="model-dim-text"></span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -19,4 +19,10 @@ return [
     'actions' => 'Actions',
     'back_to_project' => 'Back to project',
     'share_unit' => 'Share unit',
+
+    // CTA banners
+    'cta_interested_title' => 'Interested in this unit?',
+    'cta_interested_subtitle' => 'Talk to a specialized advisor and schedule a visit.',
+    'cta_urgency_title' => '{1} unit available at this price|[2,*] units available at this price',
+    'cta_urgency_subtitle' => 'Availability may change. Secure your unit today.',
 ];

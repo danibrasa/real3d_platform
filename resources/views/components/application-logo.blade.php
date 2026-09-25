@@ -9,5 +9,5 @@
         <rect width="48" height="48" rx="12" fill="url(#logo-grad)"/>
         <path d="M24 10L10 21v15a3 3 0 003 3h7v-10h8v10h7a3 3 0 003-3V21L24 10z" fill="white"/>
     </svg>
-    <span class="text-xl font-bold text-gray-800">RealEstate 3D</span>
+    <span class="text-xl font-bold text-gray-800">Real3D.io</span>
 </div>

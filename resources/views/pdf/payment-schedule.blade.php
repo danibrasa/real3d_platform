@@ -290,7 +290,12 @@
                 </td>
                 <td>
                     <span class="info-label">Precio:</span>
-                    <span class="info-price">{{ $formattedPrice }}</span>
+                    @if($hasDiscount)
+                        <span style="text-decoration: line-through; color: #9ca3af; font-size: 9pt;">{{ $formattedPrice }}</span>
+                        <span class="info-price" style="color: #059669;">{{ $formattedEffectivePrice }}</span>
+                    @else
+                        <span class="info-price">{{ $formattedPrice }}</span>
+                    @endif
                 </td>
                 <td style="text-align: right;">
                     @php
@@ -369,12 +374,28 @@
                 @endforeach
             </tbody>
             <tfoot>
+                @if($hasDiscount)
+                <tr>
+                    <td colspan="3" style="color: #6b7280;">Precio original</td>
+                    <td></td>
+                    <td style="text-decoration: line-through; color: #9ca3af;">{{ $formattedPrice }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="color: #b45309;">{{ $discountLabel }}</td>
+                    <td></td>
+                    <td style="color: #dc2626; font-weight: bold;">-{{ $discountAmount }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                @endif
                 <tr class="total-row">
                     <td colspan="3" style="font-weight: bold;">TOTAL</td>
                     <td style="font-weight: bold;">{{ number_format(array_sum(array_column($milestonesData, 'pct')), 0) }}%</td>
-                    <td style="font-weight: bold;">{{ $formattedPrice }}</td>
+                    <td style="font-weight: bold;">{{ $formattedEffectivePrice }}</td>
                     <td></td>
-                    <td style="font-weight: bold;">{{ $formattedPrice }}</td>
+                    <td style="font-weight: bold;">{{ $formattedEffectivePrice }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -411,7 +432,7 @@
                     <p style="font-size: 8pt; color: #6b7280; margin-top: 4px;">{{ $landingUrl }}</p>
                 </td>
                 <td class="footer-brand">
-                    <div class="footer-brand-name">RealEstate 3D</div>
+                    <div class="footer-brand-name">Real3D.io</div>
                     <div class="footer-brand-url">{{ url('/') }}</div>
                     <div class="footer-brand-date">Generado: {{ now()->format('d/m/Y') }}</div>
                 </td>

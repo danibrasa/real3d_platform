@@ -27,6 +27,9 @@ class ProjectSetting extends Model
         "camera_target_y",
         "camera_target_z",
         "wireframe",
+        "real_scale_enabled",
+        "real_dimension_meters",
+        "reference_axis",
     ];
 
     protected $casts = [
@@ -46,6 +49,9 @@ class ProjectSetting extends Model
         "camera_target_y" => "float",
         "camera_target_z" => "float",
         "wireframe" => "boolean",
+        "real_scale_enabled" => "boolean",
+        "real_dimension_meters" => "float",
+        "reference_axis" => "string",
     ];
 
     public function project(): BelongsTo

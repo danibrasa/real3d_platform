@@ -53,6 +53,49 @@
                         </div>
                     </div>
 
+                    <!-- Discount -->
+                    <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex items-center gap-2 mb-3">
+                            <h4 class="text-sm font-semibold text-gray-700">Descuento (opcional)</h4>
+                            <span class="text-xs text-gray-400">Aplica al precio base antes de calcular los hitos</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Tipo de descuento</label>
+                                <select name="discount_type" x-model="discount.type"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    <option value="">Sin descuento</option>
+                                    <option value="percentage">Porcentaje (%)</option>
+                                    <option value="fixed">Monto fijo (USD)</option>
+                                </select>
+                            </div>
+                            <div x-show="discount.type !== ''" x-transition>
+                                <label class="block text-xs text-gray-500 mb-1">
+                                    Valor <span x-text="discount.type === 'percentage' ? '(%)' : '(USD)'"></span>
+                                </label>
+                                <input type="number" name="discount_value" x-model.number="discount.value"
+                                       min="0" :max="discount.type === 'percentage' ? 100 : ''" step="0.01"
+                                       placeholder="Ej: 5"
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div x-show="discount.type !== ''" x-transition>
+                                <label class="block text-xs text-gray-500 mb-1">Etiqueta (opcional)</label>
+                                <input type="text" name="discount_label" x-model="discount.label"
+                                       placeholder="Ej: Descuento por pago de contado" maxlength="255"
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            </div>
+                        </div>
+                        <div x-show="discount.type !== '' && discount.value > 0" class="mt-2 text-xs text-yellow-700">
+                            <span x-show="discount.type === 'percentage'">
+                                Ejemplo: sobre USD 100,000 → descuento USD <span x-text="(100000 * discount.value / 100).toLocaleString()"></span>
+                                → precio efectivo USD <span x-text="(100000 * (1 - discount.value / 100)).toLocaleString()"></span>
+                            </span>
+                            <span x-show="discount.type === 'fixed'">
+                                Descuento fijo de USD <span x-text="Number(discount.value).toLocaleString()"></span> aplicado al precio de la unidad.
+                            </span>
+                        </div>
+                    </div>
+
                     <!-- Milestones -->
                     <div class="space-y-3 mb-4">
                         <template x-for="(ms, idx) in milestones" :key="idx">
@@ -146,6 +189,11 @@
         function planEditor(planData) {
             return {
                 plan: planData,
+                discount: {
+                    type:  planData.discount_type  || '',
+                    value: planData.discount_value || '',
+                    label: planData.discount_label || '',
+                },
                 milestones: planData.milestones && planData.milestones.length
                     ? planData.milestones.map(m => ({
                         name: m.name,
