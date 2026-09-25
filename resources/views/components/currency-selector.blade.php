@@ -13,7 +13,7 @@
     <div x-show="open" x-transition class="absolute right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]" style="display: none;">
         @foreach($currencies as $code => $cur)
             @if($cur['is_active'])
-            <a href="{{ request()->fullUrlWithQuery(['currency' => $code]) }}"
+            <a href="{{ \App\Support\QueryUrl::with(['currency' => $code]) }}"
                class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition {{ $currentCurrency === $code ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700' }}">
                 <span class="w-8 text-right font-mono">{{ $cur['symbol'] }}</span>
                 <span>{{ $code }}</span>

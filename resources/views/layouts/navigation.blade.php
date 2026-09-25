@@ -289,14 +289,14 @@
                 {{ __('general.view_projects') }}
             </x-responsive-nav-link>
             <div class="px-4 py-2 flex items-center gap-2">
-                <a href="{{ request()->fullUrlWithQuery(['lang' => 'es']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'es' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">ES</a>
-                <a href="{{ request()->fullUrlWithQuery(['lang' => 'en']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'en' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">EN</a>
+                <a href="{{ \App\Support\QueryUrl::with(['lang' => 'es']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'es' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">ES</a>
+                <a href="{{ \App\Support\QueryUrl::with(['lang' => 'en']) }}" class="px-3 py-1 rounded text-sm {{ app()->getLocale() === 'en' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600' }}">EN</a>
             </div>
             @php $mobileCurrencies = app(\App\Services\CurrencyService::class)->getAvailable(); $mobileCurrent = \App\Services\CurrencyService::getCurrentCode(); @endphp
             <div class="px-4 py-2 flex items-center gap-2">
                 @foreach($mobileCurrencies as $code => $cur)
                     @if($cur['is_active'])
-                    <a href="{{ request()->fullUrlWithQuery(['currency' => $code]) }}" class="px-3 py-1 rounded text-sm {{ $mobileCurrent === $code ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600' }}">{{ $cur['symbol'] }}</a>
+                    <a href="{{ \App\Support\QueryUrl::with(['currency' => $code]) }}" class="px-3 py-1 rounded text-sm {{ $mobileCurrent === $code ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600' }}">{{ $cur['symbol'] }}</a>
                     @endif
                 @endforeach
             </div>

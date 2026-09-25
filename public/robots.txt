@@ -11,3 +11,7 @@ Disallow: /register
 Disallow: /dashboard
 
 Sitemap: https://realestate3d.com/sitemap.xml
+
+# URLs rotas por el parametro currency mal codificado (bucle de rastreo)
+Disallow: /*%C2%A4*
+Disallow: /*currency=*

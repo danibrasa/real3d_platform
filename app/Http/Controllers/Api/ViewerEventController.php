@@ -25,6 +25,14 @@ class ViewerEventController extends Controller
         'viewer_3d_opened',
     ];
 
+    /**
+     * Rastreadores y clientes automaticos cuyas visitas no son analitica.
+     * El rastreador de Meta genero 2,9 millones de registros antes de este filtro.
+     */
+    private const BOT_PATTERN = '/bot|crawl|spider|slurp|facebookexternalhit|meta-external|'
+        . 'bytespider|headless|scrapy|python-requests|curl\/|wget|go-http-client|'
+        . 'java\/|okhttp|axios|libwww|lighthouse|pagespeed|preview|monitoring|uptime/i';
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -39,6 +47,13 @@ class ViewerEventController extends Controller
 
         $ip = $request->ip();
         $ua = substr($request->userAgent() ?? '', 0, 500);
+
+        // Las visitas de rastreadores no se registran: se responde ok para no
+        // delatar el filtro ni provocar reintentos.
+        if ($ua === '' || preg_match(self::BOT_PATTERN, $ua)) {
+            return response()->json(['ok' => true]);
+        }
+
         $deviceType = $this->detectDevice($ua);
         $referrer = substr($request->header('referer', ''), 0, 500) ?: null;
 

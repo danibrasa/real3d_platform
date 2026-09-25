@@ -15,7 +15,7 @@
     </button>
     <div x-show="open" x-transition class="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50 overflow-hidden" style="display: none;">
         @foreach($locales as $code => $info)
-        <a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}"
+        <a href="{{ \App\Support\QueryUrl::with(['lang' => $code]) }}"
            class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition {{ $code === $currentLocale ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700' }}">
             <span>{{ $info['flag'] }}</span>
             <span>{{ $info['name'] }}</span>
