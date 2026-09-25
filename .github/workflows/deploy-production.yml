@@ -1,0 +1,46 @@
+name: Desplegar en produccion
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-produccion
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    name: real3d.io
+    runs-on: ubuntu-latest
+    # El entorno "produccion" es el que exige aprobacion manual.
+    # Se configura en GitHub: Settings -> Environments -> produccion -> Required reviewers.
+    environment:
+      name: produccion
+      url: https://real3d.io
+
+    steps:
+      - name: Preparar la clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Desplegar la version nueva
+        run: |
+          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "sudo -n /usr/local/bin/real3d-deploy.sh main"
+
+      - name: Comprobar que la web responde
+        run: |
+          for url in https://real3d.io/ https://real3d.io/projects https://real3d.io/portal; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
+            echo "$url -> $code"
+            [ "$code" = "200" ] || exit 1
+          done
+
+      - name: Version desplegada
+        run: |
+          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "basename \$(readlink -f /var/www/real3d/current)"

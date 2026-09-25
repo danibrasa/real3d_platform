@@ -1,0 +1,69 @@
+name: Comprobaciones
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprobar:
+    name: Estilo, tests y compilacion
+    runs-on: ubuntu-latest
+
+    # Los tests necesitan MariaDB: hay migraciones con sintaxis propia de MySQL
+    # (ALTER TABLE ... MODIFY COLUMN ENUM) que sqlite no entiende.
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, curl, zip, gd, pdo_mysql, bcmath, intl
+          coverage: none
+
+      - name: Dependencias de PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Estilo de codigo (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Preparar el entorno de pruebas
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Preparar Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Dependencias de Node
+        run: npm ci
+
+      # Antes de los tests: varias vistas piden el manifiesto de Vite y sin el
+      # devuelven 500.
+      - name: Compilar assets
+        run: npm run build
+
+      - name: Tests
+        run: php artisan test

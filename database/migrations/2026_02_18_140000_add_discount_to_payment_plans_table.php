@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::table('payment_plans', function (Blueprint $table) {
             $table->enum('discount_type', ['percentage', 'fixed'])
-                  ->nullable()
-                  ->after('sort_order');
+                ->nullable()
+                ->after('sort_order');
             $table->decimal('discount_value', 10, 2)
-                  ->nullable()
-                  ->after('discount_type');
+                ->nullable()
+                ->after('discount_type');
             $table->string('discount_label')
-                  ->nullable()
-                  ->after('discount_value');
+                ->nullable()
+                ->after('discount_value');
         });
     }
 
