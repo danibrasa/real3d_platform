@@ -14,6 +14,7 @@ class BlogCategoryController extends Controller
     {
         $this->middleware(function ($request, $next) {
             Gate::authorize('manage-blog');
+
             return $next($request);
         });
     }

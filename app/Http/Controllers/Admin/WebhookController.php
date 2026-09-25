@@ -106,7 +106,7 @@ class WebhookController extends Controller
     private function authorizeAccess(WebhookEndpoint $webhook): void
     {
         $user = auth()->user();
-        if (!$user->isSuperadmin() && $webhook->user_id !== $user->id) {
+        if (! $user->isSuperadmin() && $webhook->user_id !== $user->id) {
             abort(403);
         }
     }

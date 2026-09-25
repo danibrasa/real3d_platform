@@ -18,7 +18,7 @@ class ProjectController extends Controller
             ->withCount(['units', 'units as available_units_count' => fn ($q) => $q->where('status', 'available')]);
 
         // Filter by token's allowed projects
-        if (!is_null($token->project_ids)) {
+        if (! is_null($token->project_ids)) {
             $query->whereIn('id', $token->project_ids);
         }
 
@@ -214,7 +214,7 @@ class ProjectController extends Controller
 
     private function ensurePublicAccess(Project $project): void
     {
-        if (!in_array($project->status, ['public', 'unlisted'])) {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
             abort(403, 'Project is not publicly accessible.');
         }
     }

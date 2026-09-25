@@ -43,8 +43,8 @@ class ViewerController extends Controller
         if ($search = request('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -75,13 +75,13 @@ class ViewerController extends Controller
         // Sort
         $sort = request('sort', 'newest');
         $query->when($sort === 'newest', fn ($q) => $q->latest())
-              ->when($sort === 'name', fn ($q) => $q->orderBy('name'))
-              ->when($sort === 'price_asc', fn ($q) => $q->orderBy(
-                  \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
-              ))
-              ->when($sort === 'price_desc', fn ($q) => $q->orderByDesc(
-                  \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
-              ));
+            ->when($sort === 'name', fn ($q) => $q->orderBy('name'))
+            ->when($sort === 'price_asc', fn ($q) => $q->orderBy(
+                \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+            ))
+            ->when($sort === 'price_desc', fn ($q) => $q->orderByDesc(
+                \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+            ));
 
         $projects = $query->paginate(12)->withQueryString();
 
@@ -175,14 +175,16 @@ class ViewerController extends Controller
             case 'unlisted':
                 return;
             case 'private':
-                if (!auth()->check()) {
+                if (! auth()->check()) {
                     abort(redirect()->route('login'));
                 }
+
                 return;
             case 'draft':
-                if (!auth()->check() || !auth()->user()->hasRole('superadmin', 'gestor')) {
+                if (! auth()->check() || ! auth()->user()->hasRole('superadmin', 'gestor')) {
                     abort(404);
                 }
+
                 return;
             default:
                 abort(404);

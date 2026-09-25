@@ -50,9 +50,9 @@ class LlmsTxtController extends Controller
                 $available = $project->units->count();
                 $minPrice = $project->units->min('price');
                 $maxPrice = $project->units->max('price');
-                $priceRange = $minPrice ? 'USD ' . number_format($minPrice, 0) . ' - ' . number_format($maxPrice, 0) : 'Contact for pricing';
+                $priceRange = $minPrice ? 'USD '.number_format($minPrice, 0).' - '.number_format($maxPrice, 0) : 'Contact for pricing';
 
-                $lines[] = "- [{$project->name}](" . url("/projects/{$project->slug}/info") . "): {$project->location}. {$priceRange}. {$available} units available.";
+                $lines[] = "- [{$project->name}](".url("/projects/{$project->slug}/info")."): {$project->location}. {$priceRange}. {$available} units available.";
             }
             $lines[] = '';
         }
@@ -69,7 +69,7 @@ class LlmsTxtController extends Controller
             $lines[] = '';
             foreach ($posts as $post) {
                 $excerpt = $post->excerpt ? " — {$post->excerpt}" : '';
-                $lines[] = "- [{$post->title}](" . route('blog.show', $post->slug) . "){$excerpt}";
+                $lines[] = "- [{$post->title}](".route('blog.show', $post->slug)."){$excerpt}";
             }
             $lines[] = '';
         }
@@ -84,7 +84,7 @@ class LlmsTxtController extends Controller
             $lines[] = '## Blog Categories';
             $lines[] = '';
             foreach ($categories as $cat) {
-                $lines[] = "- [{$cat->name}](" . route('blog.category', $cat->slug) . ") ({$cat->posts_count} articles)";
+                $lines[] = "- [{$cat->name}](".route('blog.category', $cat->slug).") ({$cat->posts_count} articles)";
             }
             $lines[] = '';
         }
@@ -92,13 +92,13 @@ class LlmsTxtController extends Controller
         // Contact
         $lines[] = '## Contact';
         $lines[] = '';
-        $lines[] = '- Website: ' . url('/portal');
-        $lines[] = '- Search Properties: ' . route('portal.search');
-        $lines[] = '- Blog: ' . route('blog.index');
+        $lines[] = '- Website: '.url('/portal');
+        $lines[] = '- Search Properties: '.route('portal.search');
+        $lines[] = '- Blog: '.route('blog.index');
         $lines[] = '';
         $lines[] = '## Optional';
         $lines[] = '';
-        $lines[] = "- [Full details (llms-full.txt)](" . url('/llms-full.txt') . ')';
+        $lines[] = '- [Full details (llms-full.txt)]('.url('/llms-full.txt').')';
 
         return implode("\n", $lines);
     }
@@ -124,7 +124,7 @@ class LlmsTxtController extends Controller
                 $lines[] = "### {$project->name}";
                 $lines[] = '';
                 $lines[] = "- **Location:** {$project->location}";
-                $lines[] = "- **URL:** " . url("/projects/{$project->slug}/info");
+                $lines[] = '- **URL:** '.url("/projects/{$project->slug}/info");
 
                 if ($project->description) {
                     $lines[] = "- **Description:** {$project->description}";
@@ -136,11 +136,11 @@ class LlmsTxtController extends Controller
                 $minPrice = $project->units->min('price');
                 $maxPrice = $project->units->max('price');
                 if ($minPrice) {
-                    $lines[] = "- **Price Range:** USD " . number_format($minPrice, 0) . " - " . number_format($maxPrice, 0);
+                    $lines[] = '- **Price Range:** USD '.number_format($minPrice, 0).' - '.number_format($maxPrice, 0);
                 }
 
                 if ($project->estimated_delivery) {
-                    $lines[] = "- **Estimated Delivery:** " . $project->estimated_delivery->format('F Y');
+                    $lines[] = '- **Estimated Delivery:** '.$project->estimated_delivery->format('F Y');
                 }
 
                 // Investment metrics
@@ -180,15 +180,15 @@ class LlmsTxtController extends Controller
             foreach ($posts as $post) {
                 $lines[] = "### {$post->title}";
                 $lines[] = '';
-                $lines[] = "- **URL:** " . route('blog.show', $post->slug);
+                $lines[] = '- **URL:** '.route('blog.show', $post->slug);
                 if ($post->category) {
                     $lines[] = "- **Category:** {$post->category->name}";
                 }
-                $lines[] = "- **Published:** " . $post->published_at->format('Y-m-d');
+                $lines[] = '- **Published:** '.$post->published_at->format('Y-m-d');
                 $lines[] = "- **Reading Time:** {$post->reading_time_minutes} min";
 
                 if ($post->tags->count()) {
-                    $lines[] = "- **Tags:** " . $post->tags->pluck('name')->implode(', ');
+                    $lines[] = '- **Tags:** '.$post->tags->pluck('name')->implode(', ');
                 }
 
                 if ($post->excerpt) {

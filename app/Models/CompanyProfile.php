@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 class CompanyProfile extends Model
 {
     const PLAN_STARTER = 'starter';
+
     const PLAN_PROFESSIONAL = 'professional';
+
     const PLAN_ENTERPRISE = 'enterprise';
 
     const PLAN_LIMITS = [
@@ -83,7 +85,7 @@ class CompanyProfile extends Model
                 $original = $profile->slug;
                 $count = 1;
                 while (static::where('slug', $profile->slug)->exists()) {
-                    $profile->slug = $original . '-' . $count++;
+                    $profile->slug = $original.'-'.$count++;
                 }
             }
         });
@@ -102,12 +104,14 @@ class CompanyProfile extends Model
     public function hasFeature(string $feature): bool
     {
         $limits = $this->getPlanLimits();
+
         return $limits[$feature] ?? false;
     }
 
     public function canCreateProject(): bool
     {
         $currentCount = $this->user->assignedProjects()->count();
+
         return $currentCount < $this->max_projects;
     }
 
@@ -116,6 +120,7 @@ class CompanyProfile extends Model
         if ($this->max_storage_bytes <= 0) {
             return 0;
         }
+
         return round(($this->storage_used_bytes / $this->max_storage_bytes) * 100, 1);
     }
 

@@ -23,19 +23,19 @@ class PaymentMilestone extends Model
     ];
 
     const TYPE_ICONS = [
-        'reservation'  => 'key',
-        'signing'      => 'document',
+        'reservation' => 'key',
+        'signing' => 'document',
         'construction' => 'building',
-        'delivery'     => 'home',
-        'other'        => 'circle',
+        'delivery' => 'home',
+        'other' => 'circle',
     ];
 
     const TYPE_COLORS = [
-        'reservation'  => 'blue',
-        'signing'      => 'blue',
+        'reservation' => 'blue',
+        'signing' => 'blue',
         'construction' => 'amber',
-        'delivery'     => 'green',
-        'other'        => 'gray',
+        'delivery' => 'green',
+        'other' => 'gray',
     ];
 
     /**
@@ -52,8 +52,13 @@ class PaymentMilestone extends Model
 
         // Heuristic fallback for 'other' type
         if ($index !== null && $total !== null && $total > 1) {
-            if ($index === 0) return 'blue';
-            if ($index === $total - 1) return 'green';
+            if ($index === 0) {
+                return 'blue';
+            }
+            if ($index === $total - 1) {
+                return 'green';
+            }
+
             return 'amber';
         }
 

@@ -17,6 +17,7 @@ class SetCurrency
             // Store in request attributes so CurrencyService can read it immediately
             $request->attributes->set('currency', $currency);
             $response = $next($request);
+
             return $response->withCookie(cookie('currency', $currency, 60 * 24 * 365));
         }
 

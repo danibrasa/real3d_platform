@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\UploadChunk;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -56,7 +55,7 @@ class FileUploadController extends Controller
             ->firstOrFail();
 
         $chunkFile = $request->file('chunk');
-        $chunkPath = $upload->temp_directory . "/chunk_{$request->chunk_index}";
+        $chunkPath = $upload->temp_directory."/chunk_{$request->chunk_index}";
         Storage::put($chunkPath, file_get_contents($chunkFile->getRealPath()));
 
         $upload->increment('received_chunks');
@@ -83,13 +82,13 @@ class FileUploadController extends Controller
         $agency = $project->assignedAgencies()->first();
         if ($agency) {
             $company = $agency->companyProfile;
-            if ($company && !$company->hasStorageAvailable($upload->total_size ?? 0)) {
+            if ($company && ! $company->hasStorageAvailable($upload->total_size ?? 0)) {
                 return response()->json(['error' => __('billing.storage_quota_exceeded')], 403);
             }
         }
 
         // Determine destination path
-        $typeDir = match($upload->file_type) {
+        $typeDir = match ($upload->file_type) {
             'video_360' => 'video',
             'model_3d' => 'model',
             'ground_texture' => 'texture',
@@ -105,9 +104,10 @@ class FileUploadController extends Controller
         $outFile = fopen($destFullPath, 'wb');
 
         for ($i = 0; $i < $upload->total_chunks; $i++) {
-            $chunkPath = Storage::path($upload->temp_directory . "/chunk_{$i}");
-            if (!file_exists($chunkPath)) {
+            $chunkPath = Storage::path($upload->temp_directory."/chunk_{$i}");
+            if (! file_exists($chunkPath)) {
                 fclose($outFile);
+
                 return response()->json(['error' => "Chunk {$i} missing"], 422);
             }
             $chunkData = file_get_contents($chunkPath);
@@ -151,7 +151,8 @@ class FileUploadController extends Controller
     private function guessMimeType(string $filename): string
     {
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        return match($ext) {
+
+        return match ($ext) {
             'mp4' => 'video/mp4',
             'webm' => 'video/webm',
             'glb' => 'model/gltf-binary',

@@ -171,7 +171,7 @@ class UserController extends Controller
     {
         Gate::authorize('assign-projects');
 
-        if (!$user->isInmobiliaria()) {
+        if (! $user->isInmobiliaria()) {
             abort(422, 'Solo se pueden asignar proyectos a inmobiliarias.');
         }
 
@@ -199,6 +199,7 @@ class UserController extends Controller
             if ($targetUser->agency_id !== $user->id) {
                 abort(403);
             }
+
             return;
         }
 

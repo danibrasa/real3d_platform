@@ -47,8 +47,8 @@ class BlogController extends Controller
             ->firstOrFail();
 
         // Throttled view count (once per session per post)
-        $viewedKey = 'blog_viewed_' . $post->id;
-        if (!session()->has($viewedKey)) {
+        $viewedKey = 'blog_viewed_'.$post->id;
+        if (! session()->has($viewedKey)) {
             $post->increment('views_count');
             session()->put($viewedKey, true);
         }

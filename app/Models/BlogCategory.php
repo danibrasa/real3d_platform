@@ -37,6 +37,7 @@ class BlogCategory extends Model
         if (app()->getLocale() === 'en' && $this->name_en) {
             return $this->name_en;
         }
+
         return $this->name;
     }
 
@@ -45,6 +46,7 @@ class BlogCategory extends Model
         if (app()->getLocale() === 'en' && $this->description_en) {
             return $this->description_en;
         }
+
         return $this->description;
     }
 

@@ -16,6 +16,7 @@ class DispatchWebhook implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public array $backoff = [30, 300, 3600];
 
     public function __construct(
@@ -27,7 +28,7 @@ class DispatchWebhook implements ShouldQueue
     public function handle(): void
     {
         $endpoint = WebhookEndpoint::find($this->endpointId);
-        if (!$endpoint || !$endpoint->is_active) {
+        if (! $endpoint || ! $endpoint->is_active) {
             return;
         }
 

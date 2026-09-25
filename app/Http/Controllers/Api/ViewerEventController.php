@@ -30,8 +30,8 @@ class ViewerEventController extends Controller
      * El rastreador de Meta genero 2,9 millones de registros antes de este filtro.
      */
     private const BOT_PATTERN = '/bot|crawl|spider|slurp|facebookexternalhit|meta-external|'
-        . 'bytespider|headless|scrapy|python-requests|curl\/|wget|go-http-client|'
-        . 'java\/|okhttp|axios|libwww|lighthouse|pagespeed|preview|monitoring|uptime/i';
+        .'bytespider|headless|scrapy|python-requests|curl\/|wget|go-http-client|'
+        .'java\/|okhttp|axios|libwww|lighthouse|pagespeed|preview|monitoring|uptime/i';
 
     public function store(Request $request)
     {
@@ -59,7 +59,7 @@ class ViewerEventController extends Controller
 
         $rows = [];
         foreach ($validated['events'] as $event) {
-            if (!in_array($event['type'], self::ALLOWED_EVENTS)) {
+            if (! in_array($event['type'], self::ALLOWED_EVENTS)) {
                 continue;
             }
 
@@ -79,7 +79,7 @@ class ViewerEventController extends Controller
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             ViewerEvent::insert($rows);
         }
 
@@ -89,8 +89,13 @@ class ViewerEventController extends Controller
     private function detectDevice(string $ua): string
     {
         $ua = strtolower($ua);
-        if (preg_match('/tablet|ipad|playbook|silk/', $ua)) return 'tablet';
-        if (preg_match('/mobile|android|iphone|ipod|opera mini|webos/', $ua)) return 'mobile';
+        if (preg_match('/tablet|ipad|playbook|silk/', $ua)) {
+            return 'tablet';
+        }
+        if (preg_match('/mobile|android|iphone|ipod|opera mini|webos/', $ua)) {
+            return 'mobile';
+        }
+
         return 'desktop';
     }
 }

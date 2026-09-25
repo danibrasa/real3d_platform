@@ -5,9 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Gate;
-use League\CommonMark\CommonMarkConverter;
-use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\MarkdownConverter;
 
 class StrategicAnalysisController extends Controller
@@ -39,7 +38,7 @@ class StrategicAnalysisController extends Controller
     {
         $mdPath = storage_path('app/ANALISIS-ESTRATEGICO.md');
 
-        if (!file_exists($mdPath)) {
+        if (! file_exists($mdPath)) {
             abort(404, 'Documento de analisis no encontrado.');
         }
 
@@ -51,9 +50,9 @@ class StrategicAnalysisController extends Controller
         ];
 
         $environment = new Environment($config);
-        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension());
-        $environment->addExtension(new TableExtension());
-        $environment->addExtension(new \League\CommonMark\Extension\Autolink\AutolinkExtension());
+        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension);
+        $environment->addExtension(new TableExtension);
+        $environment->addExtension(new \League\CommonMark\Extension\Autolink\AutolinkExtension);
 
         $converter = new MarkdownConverter($environment);
 

@@ -16,7 +16,7 @@ class ConstructionProgressController extends Controller
     public function index(Project $project)
     {
         $user = auth()->user();
-        if (!$user->canAccessProject($project)) {
+        if (! $user->canAccessProject($project)) {
             abort(403);
         }
 
@@ -132,7 +132,10 @@ class ConstructionProgressController extends Controller
     public function serveImage(Project $project, ConstructionUpdateImage $image)
     {
         $path = Storage::path($image->image_path);
-        if (!file_exists($path)) abort(404);
+        if (! file_exists($path)) {
+            abort(404);
+        }
+
         return response()->file($path);
     }
 }

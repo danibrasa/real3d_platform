@@ -12,12 +12,12 @@ class EnsureOnboardingComplete
     {
         $user = $request->user();
 
-        if (!$user || !$user->isInmobiliaria()) {
+        if (! $user || ! $user->isInmobiliaria()) {
             return $next($request);
         }
 
         // If inmobiliaria has no company profile, redirect to onboarding
-        if (!$user->companyProfile) {
+        if (! $user->companyProfile) {
             return redirect()->route('onboarding.company');
         }
 

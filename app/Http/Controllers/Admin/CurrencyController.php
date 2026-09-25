@@ -15,6 +15,7 @@ class CurrencyController extends Controller
         Gate::authorize('manage-currencies');
 
         $currencies = Currency::orderBy('is_default', 'desc')->orderBy('code')->get();
+
         return view('admin.currencies.index', compact('currencies'));
     }
 

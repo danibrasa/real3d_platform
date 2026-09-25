@@ -16,7 +16,7 @@ class InquiryController extends Controller
     public function store(Request $request, Project $project)
     {
         // Only allow inquiries for public/unlisted projects
-        if (!in_array($project->status, ['public', 'unlisted'])) {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
             abort(404);
         }
 
@@ -30,7 +30,7 @@ class InquiryController extends Controller
                 'nullable',
                 'integer',
                 function ($attribute, $value, $fail) use ($project) {
-                    if ($value && !$project->units()->where('id', $value)->exists()) {
+                    if ($value && ! $project->units()->where('id', $value)->exists()) {
                         $fail('The selected unit is invalid.');
                     }
                 },

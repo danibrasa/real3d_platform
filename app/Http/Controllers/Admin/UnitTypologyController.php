@@ -13,7 +13,7 @@ class UnitTypologyController extends Controller
 {
     public function index(Project $project)
     {
-        if (!auth()->user()->canAccessProject($project)) {
+        if (! auth()->user()->canAccessProject($project)) {
             abort(403);
         }
 

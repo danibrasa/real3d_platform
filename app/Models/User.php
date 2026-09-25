@@ -15,12 +15,16 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Auditable, Billable, HasFactory, Notifiable;
+    use Auditable, Billable, HasApiTokens, HasFactory, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
+
     const ROLE_GESTOR = 'gestor';
+
     const ROLE_INMOBILIARIA = 'inmobiliaria';
+
     const ROLE_AGENTE = 'agente';
+
     const ROLE_USER = 'user';
 
     const ADMIN_ROLES = [
@@ -31,23 +35,23 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
-        "name",
-        "email",
-        "password",
-        "role",
-        "agency_id",
+        'name',
+        'email',
+        'password',
+        'role',
+        'agency_id',
     ];
 
     protected $hidden = [
-        "password",
-        "remember_token",
+        'password',
+        'remember_token',
     ];
 
     protected function casts(): array
     {
         return [
-            "email_verified_at" => "datetime",
-            "password" => "hashed",
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 
@@ -109,6 +113,7 @@ class User extends Authenticatable
         if ($this->isAgente() && $this->agency_id) {
             return User::find($this->agency_id)?->companyProfile?->hasFeature($feature) ?? false;
         }
+
         return false;
     }
 
@@ -116,7 +121,7 @@ class User extends Authenticatable
 
     public function projects(): HasMany
     {
-        return $this->hasMany(Project::class, "created_by");
+        return $this->hasMany(Project::class, 'created_by');
     }
 
     /** For agente: the inmobiliaria they belong to */
@@ -150,11 +155,13 @@ class User extends Authenticatable
 
         if ($this->isInmobiliaria()) {
             $projectIds = $this->assignedProjects()->pluck('projects.id');
+
             return Project::whereIn('id', $projectIds);
         }
 
         if ($this->isAgente() && $this->agency_id) {
             $projectIds = User::find($this->agency_id)?->assignedProjects()->pluck('projects.id') ?? collect();
+
             return Project::whereIn('id', $projectIds);
         }
 

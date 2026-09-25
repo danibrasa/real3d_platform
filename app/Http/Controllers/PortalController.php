@@ -70,8 +70,8 @@ class PortalController extends Controller
         if ($search = $request->get('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -96,14 +96,14 @@ class PortalController extends Controller
 
         $sort = $request->get('sort', 'newest');
         $query->when($sort === 'newest', fn ($q) => $q->latest())
-              ->when($sort === 'name', fn ($q) => $q->orderBy('name'))
-              ->when($sort === 'price_asc', fn ($q) => $q->orderBy(
-                  Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
-              ))
-              ->when($sort === 'price_desc', fn ($q) => $q->orderByDesc(
-                  Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
-              ))
-              ->when($sort === 'availability', fn ($q) => $q->orderByDesc('available_units_count'));
+            ->when($sort === 'name', fn ($q) => $q->orderBy('name'))
+            ->when($sort === 'price_asc', fn ($q) => $q->orderBy(
+                Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+            ))
+            ->when($sort === 'price_desc', fn ($q) => $q->orderByDesc(
+                Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+            ))
+            ->when($sort === 'availability', fn ($q) => $q->orderByDesc('available_units_count'));
 
         $projects = $query->paginate(12)->withQueryString();
 
@@ -162,7 +162,7 @@ class PortalController extends Controller
         if ($search = $request->get('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                    ->orWhere('location', 'like', "%{$search}%");
             });
         }
 
@@ -179,7 +179,7 @@ class PortalController extends Controller
                 'available' => $p->available_units_count,
                 'url' => route('viewer.landing', $p->slug),
                 'thumbnail' => $p->thumbnail_path
-                    ? url('api/projects/' . $p->id . '/files/thumbnail')
+                    ? url('api/projects/'.$p->id.'/files/thumbnail')
                     : null,
             ]);
 

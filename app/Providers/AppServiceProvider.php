@@ -51,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             if ($user->isInmobiliaria() && $project) {
                 return $user->canAccessProject($project);
             }
+
             return false;
         });
 
@@ -77,6 +78,7 @@ class AppServiceProvider extends ServiceProvider
             if ($user->isInmobiliaria() && $project) {
                 return $user->canAccessProject($project);
             }
+
             return false;
         });
 
@@ -95,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
             if ($user->isInmobiliaria() && $project) {
                 return $user->canAccessProject($project);
             }
+
             return false;
         });
 
@@ -123,7 +126,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('manage-api-tokens', function (User $user) {
-            if ($user->isSuperadmin()) return true;
+            if ($user->isSuperadmin()) {
+                return true;
+            }
+
             return $user->isInmobiliaria() && $user->hasFeature('api_access');
         });
 
@@ -146,6 +152,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             $token = $request->user()?->currentAccessToken();
             $limit = $token?->rate_limit ?? 60;
+
             return Limit::perMinute($limit)->by($token?->id ?? $request->ip());
         });
 

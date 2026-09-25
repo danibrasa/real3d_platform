@@ -14,37 +14,38 @@ use Illuminate\Support\Str;
 class Project extends Model
 {
     use Auditable;
+
     protected $fillable = [
-        "name",
-        "slug",
-        "description",
-        "location",
-        "status",
-        "thumbnail_path",
-        "created_by",
-        "tagline",
-        "total_floors",
-        "estimated_delivery",
-        "whatsapp_number",
-        "whatsapp_message",
-        "whatsapp_message_en",
-        "contact_email",
-        "analytics_id",
-        "rental_yield_annual",
-        "average_occupancy",
-        "appreciation_rate_annual",
-        "management_fee",
-        "property_tax_rate",
-        "avg_nightly_rate",
-        "description_en",
-        "tagline_en",
-        "location_en",
-        "latitude",
-        "longitude",
-        "chatbot_enabled",
-        "chatbot_welcome_es",
-        "chatbot_welcome_en",
-        "chatbot_instructions",
+        'name',
+        'slug',
+        'description',
+        'location',
+        'status',
+        'thumbnail_path',
+        'created_by',
+        'tagline',
+        'total_floors',
+        'estimated_delivery',
+        'whatsapp_number',
+        'whatsapp_message',
+        'whatsapp_message_en',
+        'contact_email',
+        'analytics_id',
+        'rental_yield_annual',
+        'average_occupancy',
+        'appreciation_rate_annual',
+        'management_fee',
+        'property_tax_rate',
+        'avg_nightly_rate',
+        'description_en',
+        'tagline_en',
+        'location_en',
+        'latitude',
+        'longitude',
+        'chatbot_enabled',
+        'chatbot_welcome_es',
+        'chatbot_welcome_en',
+        'chatbot_instructions',
     ];
 
     protected $casts = [
@@ -62,8 +63,8 @@ class Project extends Model
                 $project->slug = Str::slug($project->name);
                 $original = $project->slug;
                 $count = 1;
-                while (static::where("slug", $project->slug)->exists()) {
-                    $project->slug = $original . "-" . $count++;
+                while (static::where('slug', $project->slug)->exists()) {
+                    $project->slug = $original.'-'.$count++;
                 }
             }
         });
@@ -71,7 +72,7 @@ class Project extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, "created_by");
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function settings(): HasOne
@@ -173,7 +174,7 @@ class Project extends Model
 
     public function getFileByType(string $type): ?ProjectFile
     {
-        return $this->files()->where("file_type", $type)->where("upload_complete", true)->first();
+        return $this->files()->where('file_type', $type)->where('upload_complete', true)->first();
     }
 
     protected function availableUnitsCount(): Attribute
@@ -196,9 +197,14 @@ class Project extends Model
             get: function () {
                 $min = $this->units()->where('status', 'available')->min('price');
                 $max = $this->units()->where('status', 'available')->max('price');
-                if (!$min) return null;
-                if ($min == $max) return 'USD ' . number_format($min, 0, '.', ',');
-                return 'USD ' . number_format($min, 0, '.', ',') . ' - ' . number_format($max, 0, '.', ',');
+                if (! $min) {
+                    return null;
+                }
+                if ($min == $max) {
+                    return 'USD '.number_format($min, 0, '.', ',');
+                }
+
+                return 'USD '.number_format($min, 0, '.', ',').' - '.number_format($max, 0, '.', ',');
             },
         );
     }

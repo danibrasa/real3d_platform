@@ -36,7 +36,7 @@ class PaymentPlan extends Model
 
     public function effectivePrice(float $basePrice): float
     {
-        if (!$this->discount_type || !$this->discount_value) {
+        if (! $this->discount_type || ! $this->discount_value) {
             return $basePrice;
         }
 

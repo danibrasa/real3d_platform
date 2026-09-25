@@ -15,7 +15,7 @@ class CompanyProfileController extends Controller
     public function index()
     {
         $user = auth()->user();
-        if (!$user->isSuperadmin()) {
+        if (! $user->isSuperadmin()) {
             abort(403);
         }
 
@@ -39,7 +39,7 @@ class CompanyProfileController extends Controller
             $profile = $company;
         } elseif ($user->isInmobiliaria()) {
             $profile = $user->companyProfile;
-            if (!$profile) {
+            if (! $profile) {
                 return redirect()->route('onboarding.company');
             }
         } else {
@@ -64,7 +64,7 @@ class CompanyProfileController extends Controller
             $profile = $company;
         } elseif ($user->isInmobiliaria()) {
             $profile = $user->companyProfile;
-            if (!$profile) {
+            if (! $profile) {
                 return redirect()->route('onboarding.company');
             }
         } else {
@@ -108,7 +108,7 @@ class CompanyProfileController extends Controller
             $validated['is_verified'] = $request->boolean('is_verified');
 
             // If superadmin changed the plan tier, sync limits
-            if (!empty($validated['plan_tier']) && $validated['plan_tier'] !== $profile->plan_tier) {
+            if (! empty($validated['plan_tier']) && $validated['plan_tier'] !== $profile->plan_tier) {
                 $limits = CompanyProfile::PLAN_LIMITS[$validated['plan_tier']] ?? CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
                 $validated['max_projects'] = $limits['max_projects'];
                 $validated['max_storage_bytes'] = $limits['max_storage_bytes'];

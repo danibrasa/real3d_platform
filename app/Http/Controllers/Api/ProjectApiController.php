@@ -29,7 +29,7 @@ class ProjectApiController extends Controller
                 'video_360' => $project->getFileByType('video_360')
                     ? "/api/projects/{$project->id}/files/video_360" : null,
                 'model_3d' => $project->getFileByType('model_3d')
-                    ? "/api/projects/{$project->id}/files/model_3d?f=" . urlencode($project->getFileByType('model_3d')->original_name) : null,
+                    ? "/api/projects/{$project->id}/files/model_3d?f=".urlencode($project->getFileByType('model_3d')->original_name) : null,
                 'ground_texture' => $project->getFileByType('ground_texture')
                     ? "/api/projects/{$project->id}/files/ground_texture" : null,
                 'image_360' => $project->getFileByType('image_360')
@@ -49,7 +49,7 @@ class ProjectApiController extends Controller
 
         $path = Storage::path($file->storage_path);
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404, 'File not found on disk.');
         }
 
@@ -120,12 +120,12 @@ class ProjectApiController extends Controller
         $this->authorizeAccess($unit->project);
 
         $path = $unit->floor_plan;
-        if (!$path) {
+        if (! $path) {
             abort(404);
         }
 
         $fullPath = Storage::path($path);
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             abort(404);
         }
 
@@ -151,7 +151,7 @@ class ProjectApiController extends Controller
         $this->authorizeAccess($project);
 
         $fullPath = Storage::path($image->image_path);
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             abort(404);
         }
 
@@ -168,14 +168,16 @@ class ProjectApiController extends Controller
             case 'unlisted':
                 return;
             case 'private':
-                if (!auth()->check()) {
+                if (! auth()->check()) {
                     abort(403);
                 }
+
                 return;
             case 'draft':
-                if (!auth()->check() || !auth()->user()->hasRole('superadmin', 'gestor')) {
+                if (! auth()->check() || ! auth()->user()->hasRole('superadmin', 'gestor')) {
                     abort(404);
                 }
+
                 return;
             default:
                 abort(404);
