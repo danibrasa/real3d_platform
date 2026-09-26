@@ -6,6 +6,14 @@ genera release-please a partir de los mensajes de commit, así que no se edita a
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 Versionado: [SemVer](https://semver.org/lang/es/).
 
+## [1.2.0](https://github.com/danibrasa/real3d_platform/compare/v1.1.0...v1.2.0) (2026-09-26)
+
+
+### Novedades
+
+* **errores:** avisos con Sentry ([eaefdbd](https://github.com/danibrasa/real3d_platform/commit/eaefdbda19b1f6970bf670913669bd70f22dcfbd))
+* **errores:** avisos con Sentry ([f92f316](https://github.com/danibrasa/real3d_platform/commit/f92f316b995db295b4b75ef19b102a8d2f68ef27))
+
 ## [1.1.0](https://github.com/danibrasa/real3d_platform/compare/v1.0.1...v1.1.0) (2026-09-26)
 
 
