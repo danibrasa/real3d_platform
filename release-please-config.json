@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "real3d-platform",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "changelog-sections": [
+        { "type": "feat", "section": "Novedades" },
+        { "type": "fix", "section": "Correcciones" },
+        { "type": "perf", "section": "Rendimiento" },
+        { "type": "refactor", "section": "Cambios internos" },
+        { "type": "docs", "section": "Documentacion" },
+        { "type": "ci", "section": "Automatizacion", "hidden": true },
+        { "type": "style", "section": "Estilo", "hidden": true },
+        { "type": "chore", "section": "Mantenimiento", "hidden": true },
+        { "type": "test", "section": "Tests", "hidden": true }
+      ]
+    }
+  }
+}
