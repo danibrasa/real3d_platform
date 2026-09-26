@@ -6,6 +6,14 @@ genera release-please a partir de los mensajes de commit, así que no se edita a
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 Versionado: [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0](https://github.com/danibrasa/real3d_platform/compare/v1.0.1...v1.1.0) (2026-09-26)
+
+
+### Novedades
+
+* **dev:** entorno de trabajo en la maquina auxiliar ([4a5cd26](https://github.com/danibrasa/real3d_platform/commit/4a5cd26baa86b9588f8aaa4c54b8915a8fec7693))
+* **dev:** entorno de trabajo en la maquina auxiliar ([ae592b7](https://github.com/danibrasa/real3d_platform/commit/ae592b74d02e4d5916df288a69f247c557d8e415))
+
 ## [1.0.1](https://github.com/danibrasa/real3d_platform/compare/v1.0.0...v1.0.1) (2026-09-26)
 
 
