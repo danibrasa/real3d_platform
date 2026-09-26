@@ -7,6 +7,7 @@
     <meta name="description" content="Real3D es la plataforma SaaS para promotores inmobiliarios que combina modelos 3D interactivos, video 360° y gestión de unidades en tiempo real. Prueba 14 días gratis.">
     <meta name="keywords" content="visualizacion 3D, inmobiliaria, pre-construccion, Punta Cana, modelos 3D, video 360, real estate, Three.js, visor 3D">
     <link rel="canonical" href="{{ url('/') }}">
+    <meta name="app-version" content="{{ \App\Support\Version::label() }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Real3D | El futuro del real estate en tres dimensiones">
     <meta property="og:description" content="Transforma tus proyectos de nueva construcción en experiencias 3D interactivas. Tus compradores exploran cada unidad antes de que exista. Plataforma SaaS para promotores en Latam.">
@@ -35,6 +36,7 @@
     </script>
 </head>
 <body class="bg-[#0a0a1e] text-white antialiased" x-data="{ mobileOpen: false, scrolled: false }" @scroll.window="scrolled = window.scrollY > 50">
+<x-env-banner />
 
     {{-- Navbar --}}
     <nav class="fixed top-0 inset-x-0 z-50 transition-all duration-300"

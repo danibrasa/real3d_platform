@@ -26,3 +26,4 @@ Thumbs.db
 # Copias locales
 *.bak
 *.bak.*
+version.json

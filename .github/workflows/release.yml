@@ -1,0 +1,33 @@
+name: Publicar version
+
+# Mantiene CHANGELOG.md y los tags a partir de los commits (Conventional Commits).
+# No publica nada por su cuenta: abre un pull request con la version y el changelog
+# ya calculados. Al fusionarlo crea el tag, igual que cualquier otro cambio pasa
+# por PR en este proyecto.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: simple
+          package-name: real3d-platform
+          changelog-types: >
+            [
+              {"type":"feat","section":"Novedades","hidden":false},
+              {"type":"fix","section":"Correcciones","hidden":false},
+              {"type":"perf","section":"Rendimiento","hidden":false},
+              {"type":"refactor","section":"Cambios internos","hidden":false},
+              {"type":"docs","section":"Documentacion","hidden":false},
+              {"type":"ci","section":"Automatizacion","hidden":true},
+              {"type":"style","section":"Estilo","hidden":true},
+              {"type":"chore","section":"Mantenimiento","hidden":true}
+            ]

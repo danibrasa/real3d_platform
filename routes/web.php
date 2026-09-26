@@ -42,6 +42,13 @@ use App\Http\Controllers\UnitPdfController;
 use App\Http\Controllers\ViewerController;
 use Illuminate\Support\Facades\Route;
 
+// Version desplegada. Hermana de /up (el health check de Laravel): sirve para
+// saber desde fuera que hay publicado en cada entorno, sin entrar por SSH.
+Route::get('/version', function () {
+    return response()->json(\App\Support\Version::all())
+        ->header('Cache-Control', 'no-store');
+})->name('version');
+
 // Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 

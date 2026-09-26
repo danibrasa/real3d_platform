@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="app-version" content="{{ \App\Support\Version::label() }}">
 
         <title>@isset($title){{ $title }} - @endisset{{ config('app.name') }}</title>
         <meta name="description" content="@isset($metaDescription){{ $metaDescription }}@else{{ 'Plataforma de visualizacion inmobiliaria 3D. Explora proyectos con modelos 3D interactivos, video 360 y gestion de unidades en tiempo real.' }}@endisset">
@@ -20,6 +21,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+    <x-env-banner />
         <div class="min-h-screen bg-gray-100">
             @include('layouts.navigation')
 
@@ -36,6 +38,8 @@
             <main>
                 {{ $slot }}
             </main>
+
+            <x-admin-version />
         </div>
     </body>
 </html>
