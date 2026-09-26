@@ -29,6 +29,19 @@ abortar() {
 
 log "desplegando la rama $RAMA como $STAMP"
 
+# Los scripts de operativa viven en deploy/ del repositorio; la copia que corre
+# esta en /usr/local/bin. Si el repositorio trae una version distinta, se instala
+# y se reejecuta una sola vez, para desplegar ya con la version nueva.
+# REEJECUTADO evita que se llame a si mismo sin fin.
+if [ -z "${REEJECUTADO:-}" ] && [ -d "$BASE/current/deploy" ]; then
+    if ! cmp -s "$BASE/current/deploy/real3d-deploy.sh" "$0"; then
+        log "los scripts de deploy/ han cambiado: instalando y reejecutando"
+        install -m 755 "$BASE/current/deploy/"*.sh /usr/local/bin/
+        REEJECUTADO=1 exec /usr/local/bin/"$(basename "$0")" "$@"
+    fi
+fi
+
+
 # 1. Copia del codigo
 git clone -q --depth 20 --branch "$RAMA" "$REPO" "$NUEVA" || abortar "no se pudo clonar"
 cd "$NUEVA"
