@@ -2,8 +2,10 @@ name: Publicar version
 
 # Mantiene CHANGELOG.md y los tags a partir de los commits (Conventional Commits).
 # No publica nada por su cuenta: abre un pull request con la version y el changelog
-# ya calculados. Al fusionarlo crea el tag, igual que cualquier otro cambio pasa
-# por PR en este proyecto.
+# ya calculados. Al fusionarlo crea el tag, igual que cualquier otro cambio aqui.
+#
+# Requiere que el repositorio permita a Actions abrir pull requests:
+# Settings -> Actions -> General -> Workflow permissions.
 on:
   push:
     branches: [main]
@@ -16,18 +18,9 @@ jobs:
   publicar:
     runs-on: ubuntu-latest
     steps:
+      # La configuracion va en release-please-config.json y en
+      # .release-please-manifest.json; en la v4 el action solo acepta las rutas.
       - uses: googleapis/release-please-action@v4
         with:
-          release-type: simple
-          package-name: real3d-platform
-          changelog-types: >
-            [
-              {"type":"feat","section":"Novedades","hidden":false},
-              {"type":"fix","section":"Correcciones","hidden":false},
-              {"type":"perf","section":"Rendimiento","hidden":false},
-              {"type":"refactor","section":"Cambios internos","hidden":false},
-              {"type":"docs","section":"Documentacion","hidden":false},
-              {"type":"ci","section":"Automatizacion","hidden":true},
-              {"type":"style","section":"Estilo","hidden":true},
-              {"type":"chore","section":"Mantenimiento","hidden":true}
-            ]
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

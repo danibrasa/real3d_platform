@@ -47,8 +47,10 @@ chown -R www-data:www-data "$APP/storage" "$APP/bootstrap/cache"
 chmod -R ug+rwX "$APP/storage" "$APP/bootstrap/cache"
 
 echo "== comprobacion"
-CODE=$(curl -s -o /dev/null -w '%{http_code}' -u "real3d:$(cat /root/.staging-web-pass)" \
-    -H 'Host: staging.real3d.io' http://127.0.0.1/)
-echo "portada responde $CODE"
-[ "$CODE" = "200" ] || { echo "ERROR: staging no responde bien"; exit 1; }
+AUTH="real3d:$(cat /root/.staging-web-pass)"
+# -L: desde que hay certificado, http redirige a https con un 301.
+CODE=$(curl -sL -o /dev/null -w '%{http_code}' -u "$AUTH" https://staging.real3d.io/)
+VCODE=$(curl -sL -o /dev/null -w '%{http_code}' -u "$AUTH" https://staging.real3d.io/version)
+echo "portada $CODE, /version $VCODE"
+[ "$CODE" = "200" ] && [ "$VCODE" = "200" ] || { echo "ERROR: staging no responde bien"; exit 1; }
 echo "despliegue de staging terminado"
