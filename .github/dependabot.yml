@@ -1,0 +1,75 @@
+# Dependabot: vigila las dependencias y abre pull requests con las
+# actualizaciones. Nunca fusiona ni despliega: solo propone, y todo pasa por el
+# CI como cualquier otro cambio.
+#
+# Los avisos de SEGURIDAD no se configuran aqui: se activan en
+# Settings -> Advanced Security y llegan al momento, sin esperar al dia 1.
+# Lo de abajo es solo el mantenimiento al dia.
+#
+# Se agrupa a proposito: con unos 150 paquetes, un pull request por paquete
+# serian veinte al mes que nadie mira, y acabarian ignorandose. Mejor uno solo
+# por ecosistema, revisable de una sentada.
+version: 2
+
+updates:
+  # --- PHP (Composer) ---
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels: [dependencias, php]
+    groups:
+      php:
+        patterns: ["*"]
+        # Los saltos de version mayor no los propone un robot: de Laravel 12 a
+        # 13 hay que leerse las notas de migracion y planificarlo.
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+
+  # --- Node (npm) ---
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    labels: [dependencias, node]
+    groups:
+      node:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
+
+  # --- Las propias acciones de GitHub ---
+  # Se quedan atras sin que nadie lo note, y son las que tienen acceso a la
+  # clave de despliegue.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "ci(deps)"
+    labels: [dependencias, ci]
+    groups:
+      acciones:
+        patterns: ["*"]

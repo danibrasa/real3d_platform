@@ -70,6 +70,18 @@ VM gemela en 194.41.119.13 con una copia de febrero de 2026; no es producción y
 - `real3d-schedule.timer` — `schedule:run` cada minuto
 - `real3d-backup.timer` — copia diaria a las 03:30, replicada en la VM .13
 
+## Dependencias
+
+Dependabot abre un pull request al mes por ecosistema (PHP, Node y las propias
+acciones de GitHub), agrupando todas las actualizaciones menores en uno solo.
+Los avisos de **seguridad** no esperan a esa cita: llegan al momento y con el
+arreglo ya preparado.
+
+Los saltos de version mayor estan excluidos a proposito: de Laravel 12 a 13 hay
+que leerse las notas de migracion, no fusionarlo a ciegas.
+
+Comprobar a mano el estado: `composer audit` y `npm audit`.
+
 ## Tests
 `php artisan test`. Corren contra **MariaDB, no sqlite**: hay migraciones con
 `ALTER TABLE ... MODIFY COLUMN ENUM`, sintaxis propia de MySQL. Compila los assets antes
