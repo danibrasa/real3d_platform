@@ -7,6 +7,7 @@ use App\Models\Unit;
 use App\Services\CurrencyService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class UnitPdfController extends Controller
 {
@@ -27,7 +28,7 @@ class UnitPdfController extends Controller
 
         // Build QR code as SVG
         $unitUrl = route('viewer.landing', $project->slug).'?unit='.$unit->id;
-        $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+        $qrSvg = QrCode::format('svg')
             ->size(120)
             ->margin(0)
             ->generate($unitUrl);
@@ -225,7 +226,7 @@ class UnitPdfController extends Controller
 
         // QR pointing to landing#planes-de-pago
         $landingUrl = route('viewer.landing', $project->slug).'#planes-de-pago';
-        $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+        $qrSvg = QrCode::format('svg')
             ->size(120)
             ->margin(0)
             ->generate($landingUrl);

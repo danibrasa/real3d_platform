@@ -1,8 +1,25 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureFeature;
+use App\Http\Middleware\EnsureOnboardingComplete;
+use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\EnsureStorageQuota;
+use App\Http\Middleware\EnsureTokenProjectAccess;
+use App\Http\Middleware\SetCurrency;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,16 +30,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
-            'role' => \App\Http\Middleware\EnsureRole::class,
-            'token.project' => \App\Http\Middleware\EnsureTokenProjectAccess::class,
-            'feature' => \App\Http\Middleware\EnsureFeature::class,
-            'storage.quota' => \App\Http\Middleware\EnsureStorageQuota::class,
-            'onboarding' => \App\Http\Middleware\EnsureOnboardingComplete::class,
+            'admin' => EnsureAdmin::class,
+            'role' => EnsureRole::class,
+            'token.project' => EnsureTokenProjectAccess::class,
+            'feature' => EnsureFeature::class,
+            'storage.quota' => EnsureStorageQuota::class,
+            'onboarding' => EnsureOnboardingComplete::class,
         ]);
         $middleware->web(append: [
-            \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\SetCurrency::class,
+            SetLocale::class,
+            SetCurrency::class,
         ]);
         $middleware->statefulApi();
         $middleware->validateCsrfTokens(except: [
@@ -34,20 +51,20 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        \Sentry\Laravel\Integration::handles($exceptions);
+        Integration::handles($exceptions);
 
         // Ruido que no es un fallo del sistema y agotaria la cuota:
         // paginas que no existen, formularios mal rellenados, sesiones caducadas
         // y peticiones sin permiso. Siguen quedando en el log de Laravel.
         $exceptions->dontReportDuplicates();
         $exceptions->dontReport([
-            \Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class,
-            \Illuminate\Database\Eloquent\ModelNotFoundException::class,
-            \Illuminate\Validation\ValidationException::class,
-            \Illuminate\Auth\AuthenticationException::class,
-            \Illuminate\Auth\Access\AuthorizationException::class,
-            \Illuminate\Session\TokenMismatchException::class,
-            \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException::class,
-            \Illuminate\Http\Exceptions\ThrottleRequestsException::class,
+            NotFoundHttpException::class,
+            ModelNotFoundException::class,
+            ValidationException::class,
+            AuthenticationException::class,
+            AuthorizationException::class,
+            TokenMismatchException::class,
+            MethodNotAllowedHttpException::class,
+            ThrottleRequestsException::class,
         ]);
     })->create();

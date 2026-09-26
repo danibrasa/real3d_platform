@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
@@ -32,7 +34,7 @@ class SentryTest extends TestCase
      */
     public function test_el_ruido_normal_no_llega_a_sentry(string $excepcion): void
     {
-        $handler = app(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        $handler = app(ExceptionHandler::class);
 
         $this->assertFalse(
             $handler->shouldReport(new $excepcion('prueba')),
@@ -44,7 +46,7 @@ class SentryTest extends TestCase
     {
         return [
             'pagina no encontrada' => [NotFoundHttpException::class],
-            'sesion caducada' => [\Illuminate\Session\TokenMismatchException::class],
+            'sesion caducada' => [TokenMismatchException::class],
         ];
     }
 
@@ -52,7 +54,7 @@ class SentryTest extends TestCase
     {
         // El contrapunto del test anterior: filtrar ruido no puede acabar
         // silenciando tambien los fallos reales.
-        $handler = app(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        $handler = app(ExceptionHandler::class);
 
         $this->assertTrue($handler->shouldReport(new \RuntimeException('fallo real')));
         $this->assertTrue($handler->shouldReport(new \ErrorException('fallo real')));
@@ -60,7 +62,7 @@ class SentryTest extends TestCase
 
     public function test_la_validacion_no_se_avisa(): void
     {
-        $handler = app(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        $handler = app(ExceptionHandler::class);
 
         $this->assertFalse($handler->shouldReport(
             ValidationException::withMessages(['campo' => 'obligatorio'])

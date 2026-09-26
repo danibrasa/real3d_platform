@@ -40,12 +40,13 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UnitPdfController;
 use App\Http\Controllers\ViewerController;
+use App\Support\Version;
 use Illuminate\Support\Facades\Route;
 
 // Version desplegada. Hermana de /up (el health check de Laravel): sirve para
 // saber desde fuera que hay publicado en cada entorno, sin entrar por SSH.
 Route::get('/version', function () {
-    return response()->json(\App\Support\Version::all())
+    return response()->json(Version::all())
         ->header('Cache-Control', 'no-store');
 })->name('version');
 

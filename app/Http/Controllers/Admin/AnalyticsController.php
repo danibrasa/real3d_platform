@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Unit;
 use App\Models\ViewerEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,7 @@ class AnalyticsController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($row) {
-                $unit = \App\Models\Unit::find($row->unit_id);
+                $unit = Unit::find($row->unit_id);
 
                 return [
                     'id' => $row->unit_id,

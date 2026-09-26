@@ -1,7 +1,13 @@
 name: Desplegar en produccion
 
+# Se dispara cuando las comprobaciones TERMINAN en main, y solo despliega si han
+# pasado. Antes escuchaba el push directamente, asi que despliegue y
+# comprobaciones corrian en paralelo: el 26-sep-2026 se publico una version con
+# el CI en rojo sin que nada lo impidiera.
 on:
-  push:
+  workflow_run:
+    workflows: ["Comprobaciones"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -13,13 +19,22 @@ jobs:
   desplegar:
     name: real3d.io
     runs-on: ubuntu-latest
+    # En un disparo manual no hay workflow_run que mirar, de ahi la segunda rama.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     # El entorno "produccion" es el que exige aprobacion manual.
-    # Se configura en GitHub: Settings -> Environments -> produccion -> Required reviewers.
+    # Settings -> Environments -> produccion -> Required reviewers.
     environment:
       name: produccion
       url: https://real3d.io
 
     steps:
+      - name: Que se va a desplegar
+        run: |
+          echo "commit: ${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "comprobaciones: ${{ github.event.workflow_run.conclusion || 'lanzado a mano' }}"
+
       - name: Preparar la clave SSH
         run: |
           mkdir -p ~/.ssh
