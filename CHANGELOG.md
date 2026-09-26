@@ -6,6 +6,15 @@ genera release-please a partir de los mensajes de commit, así que no se edita a
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 Versionado: [SemVer](https://semver.org/lang/es/).
 
+## [1.0.1](https://github.com/danibrasa/real3d_platform/compare/v1.0.0...v1.0.1) (2026-09-26)
+
+
+### Correcciones
+
+* **ci:** configuracion de release-please para la v4, changelog inicial y ([0868b69](https://github.com/danibrasa/real3d_platform/commit/0868b690bb7ec9c82c1d9ebca8c88fbc8aa9c32d))
+* **ci:** configuracion de release-please para la v4, y changelog inicial ([7652194](https://github.com/danibrasa/real3d_platform/commit/7652194fc904fba7e7af0dda61a77e55c191a03a))
+* **deploy:** los scripts de deploy/ se instalan solos al desplegar ([d3cc5c9](https://github.com/danibrasa/real3d_platform/commit/d3cc5c952bd47bf1e82edd4af7c266c0fe886510))
+
 ## 1.0.0 (2026-09-26)
 
 Primera versión etiquetada. Recoge el estado de la plataforma tal y como llevaba
