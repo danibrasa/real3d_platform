@@ -31,7 +31,7 @@ jobs:
           --health-retries=10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Preparar PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -52,7 +52,7 @@ jobs:
           php artisan key:generate
 
       - name: Preparar Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: npm
