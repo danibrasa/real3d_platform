@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Gate;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\Autolink\AutolinkExtension;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\Table\TableExtension;
 use League\CommonMark\MarkdownConverter;
 
@@ -50,9 +52,9 @@ class StrategicAnalysisController extends Controller
         ];
 
         $environment = new Environment($config);
-        $environment->addExtension(new \League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension);
+        $environment->addExtension(new CommonMarkCoreExtension);
         $environment->addExtension(new TableExtension);
-        $environment->addExtension(new \League\CommonMark\Extension\Autolink\AutolinkExtension);
+        $environment->addExtension(new AutolinkExtension);
 
         $converter = new MarkdownConverter($environment);
 

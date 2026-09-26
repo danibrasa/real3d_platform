@@ -77,10 +77,10 @@ class ViewerController extends Controller
         $query->when($sort === 'newest', fn ($q) => $q->latest())
             ->when($sort === 'name', fn ($q) => $q->orderBy('name'))
             ->when($sort === 'price_asc', fn ($q) => $q->orderBy(
-                \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+                Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
             ))
             ->when($sort === 'price_desc', fn ($q) => $q->orderByDesc(
-                \App\Models\Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
+                Unit::selectRaw('MIN(price)')->whereColumn('project_id', 'projects.id')->where('status', 'available')
             ));
 
         $projects = $query->paginate(12)->withQueryString();
@@ -90,7 +90,7 @@ class ViewerController extends Controller
             ->whereNotNull('location')->where('location', '!=', '')
             ->distinct()->pluck('location')->sort()->values();
 
-        $bedroomOptions = \App\Models\Unit::whereHas('project', fn ($q) => $q->where('status', 'public'))
+        $bedroomOptions = Unit::whereHas('project', fn ($q) => $q->where('status', 'public'))
             ->where('status', 'available')
             ->distinct()->pluck('bedrooms')->sort()->values();
 

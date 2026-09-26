@@ -1,7 +1,12 @@
 name: Desplegar en staging
 
+# Igual que produccion: espera a que las comprobaciones terminen en staging y
+# solo despliega si han pasado. Staging es donde el equipo supervisa, asi que
+# no debe recibir codigo que no compila o con los tests en rojo.
 on:
-  push:
+  workflow_run:
+    workflows: ["Comprobaciones"]
+    types: [completed]
     branches: [staging]
   workflow_dispatch:
     inputs:
@@ -18,6 +23,11 @@ jobs:
   desplegar:
     name: staging.real3d.io
     runs-on: ubuntu-latest
+    # Un disparo manual no trae workflow_run: ahi se despliega la rama pedida,
+    # que es justo como se prueba un pull request antes de fusionarlo.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     environment: staging
 
     steps:

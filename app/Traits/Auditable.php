@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\AuditLog;
+use App\Models\User;
 
 trait Auditable
 {
@@ -10,7 +11,7 @@ trait Auditable
     {
         static::created(function ($model) {
             // Skip audit on User creation to avoid loop with registration
-            if ($model instanceof \App\Models\User) {
+            if ($model instanceof User) {
                 return;
             }
             AuditLog::record('created', $model, null, $model->getAttributes());

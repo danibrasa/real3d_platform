@@ -1,6 +1,9 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\SentryContextProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\SentryContextProvider::class,
+    AppServiceProvider::class,
+    SentryContextProvider::class,
 ];
