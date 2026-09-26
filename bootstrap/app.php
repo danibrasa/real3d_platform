@@ -34,5 +34,20 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        \Sentry\Laravel\Integration::handles($exceptions);
+
+        // Ruido que no es un fallo del sistema y agotaria la cuota:
+        // paginas que no existen, formularios mal rellenados, sesiones caducadas
+        // y peticiones sin permiso. Siguen quedando en el log de Laravel.
+        $exceptions->dontReportDuplicates();
+        $exceptions->dontReport([
+            \Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class,
+            \Illuminate\Database\Eloquent\ModelNotFoundException::class,
+            \Illuminate\Validation\ValidationException::class,
+            \Illuminate\Auth\AuthenticationException::class,
+            \Illuminate\Auth\Access\AuthorizationException::class,
+            \Illuminate\Session\TokenMismatchException::class,
+            \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException::class,
+            \Illuminate\Http\Exceptions\ThrottleRequestsException::class,
+        ]);
     })->create();
