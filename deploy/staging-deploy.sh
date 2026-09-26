@@ -22,6 +22,20 @@ npm run build >/dev/null
 echo "== base de datos"
 sudo -u www-data php artisan migrate --force
 
+# version.json, igual que en produccion pero marcando el entorno.
+TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+SHA=$(git rev-parse HEAD)
+cat > "$APP/version.json" <<JSON
+{
+  "release": "$TAG",
+  "commit": "$SHA",
+  "commit_short": "${SHA:0:7}",
+  "deployed_at": "$(date '+%Y-%m-%d %H:%M')",
+  "environment": "staging"
+}
+JSON
+echo "== version: $TAG (${SHA:0:7})"
+
 echo "== cache"
 sudo -u www-data php artisan config:clear >/dev/null
 sudo -u www-data php artisan view:clear >/dev/null

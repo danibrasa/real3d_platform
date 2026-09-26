@@ -39,6 +39,21 @@ rm -rf "$NUEVA/storage"
 ln -s "$BASE/shared/storage" "$NUEVA/storage"
 ln -s "$BASE/shared/.env" "$NUEVA/.env"
 
+# 3b. version.json: que hay desplegado exactamente. Lo leen /version, la meta
+#     del HTML y el pie del panel de administracion.
+TAG=$(git -C "$NUEVA" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+SHA=$(git -C "$NUEVA" rev-parse HEAD)
+cat > "$NUEVA/version.json" <<JSON
+{
+  "release": "$TAG",
+  "commit": "$SHA",
+  "commit_short": "${SHA:0:7}",
+  "deployed_at": "$(date '+%Y-%m-%d %H:%M')",
+  "environment": "production"
+}
+JSON
+log "version: $TAG (${SHA:0:7})"
+
 # 3. Dependencias y assets
 log "instalando dependencias"
 COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --no-dev --optimize-autoloader --quiet \

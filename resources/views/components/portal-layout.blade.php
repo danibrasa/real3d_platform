@@ -6,6 +6,7 @@
     <title>@isset($title){{ $title }} | @endisset Real3D Properties</title>
     <meta name="description" content="@isset($metaDescription){{ $metaDescription }}@else {{ __('portal.meta_description_default') }} @endisset">
     <link rel="canonical" href="{{ url()->current() }}">
+    <meta name="app-version" content="{{ \App\Support\Version::label() }}">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate" type="text/markdown" href="/llms.txt" title="LLMs.txt">
     <link rel="mcp" href="/mcp" type="application/json">
@@ -13,6 +14,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900" x-data="{ mobileOpen: false }">
+<x-env-banner />
 
     {{-- Navbar --}}
     <nav class="bg-[#0a0a1e] text-white sticky top-0 z-50 shadow-lg shadow-black/20">
