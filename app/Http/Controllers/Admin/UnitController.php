@@ -15,7 +15,7 @@ class UnitController extends Controller
 {
     private function authorizeProjectAccess(Project $project): void
     {
-        if (!auth()->user()->canAccessProject($project)) {
+        if (! auth()->user()->canAccessProject($project)) {
             abort(403);
         }
     }

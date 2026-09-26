@@ -13,14 +13,12 @@ class InquiryAutoReply extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Inquiry $inquiry)
-    {
-    }
+    public function __construct(public Inquiry $inquiry) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Recibimos tu consulta - ' . $this->inquiry->project->name,
+            subject: 'Recibimos tu consulta - '.$this->inquiry->project->name,
         );
     }
 

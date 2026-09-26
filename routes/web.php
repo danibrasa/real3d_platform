@@ -1,45 +1,45 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BlogCategoryController;
+use App\Http\Controllers\Admin\BlogPostController;
+use App\Http\Controllers\Admin\ChatbotAdminController;
 use App\Http\Controllers\Admin\CompanyProfileController;
+use App\Http\Controllers\Admin\ConstructionProgressController;
+use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FileUploadController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\InquiryController as AdminInquiryController;
-use App\Http\Controllers\Admin\ProjectController;
-use App\Http\Controllers\Admin\ProjectSettingsController;
-use App\Http\Controllers\Admin\FileUploadController;
-use App\Http\Controllers\Admin\AnalyticsController;
-use App\Http\Controllers\Admin\ChatbotAdminController;
+use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
-use App\Http\Controllers\Admin\ConstructionProgressController;
-use App\Http\Controllers\Admin\LocationController;
-use App\Http\Controllers\Admin\ApiTokenController;
-use App\Http\Controllers\Admin\CurrencyController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ProjectSettingsController;
 use App\Http\Controllers\Admin\StrategicAnalysisController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UnitTypologyController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WebhookController;
-use App\Http\Controllers\Auth\OnboardingController;
-use App\Http\Controllers\DeveloperDirectoryController;
-use App\Http\Controllers\EmbedController;
-use App\Http\Controllers\InquiryController;
-use App\Http\Controllers\StripeWebhookController;
-use App\Http\Controllers\PortalController;
-use App\Http\Controllers\ViewerController;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\ProjectApiController;
 use App\Http\Controllers\Api\ViewerEventController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\BlogCategoryController;
-use App\Http\Controllers\Admin\BlogPostController;
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\DeveloperDirectoryController;
+use App\Http\Controllers\EmbedController;
+use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\McpServerController;
+use App\Http\Controllers\PortalController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UnitPdfController;
+use App\Http\Controllers\ViewerController;
 use Illuminate\Support\Facades\Route;
 
 // Sitemap
@@ -61,11 +61,13 @@ Route::get('/dashboard', function () {
     $user = auth()->user();
     if ($user->hasAdminAccess()) {
         // If inmobiliaria without company profile, redirect to onboarding
-        if ($user->isInmobiliaria() && !$user->companyProfile) {
+        if ($user->isInmobiliaria() && ! $user->companyProfile) {
             return redirect()->route('onboarding.company');
         }
+
         return redirect()->route('admin.dashboard');
     }
+
     return redirect()->route('viewer.index');
 })->middleware('auth')->name('dashboard');
 

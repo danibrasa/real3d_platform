@@ -13,7 +13,7 @@ class LocationController extends Controller
     public function index(Project $project)
     {
         $user = auth()->user();
-        if (!$user->canAccessProject($project)) {
+        if (! $user->canAccessProject($project)) {
             abort(403);
         }
 
@@ -42,7 +42,7 @@ class LocationController extends Controller
         Gate::authorize('edit-project-commercial');
 
         $validated = $request->validate([
-            'category' => 'required|string|in:' . implode(',', array_keys(PointOfInterest::CATEGORIES)),
+            'category' => 'required|string|in:'.implode(',', array_keys(PointOfInterest::CATEGORIES)),
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -64,7 +64,7 @@ class LocationController extends Controller
         Gate::authorize('edit-project-commercial');
 
         $validated = $request->validate([
-            'category' => 'required|string|in:' . implode(',', array_keys(PointOfInterest::CATEGORIES)),
+            'category' => 'required|string|in:'.implode(',', array_keys(PointOfInterest::CATEGORIES)),
             'name' => 'required|string|max:255',
             'name_en' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',

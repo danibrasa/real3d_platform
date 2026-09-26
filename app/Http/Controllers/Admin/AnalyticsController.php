@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
 use App\Models\ViewerEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +15,7 @@ class AnalyticsController extends Controller
         $projects = $user->accessibleProjects()->orderBy('name')->get(['id', 'name', 'slug']);
         $projectId = $request->get('project_id', $projects->first()?->id);
 
-        if (!$projectId) {
+        if (! $projectId) {
             return view('admin.analytics', [
                 'projects' => $projects,
                 'projectId' => null,
@@ -67,6 +66,7 @@ class AnalyticsController extends Controller
             ->get()
             ->map(function ($row) {
                 $unit = \App\Models\Unit::find($row->unit_id);
+
                 return [
                     'id' => $row->unit_id,
                     'identifier' => $unit?->identifier ?? 'N/A',

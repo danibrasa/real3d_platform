@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Unit extends Model
 {
     use Auditable;
+
     protected $fillable = [
         'project_id',
         'typology_id',
@@ -79,7 +80,7 @@ class Unit extends Model
     protected function formattedPrice(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'USD ' . number_format($this->price, 0, '.', ','),
+            get: fn () => 'USD '.number_format($this->price, 0, '.', ','),
         );
     }
 }

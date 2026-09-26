@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Log;
 class ChatbotService
 {
     private string $provider;
+
     private string $apiKey;
+
     private string $model;
 
     public function __construct()
@@ -50,7 +52,7 @@ class ChatbotService
 
             $response = $conversation->locale === 'en'
                 ? "I'm sorry, I'm having trouble responding right now. Please try again or contact us via WhatsApp."
-                : "Lo siento, tengo un problema para responder ahora. Por favor, intenta de nuevo o contactanos por WhatsApp.";
+                : 'Lo siento, tengo un problema para responder ahora. Por favor, intenta de nuevo o contactanos por WhatsApp.';
         }
 
         // Save assistant response
@@ -68,12 +70,10 @@ class ChatbotService
         $priceMin = $available->min('price');
         $priceMax = $available->max('price');
 
-        $typologies = $project->typologies->map(fn ($t) =>
-            "{$t->name}: {$t->bedrooms} hab, {$t->bathrooms} banos, {$t->area_m2}m2"
+        $typologies = $project->typologies->map(fn ($t) => "{$t->name}: {$t->bedrooms} hab, {$t->bathrooms} banos, {$t->area_m2}m2"
         )->join("\n");
 
-        $unitsSummary = $available->groupBy('bedrooms')->map(fn ($group, $beds) =>
-            "{$beds} hab: {$group->count()} disponibles, desde USD " . number_format($group->min('price'), 0, '.', ',')
+        $unitsSummary = $available->groupBy('bedrooms')->map(fn ($group, $beds) => "{$beds} hab: {$group->count()} disponibles, desde USD ".number_format($group->min('price'), 0, '.', ',')
         )->join("\n");
 
         $paymentInfo = '';
@@ -89,8 +89,12 @@ class ChatbotService
             $constructionInfo = $isEn ? "\n\nConstruction progress:\n" : "\n\nProgreso de obra:\n";
             foreach ($project->constructionPhases as $phase) {
                 $status = $isEn
-                    ? match ($phase->status) { 'completed' => 'Completed', 'in_progress' => 'In progress', default => 'Pending' }
-                    : match ($phase->status) { 'completed' => 'Completada', 'in_progress' => 'En progreso', default => 'Pendiente' };
+                    ? match ($phase->status) {
+                        'completed' => 'Completed', 'in_progress' => 'In progress', default => 'Pending'
+                    }
+                : match ($phase->status) {
+                    'completed' => 'Completada', 'in_progress' => 'En progreso', default => 'Pendiente'
+                };
                 $constructionInfo .= "- {$phase->name}: {$status} ({$phase->target_percentage}%)\n";
             }
         }
@@ -100,7 +104,7 @@ class ChatbotService
             : '';
 
         $delivery = $project->estimated_delivery
-            ? ($isEn ? "\nEstimated delivery: " : "\nEntrega estimada: ") . $project->estimated_delivery->format('m/Y')
+            ? ($isEn ? "\nEstimated delivery: " : "\nEntrega estimada: ").$project->estimated_delivery->format('m/Y')
             : '';
 
         $description = $isEn ? ($project->description_en ?: $project->description) : $project->description;
@@ -143,8 +147,8 @@ RULES:
 - Do not discuss legal or contractual matters. Suggest consulting with the sales team.
 PROMPT;
 
-        if (!empty($project->chatbot_instructions)) {
-            $prompt .= "\n\nADDITIONAL INSTRUCTIONS:\n" . $project->chatbot_instructions;
+        if (! empty($project->chatbot_instructions)) {
+            $prompt .= "\n\nADDITIONAL INSTRUCTIONS:\n".$project->chatbot_instructions;
         }
 
         return $prompt;
@@ -167,7 +171,7 @@ PROMPT;
             'temperature' => 0.7,
         ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException("OpenAI API error: {$response->status()} - {$response->body()}");
         }
 
@@ -192,7 +196,7 @@ PROMPT;
             'messages' => $messages,
         ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException("Anthropic API error: {$response->status()} - {$response->body()}");
         }
 

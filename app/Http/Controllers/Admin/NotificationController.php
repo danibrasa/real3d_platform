@@ -14,7 +14,7 @@ class NotificationController extends Controller
         $query = Inquiry::where('read', false);
 
         // Scope by accessible projects for non-superadmin
-        if (!$user->isSuperadmin()) {
+        if (! $user->isSuperadmin()) {
             $projectIds = $user->accessibleProjects()->pluck('id');
             $query->whereIn('project_id', $projectIds);
         }
@@ -42,7 +42,7 @@ class NotificationController extends Controller
         $user = auth()->user();
         $query = Inquiry::where('read', false);
 
-        if (!$user->isSuperadmin()) {
+        if (! $user->isSuperadmin()) {
             $projectIds = $user->accessibleProjects()->pluck('id');
             $query->whereIn('project_id', $projectIds);
         }

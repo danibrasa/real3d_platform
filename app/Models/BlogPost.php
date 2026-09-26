@@ -97,6 +97,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->title_en) {
             return $this->title_en;
         }
+
         return $this->title;
     }
 
@@ -105,6 +106,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->excerpt_en) {
             return $this->excerpt_en;
         }
+
         return $this->excerpt;
     }
 
@@ -113,6 +115,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->body_en) {
             return $this->body_en;
         }
+
         return $this->body;
     }
 
@@ -121,6 +124,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->meta_title_en) {
             return $this->meta_title_en;
         }
+
         return $this->meta_title;
     }
 
@@ -129,6 +133,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->meta_description_en) {
             return $this->meta_description_en;
         }
+
         return $this->meta_description;
     }
 
@@ -137,6 +142,7 @@ class BlogPost extends Model
         if (app()->getLocale() === 'en' && $this->featured_image_alt_en) {
             return $this->featured_image_alt_en;
         }
+
         return $this->featured_image_alt;
     }
 
@@ -145,6 +151,7 @@ class BlogPost extends Model
     public function bodyHtml(): string
     {
         $converter = new CommonMarkConverter(['html_input' => 'strip', 'allow_unsafe_links' => false]);
+
         return $converter->convert($this->translated_body ?? '')->getContent();
     }
 

@@ -19,7 +19,7 @@ return new class extends Migration
             CompanyProfile::create([
                 'user_id' => $user->id,
                 'company_name' => $user->name,
-                'slug' => Str::slug($user->name) . '-' . $user->id,
+                'slug' => Str::slug($user->name).'-'.$user->id,
                 'plan_tier' => CompanyProfile::PLAN_ENTERPRISE,
                 'max_projects' => 999,
                 'max_storage_bytes' => 107374182400, // 100GB

@@ -1,0 +1,34 @@
+name: Desplegar en staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+    inputs:
+      rama:
+        description: 'Rama a desplegar en staging (por defecto staging)'
+        required: false
+        default: 'staging'
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    name: staging.real3d.io
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Preparar la clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Desplegar
+        run: |
+          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "sudo -n /usr/local/bin/staging-deploy.sh ${{ github.event.inputs.rama || 'staging' }}"

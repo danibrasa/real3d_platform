@@ -19,7 +19,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('superadmin','gestor','inmobiliaria','agente','user') NOT NULL DEFAULT 'user'");
 
         // 4. Add agency_id column (if not already present from partial run)
-        if (!Schema::hasColumn('users', 'agency_id')) {
+        if (! Schema::hasColumn('users', 'agency_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->foreignId('agency_id')->nullable()->after('role')
                     ->constrained('users')->nullOnDelete();

@@ -74,19 +74,19 @@ class McpServerController extends Controller
         $query = Project::portalVisible()
             ->with(['units' => fn ($q) => $q->where('status', 'available')]);
 
-        if (!empty($args['location'])) {
-            $query->where('location', 'like', '%' . $args['location'] . '%');
+        if (! empty($args['location'])) {
+            $query->where('location', 'like', '%'.$args['location'].'%');
         }
 
-        if (!empty($args['min_price'])) {
+        if (! empty($args['min_price'])) {
             $query->whereHas('units', fn ($q) => $q->where('status', 'available')->where('price', '>=', $args['min_price']));
         }
 
-        if (!empty($args['max_price'])) {
+        if (! empty($args['max_price'])) {
             $query->whereHas('units', fn ($q) => $q->where('status', 'available')->where('price', '<=', $args['max_price']));
         }
 
-        if (!empty($args['bedrooms'])) {
+        if (! empty($args['bedrooms'])) {
             $query->whereHas('units', fn ($q) => $q->where('status', 'available')->where('bedrooms', '>=', $args['bedrooms']));
         }
 
@@ -123,7 +123,7 @@ class McpServerController extends Controller
             ->with(['units' => fn ($q) => $q->where('status', 'available'), 'typologies'])
             ->first();
 
-        if (!$project) {
+        if (! $project) {
             return $this->rpcResponse($id, [
                 'content' => [['type' => 'text', 'text' => 'Property not found.']],
             ]);
@@ -166,16 +166,16 @@ class McpServerController extends Controller
     {
         $query = BlogPost::published()->with(['category', 'tags']);
 
-        if (!empty($args['category'])) {
+        if (! empty($args['category'])) {
             $query->whereHas('category', fn ($q) => $q->where('slug', $args['category']));
         }
 
-        if (!empty($args['search'])) {
+        if (! empty($args['search'])) {
             $search = $args['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('excerpt', 'like', "%{$search}%")
-                  ->orWhere('body', 'like', "%{$search}%");
+                    ->orWhere('excerpt', 'like', "%{$search}%")
+                    ->orWhere('body', 'like', "%{$search}%");
             });
         }
 

@@ -20,7 +20,7 @@ class QueryUrl
     /**
      * URL actual con los parametros indicados, descartando todo lo demas.
      *
-     * @param array<string, string> $params
+     * @param  array<string, string>  $params
      */
     public static function with(array $params = []): string
     {
@@ -39,6 +39,6 @@ class QueryUrl
             }
         }
 
-        return url()->current() . ($query ? '?' . http_build_query($query) : '');
+        return url()->current().($query ? '?'.http_build_query($query) : '');
     }
 }

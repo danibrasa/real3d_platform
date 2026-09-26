@@ -28,18 +28,18 @@ class PointOfInterest extends Model
     ];
 
     public const CATEGORIES = [
-        'beach'       => ['es' => 'Playa',             'en' => 'Beach'],
-        'airport'     => ['es' => 'Aeropuerto',        'en' => 'Airport'],
-        'hospital'    => ['es' => 'Hospital',           'en' => 'Hospital'],
-        'shopping'    => ['es' => 'Centro comercial',   'en' => 'Shopping center'],
-        'restaurant'  => ['es' => 'Restaurante',        'en' => 'Restaurant'],
-        'school'      => ['es' => 'Escuela',            'en' => 'School/University'],
-        'golf'        => ['es' => 'Golf',               'en' => 'Golf'],
-        'marina'      => ['es' => 'Marina',             'en' => 'Marina'],
+        'beach' => ['es' => 'Playa',             'en' => 'Beach'],
+        'airport' => ['es' => 'Aeropuerto',        'en' => 'Airport'],
+        'hospital' => ['es' => 'Hospital',           'en' => 'Hospital'],
+        'shopping' => ['es' => 'Centro comercial',   'en' => 'Shopping center'],
+        'restaurant' => ['es' => 'Restaurante',        'en' => 'Restaurant'],
+        'school' => ['es' => 'Escuela',            'en' => 'School/University'],
+        'golf' => ['es' => 'Golf',               'en' => 'Golf'],
+        'marina' => ['es' => 'Marina',             'en' => 'Marina'],
         'supermarket' => ['es' => 'Supermercado',       'en' => 'Supermarket'],
         'gas_station' => ['es' => 'Gasolinera',         'en' => 'Gas station'],
-        'pharmacy'    => ['es' => 'Farmacia',           'en' => 'Pharmacy'],
-        'park'        => ['es' => 'Parque',             'en' => 'Park'],
+        'pharmacy' => ['es' => 'Farmacia',           'en' => 'Pharmacy'],
+        'park' => ['es' => 'Parque',             'en' => 'Park'],
     ];
 
     public function project(): BelongsTo
@@ -59,6 +59,7 @@ class PointOfInterest extends Model
     public function categoryLabel(): string
     {
         $locale = app()->getLocale() === 'en' ? 'en' : 'es';
+
         return self::CATEGORIES[$this->category][$locale] ?? $this->category;
     }
 }

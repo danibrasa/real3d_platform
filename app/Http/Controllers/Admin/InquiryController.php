@@ -37,7 +37,7 @@ class InquiryController extends Controller
         Gate::authorize('view-inquiries');
         $this->authorizeInquiryAccess($inquiry);
 
-        if (!$inquiry->read) {
+        if (! $inquiry->read) {
             $inquiry->update(['read' => true]);
         }
 
@@ -69,7 +69,7 @@ class InquiryController extends Controller
     private function authorizeInquiryAccess(Inquiry $inquiry): void
     {
         $user = auth()->user();
-        if (!$user->canAccessProject($inquiry->project)) {
+        if (! $user->canAccessProject($inquiry->project)) {
             abort(403);
         }
     }

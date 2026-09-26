@@ -13,8 +13,9 @@ class DemoProjectSeeder extends Seeder
     {
         $project = Project::where('slug', 'salado')->first();
 
-        if (!$project) {
+        if (! $project) {
             $this->command->warn('Project "salado" not found. Skipping demo seeder.');
+
             return;
         }
 
@@ -48,7 +49,7 @@ class DemoProjectSeeder extends Seeder
 
         // Create 12 units across 4 floors
         $statuses = ['available', 'available', 'available', 'reserved', 'available', 'sold',
-                     'available', 'available', 'reserved', 'available', 'available', 'available'];
+            'available', 'available', 'reserved', 'available', 'available', 'available'];
 
         $unitData = [
             // Floor 0 (PB)
@@ -84,6 +85,6 @@ class DemoProjectSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Demo data created: 2 typologies + 12 units for project "' . $project->name . '"');
+        $this->command->info('Demo data created: 2 typologies + 12 units for project "'.$project->name.'"');
     }
 }

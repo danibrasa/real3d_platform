@@ -14,15 +14,15 @@ class ChatbotController extends Controller
 {
     public function sendMessage(Request $request, Project $project): JsonResponse
     {
-        if (!config('chatbot.enabled')) {
+        if (! config('chatbot.enabled')) {
             return response()->json(['error' => 'Chatbot is not enabled.'], 503);
         }
 
-        if (!$project->chatbot_enabled) {
+        if (! $project->chatbot_enabled) {
             return response()->json(['error' => 'Chatbot is not enabled for this project.'], 503);
         }
 
-        if (!in_array($project->status, ['public', 'unlisted'])) {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
             return response()->json(['error' => 'Project not accessible.'], 403);
         }
 
@@ -49,7 +49,8 @@ class ChatbotController extends Controller
         if ($conversation->messages_count >= $maxMessages) {
             $msg = $conversation->locale === 'en'
                 ? "We've reached the message limit for this conversation. Please contact us via WhatsApp or the contact form for further assistance."
-                : "Hemos alcanzado el limite de mensajes para esta conversacion. Contactanos por WhatsApp o el formulario de contacto para mas ayuda.";
+                : 'Hemos alcanzado el limite de mensajes para esta conversacion. Contactanos por WhatsApp o el formulario de contacto para mas ayuda.';
+
             return response()->json([
                 'message' => $msg,
                 'lead_captured' => $conversation->lead_captured,
@@ -58,12 +59,12 @@ class ChatbotController extends Controller
         }
 
         // Call AI
-        $service = new ChatbotService();
+        $service = new ChatbotService;
         $response = $service->chat($conversation, $validated['message']);
 
         // Auto-detect contact info from user message
         $contactInfo = $service->detectLeadInfo($validated['message']);
-        if (!empty($contactInfo)) {
+        if (! empty($contactInfo)) {
             if (isset($contactInfo['email'])) {
                 $conversation->visitor_email = $contactInfo['email'];
             }
@@ -74,7 +75,7 @@ class ChatbotController extends Controller
         }
 
         // Suggest lead capture?
-        $suggestLead = !$conversation->lead_captured
+        $suggestLead = ! $conversation->lead_captured
             && $conversation->messages_count >= config('chatbot.lead_capture_after_messages', 3);
 
         return response()->json([
@@ -98,7 +99,7 @@ class ChatbotController extends Controller
             ->where('session_id', $validated['session_id'])
             ->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             return response()->json(['error' => 'Conversation not found.'], 404);
         }
 
@@ -116,8 +117,8 @@ class ChatbotController extends Controller
             ->join(' | ');
 
         $chatNote = $conversation->locale === 'en'
-            ? "[Via chatbot] " . $lastMessages
-            : "[Via chatbot] " . $lastMessages;
+            ? '[Via chatbot] '.$lastMessages
+            : '[Via chatbot] '.$lastMessages;
 
         // Create inquiry
         $inquiry = Inquiry::create([

@@ -13,7 +13,7 @@ class EnsureTokenProjectAccess
     {
         $token = $request->user()?->currentAccessToken();
 
-        if (!$token || !$token->is_active) {
+        if (! $token || ! $token->is_active) {
             return response()->json(['error' => 'Token is inactive or invalid.'], 401);
         }
 
@@ -25,7 +25,7 @@ class EnsureTokenProjectAccess
         // Check project access if route has a project parameter
         $project = $request->route('project');
         if ($project instanceof Project) {
-            if (!$token->canAccessProject($project->id)) {
+            if (! $token->canAccessProject($project->id)) {
                 return response()->json(['error' => 'Token does not have access to this project.'], 403);
             }
         }

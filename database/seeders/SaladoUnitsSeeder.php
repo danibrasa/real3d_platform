@@ -33,12 +33,12 @@ class SaladoUnitsSeeder extends Seeder
                 'area_m2' => $u['area'],
                 'price' => $u['price'],
                 'status' => $u['status'],
-                'notes' => trim(($u['bloque'] ?? '') . ' | ' . ($u['tipologia'] ?? '') . ($u['buyer'] ? ' | ' . $u['buyer'] : '')),
+                'notes' => trim(($u['bloque'] ?? '').' | '.($u['tipologia'] ?? '').($u['buyer'] ? ' | '.$u['buyer'] : '')),
                 'sort_order' => $sortOrder++,
             ]);
         }
 
-        $this->command->info("Created " . count($units) . " units for project: {$project->name}");
+        $this->command->info('Created '.count($units)." units for project: {$project->name}");
     }
 
     private function getUnits(): array

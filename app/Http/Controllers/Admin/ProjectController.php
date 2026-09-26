@@ -36,7 +36,7 @@ class ProjectController extends Controller
         // Project quota check for inmobiliaria
         $user = $request->user();
         if ($user->isInmobiliaria() && $user->companyProfile) {
-            if (!$user->companyProfile->canCreateProject()) {
+            if (! $user->companyProfile->canCreateProject()) {
                 return back()->with('error', __('billing.project_limit_reached'));
             }
         }
@@ -69,7 +69,7 @@ class ProjectController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->canAccessProject($project)) {
+        if (! $user->canAccessProject($project)) {
             abort(403);
         }
 
@@ -83,7 +83,7 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->canAccessProject($project)) {
+        if (! $user->canAccessProject($project)) {
             abort(403);
         }
 

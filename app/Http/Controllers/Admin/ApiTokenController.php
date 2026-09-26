@@ -57,7 +57,7 @@ class ApiTokenController extends Controller
         $user = $request->user();
 
         // Inmobiliaria: enforce project_ids within accessible projects
-        if ($user->isInmobiliaria() && !empty($validated['project_ids'])) {
+        if ($user->isInmobiliaria() && ! empty($validated['project_ids'])) {
             $accessibleIds = $user->accessibleProjects()->pluck('projects.id')->toArray();
             $validated['project_ids'] = array_values(array_intersect(
                 array_map('intval', $validated['project_ids']),
@@ -65,7 +65,7 @@ class ApiTokenController extends Controller
             ));
         }
 
-        $projectIds = !empty($validated['project_ids']) ? array_map('intval', $validated['project_ids']) : null;
+        $projectIds = ! empty($validated['project_ids']) ? array_map('intval', $validated['project_ids']) : null;
 
         // Inmobiliaria must scope tokens to their projects (can't create "all projects" tokens)
         if ($user->isInmobiliaria() && is_null($projectIds)) {
@@ -118,7 +118,7 @@ class ApiTokenController extends Controller
 
         $apiToken->name = $validated['name'];
         $apiToken->description = $validated['description'] ?? null;
-        $apiToken->project_ids = !empty($validated['project_ids']) ? array_map('intval', $validated['project_ids']) : null;
+        $apiToken->project_ids = ! empty($validated['project_ids']) ? array_map('intval', $validated['project_ids']) : null;
         $apiToken->rate_limit = $validated['rate_limit'];
         $apiToken->is_active = $request->boolean('is_active');
         $apiToken->save();
@@ -141,7 +141,7 @@ class ApiTokenController extends Controller
     private function authorizeTokenAccess(ApiToken $apiToken): void
     {
         $user = auth()->user();
-        if (!$user->isSuperadmin() && $apiToken->tokenable_id !== $user->id) {
+        if (! $user->isSuperadmin() && $apiToken->tokenable_id !== $user->id) {
             abort(403);
         }
     }

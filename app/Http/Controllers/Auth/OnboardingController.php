@@ -24,7 +24,7 @@ class OnboardingController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -90,7 +90,7 @@ class OnboardingController extends Controller
     public function showPlanSelection()
     {
         $user = auth()->user();
-        if (!$user->companyProfile) {
+        if (! $user->companyProfile) {
             return redirect()->route('onboarding.company');
         }
 
@@ -129,7 +129,7 @@ class OnboardingController extends Controller
             ? $plans[$plan]['price_yearly_id']
             : $plans[$plan]['price_monthly_id'];
 
-        if (!$priceId) {
+        if (! $priceId) {
             // If Stripe not configured, activate directly
             $limits = CompanyProfile::PLAN_LIMITS[$plan];
             $user->companyProfile->update([
@@ -149,7 +149,7 @@ class OnboardingController extends Controller
         }
 
         return $checkout->checkout([
-            'success_url' => route('onboarding.complete') . '?plan=' . $plan,
+            'success_url' => route('onboarding.complete').'?plan='.$plan,
             'cancel_url' => route('onboarding.plan'),
         ]);
     }

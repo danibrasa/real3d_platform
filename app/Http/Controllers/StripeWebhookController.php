@@ -16,12 +16,12 @@ class StripeWebhookController extends WebhookController
         parent::handleCustomerSubscriptionCreated($payload);
 
         $stripeId = $payload['data']['object']['customer'] ?? null;
-        if (!$stripeId) {
+        if (! $stripeId) {
             return;
         }
 
         $user = User::where('stripe_id', $stripeId)->first();
-        if (!$user || !$user->companyProfile) {
+        if (! $user || ! $user->companyProfile) {
             return;
         }
 
@@ -51,12 +51,12 @@ class StripeWebhookController extends WebhookController
         parent::handleCustomerSubscriptionDeleted($payload);
 
         $stripeId = $payload['data']['object']['customer'] ?? null;
-        if (!$stripeId) {
+        if (! $stripeId) {
             return;
         }
 
         $user = User::where('stripe_id', $stripeId)->first();
-        if (!$user || !$user->companyProfile) {
+        if (! $user || ! $user->companyProfile) {
             return;
         }
 
@@ -74,7 +74,7 @@ class StripeWebhookController extends WebhookController
 
     private function resolveTierFromPrice(?string $priceId): ?string
     {
-        if (!$priceId) {
+        if (! $priceId) {
             return null;
         }
 

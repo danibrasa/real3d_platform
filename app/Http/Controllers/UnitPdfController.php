@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PaymentMilestone;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\CurrencyService;
@@ -14,7 +13,7 @@ class UnitPdfController extends Controller
     public function generate(Project $project, Unit $unit)
     {
         // SECURITY FIX: Verify project is publicly accessible before generating PDF
-        if (!in_array($project->status, ['public', 'unlisted'])) {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
             abort(404);
         }
 
@@ -27,7 +26,7 @@ class UnitPdfController extends Controller
         $project->load(['galleryImages', 'paymentPlans.milestones']);
 
         // Build QR code as SVG
-        $unitUrl = route('viewer.landing', $project->slug) . '?unit=' . $unit->id;
+        $unitUrl = route('viewer.landing', $project->slug).'?unit='.$unit->id;
         $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
             ->size(120)
             ->margin(0)
@@ -56,9 +55,9 @@ class UnitPdfController extends Controller
         $thumbnailBase64 = null;
         if ($project->thumbnail_path) {
             $thumbPath = $this->resolveStoragePath($project->thumbnail_path);
-            if (!$thumbPath) {
-                $thumbPath = public_path('storage/' . $project->thumbnail_path);
-                if (!file_exists($thumbPath)) {
+            if (! $thumbPath) {
+                $thumbPath = public_path('storage/'.$project->thumbnail_path);
+                if (! file_exists($thumbPath)) {
                     $thumbPath = null;
                 }
             }
@@ -70,7 +69,9 @@ class UnitPdfController extends Controller
         // All payment plans with discounts
         $allPlansData = [];
         foreach ($project->paymentPlans as $plan) {
-            if ($plan->milestones->isEmpty()) continue;
+            if ($plan->milestones->isEmpty()) {
+                continue;
+            }
 
             $effectivePrice = $plan->effectivePrice($unit->price ?? 0);
             $hasDiscount = $plan->hasDiscount() && $unit->price;
@@ -145,7 +146,7 @@ class UnitPdfController extends Controller
             ->setOption('isRemoteEnabled', true)
             ->setOption('defaultFont', 'sans-serif');
 
-        $filename = 'ficha-' . $project->slug . '-' . $unit->identifier . '.pdf';
+        $filename = 'ficha-'.$project->slug.'-'.$unit->identifier.'.pdf';
 
         return $pdf->download($filename);
     }
@@ -153,7 +154,7 @@ class UnitPdfController extends Controller
     public function paymentSchedule(Request $request, Project $project, Unit $unit)
     {
         // SECURITY FIX: Verify project is publicly accessible
-        if (!in_array($project->status, ['public', 'unlisted'])) {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
             abort(404);
         }
 
@@ -169,11 +170,11 @@ class UnitPdfController extends Controller
         if ($planId) {
             $plan = $project->paymentPlans->firstWhere('id', $planId);
         }
-        if (!isset($plan) || !$plan) {
+        if (! isset($plan) || ! $plan) {
             $plan = $project->paymentPlans->firstWhere('is_default', true) ?? $project->paymentPlans->first();
         }
 
-        if (!$plan || $plan->milestones->isEmpty()) {
+        if (! $plan || $plan->milestones->isEmpty()) {
             abort(404, 'No payment plan available');
         }
 
@@ -223,7 +224,7 @@ class UnitPdfController extends Controller
         }
 
         // QR pointing to landing#planes-de-pago
-        $landingUrl = route('viewer.landing', $project->slug) . '#planes-de-pago';
+        $landingUrl = route('viewer.landing', $project->slug).'#planes-de-pago';
         $qrSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
             ->size(120)
             ->margin(0)
@@ -245,7 +246,7 @@ class UnitPdfController extends Controller
             ->setPaper('a4')
             ->setOption('defaultFont', 'sans-serif');
 
-        $filename = 'plan-pagos-' . $project->slug . '-' . $unit->identifier . '.pdf';
+        $filename = 'plan-pagos-'.$project->slug.'-'.$unit->identifier.'.pdf';
 
         return $pdf->download($filename);
     }
@@ -253,12 +254,12 @@ class UnitPdfController extends Controller
     private function resolveStoragePath(string $relativePath): ?string
     {
         $paths = [
-            storage_path('app/private/' . $relativePath),
-            storage_path('app/' . $relativePath),
+            storage_path('app/private/'.$relativePath),
+            storage_path('app/'.$relativePath),
         ];
 
         foreach ($paths as $path) {
-            if (file_exists($path) && !is_dir($path)) {
+            if (file_exists($path) && ! is_dir($path)) {
                 return $path;
             }
         }
@@ -269,16 +270,17 @@ class UnitPdfController extends Controller
     private function imageToBase64(string $path, int $maxWidth): string
     {
         $info = getimagesize($path);
-        if (!$info) {
+        if (! $info) {
             $mime = mime_content_type($path);
-            return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
+
+            return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));
         }
 
         [$origW, $origH, $type] = $info;
 
         // If already small enough, just encode directly
         if ($origW <= $maxWidth) {
-            return 'data:' . $info['mime'] . ';base64,' . base64_encode(file_get_contents($path));
+            return 'data:'.$info['mime'].';base64,'.base64_encode(file_get_contents($path));
         }
 
         // Resize
@@ -293,8 +295,8 @@ class UnitPdfController extends Controller
             default => null,
         };
 
-        if (!$source) {
-            return 'data:' . $info['mime'] . ';base64,' . base64_encode(file_get_contents($path));
+        if (! $source) {
+            return 'data:'.$info['mime'].';base64,'.base64_encode(file_get_contents($path));
         }
 
         $dest = imagecreatetruecolor($newW, $newH);
@@ -314,6 +316,6 @@ class UnitPdfController extends Controller
         imagedestroy($source);
         imagedestroy($dest);
 
-        return 'data:image/jpeg;base64,' . base64_encode($data);
+        return 'data:image/jpeg;base64,'.base64_encode($data);
     }
 }

@@ -22,6 +22,7 @@ class DeveloperDirectoryController extends Controller
             $developer->projects_count = $developer->user->assignedProjects()
                 ->where('status', 'public')
                 ->count();
+
             return $developer;
         });
 
@@ -30,7 +31,7 @@ class DeveloperDirectoryController extends Controller
 
     public function show(CompanyProfile $developer)
     {
-        if (!$developer->show_in_directory) {
+        if (! $developer->show_in_directory) {
             abort(404);
         }
 

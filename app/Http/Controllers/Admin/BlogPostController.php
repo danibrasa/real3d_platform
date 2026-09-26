@@ -17,6 +17,7 @@ class BlogPostController extends Controller
     {
         $this->middleware(function ($request, $next) {
             Gate::authorize('manage-blog');
+
             return $next($request);
         });
     }
@@ -36,6 +37,7 @@ class BlogPostController extends Controller
     public function create()
     {
         $categories = BlogCategory::orderBy('sort_order')->get();
+
         return view('admin.blog.posts.create', compact('categories'));
     }
 
@@ -93,6 +95,7 @@ class BlogPostController extends Controller
     {
         $categories = BlogCategory::orderBy('sort_order')->get();
         $post->load('tags');
+
         return view('admin.blog.posts.edit', compact('post', 'categories'));
     }
 
@@ -101,7 +104,7 @@ class BlogPostController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:blog_posts,slug,' . $post->id,
+            'slug' => 'nullable|string|max:255|unique:blog_posts,slug,'.$post->id,
             'excerpt' => 'nullable|string|max:500',
             'excerpt_en' => 'nullable|string|max:500',
             'body' => 'nullable|string',
@@ -124,7 +127,7 @@ class BlogPostController extends Controller
         $data = collect($validated)->except(['featured_image', 'tags'])->toArray();
         $data['is_featured'] = $request->boolean('is_featured');
 
-        if ($data['status'] === 'published' && !$post->published_at && empty($data['published_at'])) {
+        if ($data['status'] === 'published' && ! $post->published_at && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
 

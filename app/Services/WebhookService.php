@@ -9,13 +9,15 @@ use App\Models\WebhookEndpoint;
 class WebhookService
 {
     const EVENT_INQUIRY_CREATED = 'inquiry_created';
+
     const EVENT_UNIT_STATUS_CHANGED = 'unit_status_changed';
+
     const EVENT_PROJECT_PUBLISHED = 'project_published';
 
     public static function dispatch(string $event, array $payload, int $projectId): void
     {
         $project = Project::find($projectId);
-        if (!$project) {
+        if (! $project) {
             return;
         }
 

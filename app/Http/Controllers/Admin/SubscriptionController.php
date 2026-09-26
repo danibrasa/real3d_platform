@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyProfile;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
@@ -38,7 +37,7 @@ class SubscriptionController extends Controller
     public function companies()
     {
         $user = auth()->user();
-        if (!$user->isSuperadmin()) {
+        if (! $user->isSuperadmin()) {
             abort(403);
         }
 
@@ -57,7 +56,7 @@ class SubscriptionController extends Controller
     public function updatePlan(Request $request, CompanyProfile $company)
     {
         $user = $request->user();
-        if (!$user->isSuperadmin()) {
+        if (! $user->isSuperadmin()) {
             abort(403);
         }
 
@@ -82,7 +81,7 @@ class SubscriptionController extends Controller
         $interval = $request->interval;
         $plans = config('stripe.plans');
 
-        if (!isset($plans[$plan])) {
+        if (! isset($plans[$plan])) {
             return back()->with('error', __('billing.invalid_plan'));
         }
 
@@ -90,18 +89,18 @@ class SubscriptionController extends Controller
             ? $plans[$plan]['price_yearly_id']
             : $plans[$plan]['price_monthly_id'];
 
-        if (!$priceId) {
+        if (! $priceId) {
             return back()->with('error', __('billing.stripe_not_configured'));
         }
 
         $checkout = $user->newSubscription('default', $priceId);
 
-        if (config('stripe.trial_days') > 0 && !$user->subscription('default')) {
+        if (config('stripe.trial_days') > 0 && ! $user->subscription('default')) {
             $checkout->trialDays(config('stripe.trial_days'));
         }
 
         return $checkout->checkout([
-            'success_url' => route('admin.subscription.success') . '?plan=' . $plan,
+            'success_url' => route('admin.subscription.success').'?plan='.$plan,
             'cancel_url' => route('admin.subscription.index'),
         ]);
     }
@@ -123,7 +122,7 @@ class SubscriptionController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasStripeId()) {
+        if (! $user->hasStripeId()) {
             return back()->with('error', __('billing.no_stripe_customer'));
         }
 
@@ -146,7 +145,7 @@ class SubscriptionController extends Controller
             ? $plans[$plan]['price_yearly_id']
             : $plans[$plan]['price_monthly_id'];
 
-        if (!$priceId) {
+        if (! $priceId) {
             return back()->with('error', __('billing.stripe_not_configured'));
         }
 
@@ -157,6 +156,7 @@ class SubscriptionController extends Controller
             if ($profile) {
                 $this->syncPlanLimits($profile, $plan);
             }
+
             return back()->with('success', __('billing.plan_changed'));
         }
 

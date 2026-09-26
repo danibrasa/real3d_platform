@@ -21,7 +21,7 @@ class CurrencyService
      */
     public function convert(float $amount, string $toCurrency = 'USD'): float
     {
-        if ($toCurrency === 'USD' || !isset($this->currencies[$toCurrency])) {
+        if ($toCurrency === 'USD' || ! isset($this->currencies[$toCurrency])) {
             return $amount;
         }
 
@@ -37,7 +37,8 @@ class CurrencyService
         $currency = $this->currencies[$currencyCode] ?? $this->currencies['USD'];
 
         $formatted = number_format($converted, $currency['decimal_places'], '.', ',');
-        return $currency['symbol'] . ' ' . $formatted;
+
+        return $currency['symbol'].' '.$formatted;
     }
 
     /**

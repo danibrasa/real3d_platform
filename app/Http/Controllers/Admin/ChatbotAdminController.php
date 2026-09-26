@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ChatbotConversation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ChatbotAdminController extends Controller
@@ -89,7 +88,7 @@ class ChatbotAdminController extends Controller
     private function authorizeConversationAccess(ChatbotConversation $conversation): void
     {
         $user = auth()->user();
-        if (!$user->canAccessProject($conversation->project)) {
+        if (! $user->canAccessProject($conversation->project)) {
             abort(403);
         }
     }

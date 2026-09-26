@@ -10,9 +10,10 @@ class EnsureAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()?->hasAdminAccess()) {
-            abort(403, "Acceso restringido a administradores.");
+        if (! $request->user()?->hasAdminAccess()) {
+            abort(403, 'Acceso restringido a administradores.');
         }
+
         return $next($request);
     }
 }
