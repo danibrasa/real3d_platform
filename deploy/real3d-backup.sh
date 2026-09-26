@@ -48,6 +48,13 @@ else
     log "ERROR replicando storage"; fail=1
 fi
 
+# Aviso si el disco de la maquina auxiliar se queda corto: alli conviven las
+# copias y el entorno de desarrollo, y si se llena la copia de la noche falla.
+LIBRE=$($SSH "$REMOTE" "df --output=pcent / | tail -1 | tr -dc 0-9" 2>/dev/null || echo 0)
+if [ -n "$LIBRE" ] && [ "$LIBRE" -ge 85 ]; then
+    log "AVISO: la maquina auxiliar tiene el disco al ${LIBRE}%, revisar /var/www/dev"
+fi
+
 # 5. Retencion: 90 dias. A 5 MB por copia son unos 450 MB.
 find "$DEST" -name 'db-*.sql.gz' -mtime +90 -delete
 find "$DEST" -name 'env-*.txt' -mtime +90 -delete
