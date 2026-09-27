@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BuyerPayment;
+use App\Models\CompanyProfile;
 use App\Models\ConstructionPhase;
 use App\Models\ConstructionUpdate;
 use App\Models\Project;
@@ -317,5 +318,45 @@ class PortalCompradorTest extends TestCase
         $this->actingAs($this->comprador)
             ->get(route('mi-inversion.show', $this->vivienda).'?lang=es')
             ->assertSee('42%');
+    }
+
+    public function test_una_promotora_no_ve_los_compradores_de_otra(): void
+    {
+        // Quien compro y cuanto lleva pagado son datos de una persona, y ademas
+        // informacion comercial de la competencia.
+        $otra = User::factory()->create(['role' => 'inmobiliaria']);
+        CompanyProfile::create([
+            'user_id' => $otra->id,
+            'company_name' => 'Otra inmobiliaria',
+            'slug' => 'otra-inmobiliaria',
+            'plan_tier' => 'professional',
+            'max_projects' => 5,
+        ]);
+
+        $this->actingAs($otra)
+            ->get(route('admin.projects.units.comprador', [$this->proyecto, $this->vivienda]))
+            ->assertForbidden();
+    }
+
+    public function test_una_promotora_no_puede_anotar_pagos_en_un_proyecto_ajeno(): void
+    {
+        $otra = User::factory()->create(['role' => 'inmobiliaria']);
+        CompanyProfile::create([
+            'user_id' => $otra->id,
+            'company_name' => 'Otra mas',
+            'slug' => 'otra-mas',
+            'plan_tier' => 'professional',
+            'max_projects' => 5,
+        ]);
+
+        $this->actingAs($otra)
+            ->post(route('admin.projects.units.comprador.pago', [$this->proyecto, $this->vivienda]), [
+                'concept' => 'Inventado',
+                'amount' => 1000,
+                'paid_on' => '2026-01-01',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, $this->vivienda->payments()->count());
     }
 }
