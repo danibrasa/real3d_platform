@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\CurrencyService;
+use App\Support\Inversion\CalculoInversion;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -318,5 +319,55 @@ class UnitPdfController extends Controller
         imagedestroy($dest);
 
         return 'data:image/jpeg;base64,'.base64_encode($data);
+    }
+
+    /**
+     * Informe de inversion de una vivienda, en PDF.
+     *
+     * La calculadora de la web es util para trastear, pero nadie decide una
+     * compra de seis cifras moviendo un deslizador: lo decide enseñandoselo a
+     * su pareja, a su gestor o a su banco. Y lo que se reenvia es un PDF.
+     */
+    public function investmentReport(Project $project, Unit $unit)
+    {
+        if (! in_array($project->status, ['public', 'unlisted'])) {
+            abort(404);
+        }
+
+        if ($unit->project_id !== $project->id) {
+            abort(404);
+        }
+
+        $calculo = CalculoInversion::paraVivienda($unit, $project);
+
+        // Sin datos de alquiler no hay nada que proyectar, y un PDF lleno de
+        // ceros seria peor que no ofrecerlo.
+        if (! $calculo->hayDatos()) {
+            abort(404);
+        }
+
+        $unit->load('typology');
+
+        $qrSvg = null;
+        try {
+            $qrSvg = QrCode::format('svg')
+                ->size(110)
+                ->margin(0)
+                ->generate(route('viewer.unit.detail', [$project->slug, $unit->id]));
+        } catch (\Throwable $e) {
+            // El QR es un extra: si falla, el informe sale igual.
+        }
+
+        $pdf = Pdf::loadView('pdf.investment-report', [
+            'project' => $project,
+            'unit' => $unit,
+            'c' => $calculo->resumen(),
+            'moneda' => 'USD',
+            'qrSvg' => $qrSvg,
+        ])->setPaper('a4');
+
+        $nombre = 'inversion-'.$project->slug.'-'.$unit->identifier.'.pdf';
+
+        return $pdf->download($nombre);
     }
 }
