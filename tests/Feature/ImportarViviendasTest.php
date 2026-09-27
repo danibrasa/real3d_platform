@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CompanyProfile;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UnitTypology;
@@ -287,5 +288,31 @@ class ImportarViviendasTest extends TestCase
             ->get(route('admin.projects.units.index', $this->proyecto))
             ->assertOk()
             ->assertSee('Importación terminada', false);
+    }
+
+    public function test_una_promotora_no_puede_importar_en_un_proyecto_ajeno(): void
+    {
+        // Subir un fichero a un proyecto que no es tuyo seria colarle viviendas
+        // a otra inmobiliaria.
+        $otra = User::factory()->create(['role' => 'inmobiliaria']);
+        CompanyProfile::create([
+            'user_id' => $otra->id,
+            'company_name' => 'Otra inmobiliaria',
+            'slug' => 'otra-inmobiliaria',
+            'plan_tier' => 'professional',
+            'max_projects' => 5,
+        ]);
+
+        $this->actingAs($otra)
+            ->get(route('admin.projects.units.import.create', $this->proyecto))
+            ->assertForbidden();
+
+        $this->actingAs($otra)
+            ->post(route('admin.projects.units.import.analizar', $this->proyecto), [
+                'fichero' => $this->csv("Unidad;Precio\nX-01;100000"),
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, $this->proyecto->units()->count());
     }
 }
