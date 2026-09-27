@@ -64,4 +64,11 @@ return [
     'footer_tagline' => 'The real estate platform with 3D technology.',
     'footer_explore' => 'Explore',
     'footer_for_developers' => 'For developers',
+
+    // Disponibilidad del proyecto
+    'of' => 'of',
+    'available_lower' => 'available',
+    'units_available' => 'units available',
+    'placed' => 'already placed',
+    'reserved_now' => '{1}1 reserved right now|[2,*]:count reserved right now',
 ];

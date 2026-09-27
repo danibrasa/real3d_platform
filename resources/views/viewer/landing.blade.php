@@ -251,6 +251,9 @@
             </section>
             @endif
 
+            {{-- Cuanto queda por vender: lo que mira quien duda --}}
+            <x-disponibilidad :project="$project" class="mb-6" />
+
             <!-- Units (QW5: Alpine.js filters) -->
             @if($project->units->count())
             <section x-data="unitFilters()" x-init="init()">
@@ -571,6 +574,7 @@
     </div>
 
     <!-- Unit detail modal -->
+
     <div id="unit-modal" class="fixed inset-0 z-50 hidden" style="background: rgba(0,0,0,0.5)">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">

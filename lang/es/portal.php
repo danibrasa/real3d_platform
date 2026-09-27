@@ -64,4 +64,11 @@ return [
     'footer_tagline' => 'La plataforma inmobiliaria con tecnologia 3D.',
     'footer_explore' => 'Explorar',
     'footer_for_developers' => 'Para promotores',
+
+    // Disponibilidad del proyecto
+    'of' => 'de',
+    'available_lower' => 'disponibles',
+    'units_available' => 'unidades disponibles',
+    'placed' => 'ya colocado',
+    'reserved_now' => '{1}1 reservada ahora mismo|[2,*]:count reservadas ahora mismo',
 ];
