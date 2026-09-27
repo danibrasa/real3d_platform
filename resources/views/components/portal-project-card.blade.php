@@ -32,7 +32,7 @@
         <div class="absolute top-3 left-3 flex gap-1.5">
             @if($project->available_units_count > 0)
                 <span class="bg-emerald-500/90 text-white text-xs font-medium px-2 py-0.5 rounded-md backdrop-blur-sm">
-                    {{ $project->available_units_count }} {{ __('portal.available') }}
+                    {{ $project->available_units_count }}@isset($project->units_count) {{ __('portal.of') }} {{ $project->units_count }}@endisset {{ __('portal.available_lower') }}
                 </span>
             @else
                 <span class="bg-gray-500/90 text-white text-xs font-medium px-2 py-0.5 rounded-md backdrop-blur-sm">

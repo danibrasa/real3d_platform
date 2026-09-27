@@ -40,7 +40,7 @@ class PortalController extends Controller
 
         $mapProjects = Project::portalVisible()
             ->select('id', 'name', 'slug', 'latitude', 'longitude', 'location', 'thumbnail_path')
-            ->withCount(['units as available_units_count' => fn ($q) => $q->where('status', 'available')])
+            ->withCount(['units', 'units as available_units_count' => fn ($q) => $q->where('status', 'available')])
             ->get();
 
         $latestPosts = BlogPost::published()
@@ -167,7 +167,7 @@ class PortalController extends Controller
         }
 
         $projects = $query->select('id', 'name', 'slug', 'latitude', 'longitude', 'location', 'thumbnail_path')
-            ->withCount(['units as available_units_count' => fn ($q) => $q->where('status', 'available')])
+            ->withCount(['units', 'units as available_units_count' => fn ($q) => $q->where('status', 'available')])
             ->get()
             ->map(fn ($p) => [
                 'id' => $p->id,
