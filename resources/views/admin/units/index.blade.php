@@ -127,6 +127,7 @@
                                     @endif
 
                                     @can('edit-unit-full')
+                                    <a href="{{ route('admin.projects.units.comprador', [$project, $unit]) }}" class="text-emerald-600 hover:underline text-xs">{{ __('buyer_admin.buyer') }}</a>
                                     <a href="{{ route('admin.projects.units.edit', [$project, $unit]) }}" class="text-xs text-blue-600 hover:underline">Editar</a>
                                     @elsecan('edit-unit-commercial', $project)
                                     <a href="{{ route('admin.projects.units.edit', [$project, $unit]) }}" class="text-xs text-blue-600 hover:underline">Editar</a>

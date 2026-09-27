@@ -158,6 +158,13 @@
                     </div>
                     @endif
 
+                    {{-- Quien ha comprado algo llega a su portal desde aqui --}}
+                    @auth
+                        @if (auth()->user()->isBuyer())
+                            <a href="{{ route('mi-inversion.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">{{ __('buyer.my_investment') }}</a>
+                        @endif
+                    @endauth
+
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">

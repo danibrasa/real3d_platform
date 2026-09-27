@@ -15,7 +15,15 @@ class ConstructionUpdateImage extends Model
         'sort_order' => 'integer',
     ];
 
-    public function update(): BelongsTo
+    /**
+     * La actualizacion de obra a la que pertenece esta foto.
+     *
+     * Se llama constructionUpdate y no update: una relacion llamada update()
+     * choca con el metodo update() de Eloquent y deja el modelo inutilizable
+     * (PHP rechaza la clase entera por firma incompatible). Nadie usaba la
+     * relacion, asi que el fallo estaba latente.
+     */
+    public function constructionUpdate(): BelongsTo
     {
         return $this->belongsTo(ConstructionUpdate::class, 'construction_update_id');
     }

@@ -15,6 +15,7 @@ class Unit extends Model
     protected $fillable = [
         'project_id',
         'typology_id',
+        'buyer_id',
         'identifier',
         'floor',
         'bedrooms',
@@ -22,6 +23,7 @@ class Unit extends Model
         'area_m2',
         'price',
         'status',
+        'sold_at',
         'floor_plan_path',
         'notes',
         'sort_order',
@@ -40,6 +42,7 @@ class Unit extends Model
         'area_m2' => 'float',
         'price' => 'float',
         'sort_order' => 'integer',
+        'sold_at' => 'date',
         'bbox_center_x' => 'float',
         'bbox_center_y' => 'float',
         'bbox_center_z' => 'float',
@@ -82,5 +85,37 @@ class Unit extends Model
         return Attribute::make(
             get: fn () => 'USD '.number_format($this->price, 0, '.', ','),
         );
+    }
+
+    /** Quien ha comprado esta vivienda, si ya esta vendida. */
+    public function buyer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    /** Los pagos que el comprador ha hecho de verdad. */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(BuyerPayment::class)->orderBy('paid_on');
+    }
+
+    /** Suma de lo pagado hasta hoy. */
+    public function totalPaid(): float
+    {
+        return (float) ($this->relationLoaded('payments')
+            ? $this->payments->sum('amount')
+            : $this->payments()->sum('amount'));
+    }
+
+    /** Lo que queda por pagar segun el precio de la vivienda. */
+    public function pendingAmount(): float
+    {
+        return max(0, (float) $this->price - $this->totalPaid());
+    }
+
+    /** Porcentaje pagado, para la barra de progreso. */
+    public function paidPercent(): float
+    {
+        return $this->price > 0 ? min(100, $this->totalPaid() / $this->price * 100) : 0.0;
     }
 }
