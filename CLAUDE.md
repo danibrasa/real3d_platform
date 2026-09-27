@@ -50,11 +50,13 @@ rama  →  PR  →  main  →  staging.real3d.io  →  [aprobación]  →  real3
    Para verlo montado sin fusionarlo: `staging-deploy.sh <rama>`.
 4. Merge en `main` → staging.real3d.io se actualiza solo en cuanto el CI pasa.
 5. El equipo valida en staging.
-6. **Aprobación**: Actions → el despliegue en espera → *Review deployments*. Ahí sale a
-   producción y la rama `production` queda apuntando a ese commit.
+6. **Publicar**: Actions → *Desplegar en produccion* → **Run workflow** sobre `main`, y
+   aprobar cuando lo pida. Antes de pedir nada comprueba que el CI esté en verde en `main`
+   y lista los commits que va a sacar. Al acabar, la rama `production` apunta a eso.
 
-El paso 6 es el único freno, y es deliberado: `main` puede acumular varios pull requests
-fusionados que todavía no se han publicado. Para ver cuántos, `deploy-status.sh`.
+Publicar es a mano a propósito, y **no se encola por cada fusión**: se pueden meter diez pull
+requests, irlos viendo en staging, y publicar una sola vez. Mientras tanto `main` acumula lo
+aprobado sin publicar; para ver cuánto, `deploy-status.sh`.
 
 Un `hotfix/` puede aprobarse sin esperar a que nadie valide staging, pero nunca se salta el
 CI. Todo fix de un error de producción incluye un test que lo reproduce.
