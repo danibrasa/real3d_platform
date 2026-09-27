@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\BlogCategoryController;
 use App\Http\Controllers\Admin\BlogPostController;
 use App\Http\Controllers\Admin\ChatbotAdminController;
 use App\Http\Controllers\Admin\CompanyProfileController;
+use App\Http\Controllers\Admin\CompradorController;
 use App\Http\Controllers\Admin\ConstructionProgressController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\McpServerController;
+use App\Http\Controllers\MiInversionController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SitemapController;
@@ -115,6 +117,19 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
         ->name('projects.units.import.analizar');
     Route::post('projects/{project}/units/import/confirmar', [ImportarViviendasController::class, 'confirmar'])
         ->name('projects.units.import.confirmar');
+
+    // Comprador de una vivienda y sus pagos. Antes del resource, o
+    // "comprador" encajaria en {unit}.
+    Route::get('projects/{project}/units/{unit}/comprador', [CompradorController::class, 'show'])
+        ->name('projects.units.comprador');
+    Route::post('projects/{project}/units/{unit}/comprador', [CompradorController::class, 'asignar'])
+        ->name('projects.units.comprador.asignar');
+    Route::delete('projects/{project}/units/{unit}/comprador', [CompradorController::class, 'desasignar'])
+        ->name('projects.units.comprador.desasignar');
+    Route::post('projects/{project}/units/{unit}/comprador/pagos', [CompradorController::class, 'registrarPago'])
+        ->name('projects.units.comprador.pago');
+    Route::delete('projects/{project}/units/{unit}/comprador/pagos/{payment}', [CompradorController::class, 'borrarPago'])
+        ->name('projects.units.comprador.pago.borrar');
 
     Route::resource('projects.units', UnitController::class);
 
@@ -274,6 +289,13 @@ Route::get('/projects/{project:slug}/units/{unit}/investment', [UnitPdfControlle
 Route::post('/projects/{project:slug}/inquiry', [InquiryController::class, 'store'])->name('viewer.inquiry');
 Route::get('/projects/{project:slug}/units/{unit}', [ViewerController::class, 'unitDetail'])->name('viewer.unit.detail');
 Route::get('/projects/{project:slug}', [ViewerController::class, 'show'])->name('viewer.show');
+
+// Portal del comprador: quien ya compro ve como va su obra y sus pagos.
+// Solo pide sesion, no rol de administracion.
+Route::middleware('auth')->group(function () {
+    Route::get('/mi-inversion', [MiInversionController::class, 'index'])->name('mi-inversion.index');
+    Route::get('/mi-inversion/{unit}', [MiInversionController::class, 'show'])->name('mi-inversion.show');
+});
 
 // Profile (Breeze)
 Route::middleware('auth')->group(function () {

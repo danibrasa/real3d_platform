@@ -187,4 +187,21 @@ class User extends Authenticatable
 
         return false;
     }
+
+    /** Las viviendas que esta persona ha comprado. */
+    public function purchasedUnits(): HasMany
+    {
+        return $this->hasMany(Unit::class, 'buyer_id');
+    }
+
+    /**
+     * Si tiene acceso al portal del comprador.
+     *
+     * No depende del rol: es comprador quien ha comprado algo. Asi una misma
+     * persona puede ser agente de una promotora y comprador en otro proyecto.
+     */
+    public function isBuyer(): bool
+    {
+        return $this->purchasedUnits()->exists();
+    }
 }
