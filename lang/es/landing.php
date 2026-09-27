@@ -146,4 +146,10 @@ return [
     'poi_gas_station' => 'Gasolinera',
     'poi_pharmacy' => 'Farmacia',
     'poi_park' => 'Parque',
+
+    // Comparador de unidades: lo que mira un inversor
+    'compare_yield' => 'Rentabilidad',
+    'compare_monthly' => 'Neto al mes',
+    'compare_payback' => 'Se recupera en',
+    'compare_years' => 'años',
 ];

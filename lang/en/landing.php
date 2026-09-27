@@ -146,4 +146,10 @@ return [
     'poi_gas_station' => 'Gas station',
     'poi_pharmacy' => 'Pharmacy',
     'poi_park' => 'Park',
+
+    // Comparador de unidades: lo que mira un inversor
+    'compare_yield' => 'Annual return',
+    'compare_monthly' => 'Net per month',
+    'compare_payback' => 'Payback',
+    'compare_years' => 'yrs',
 ];
