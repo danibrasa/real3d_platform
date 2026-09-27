@@ -7,6 +7,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
@@ -29,9 +30,8 @@ class SentryTest extends TestCase
      * Estas excepciones son ruido normal de cualquier web (paginas que no
      * existen, formularios mal rellenados, sesiones caducadas). Si llegasen a
      * Sentry agotarian la cuota y taparian los fallos de verdad.
-     *
-     * @dataProvider excepcionesQueNoSeAvisan
      */
+    #[DataProvider('excepcionesQueNoSeAvisan')]
     public function test_el_ruido_normal_no_llega_a_sentry(string $excepcion): void
     {
         $handler = app(ExceptionHandler::class);

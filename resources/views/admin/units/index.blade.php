@@ -13,6 +13,14 @@
                 @endif
                 @endcan
                 @can('create-unit')
+                    <a href="{{ route('admin.projects.units.import.create', $project) }}"
+                       class="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm font-semibold hover:bg-gray-50 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        Importar
+                    </a>
                 <a href="{{ route('admin.projects.units.create', $project) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">+ Nueva Unidad</a>
                 @endcan
             </div>
@@ -25,31 +33,37 @@
                 <div class="mb-4 p-4 bg-green-100 text-green-800 rounded-lg">{{ session('success') }}</div>
             @endif
 
-            <!-- Filters -->
-            <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-4">
-                <form method="GET" class="flex gap-4 items-end flex-wrap">
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Piso</label>
-                        <select name="floor" class="rounded-md border-gray-300 text-sm">
-                            <option value="">Todos</option>
-                            @foreach($floors as $f)
-                                <option value="{{ $f }}" {{ request('floor') == (string)$f ? 'selected' : '' }}>Piso {{ $f }}</option>
+            @if (session('import_resultado'))
+                @php
+                    $resumen = session('import_resultado');
+                    $partes = [$resumen['creadas'] . ' ' . ($resumen['creadas'] === 1 ? 'vivienda creada' : 'viviendas creadas')];
+                    if ($resumen['actualizadas'] > 0) {
+                        $partes[] = $resumen['actualizadas'] . ' ' . ($resumen['actualizadas'] === 1 ? 'actualizada' : 'actualizadas');
+                    }
+                    if ($resumen['saltadas'] > 0) {
+                        $partes[] = $resumen['saltadas'] . ' sin tocar por existir ya';
+                    }
+                    $fallos = count($resumen['errores']);
+                    if ($fallos > 0) {
+                        $partes[] = $fallos . ' ' . ($fallos === 1 ? 'fila no se pudo importar' : 'filas no se pudieron importar');
+                    }
+                @endphp
+                <div class="mb-4 p-4 rounded-lg border text-sm {{ $fallos > 0 ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-green-50 border-green-200 text-green-900' }}">
+                    <p class="font-semibold">Importación terminada</p>
+                    <p class="mt-1">{{ implode(', ', $partes) }}.</p>
+                    @if ($fallos > 0)
+                        <ul class="mt-2 text-xs list-disc list-inside space-y-0.5">
+                            @foreach (array_slice($resumen['errores'], 0, 10) as $error)
+                                <li>Fila {{ $error['linea'] }}: {{ $error['motivo'] }}</li>
                             @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Estado</label>
-                        <select name="status" class="rounded-md border-gray-300 text-sm">
-                            <option value="">Todos</option>
-                            <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Disponible</option>
-                            <option value="reserved" {{ request('status') === 'reserved' ? 'selected' : '' }}>Reservado</option>
-                            <option value="sold" {{ request('status') === 'sold' ? 'selected' : '' }}>Vendido</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200">Filtrar</button>
-                    @if(request()->hasAny(['floor', 'status']))
-                        <a href="{{ route('admin.projects.units.index', $project) }}" class="text-sm text-gray-500 hover:underline">Limpiar</a>
+                            @if ($fallos > 10)
+                                <li>y {{ $fallos - 10 }} más.</li>
+                            @endif
+                        </ul>
                     @endif
+                </div>
+            @endif
+
                 </form>
             </div>
 

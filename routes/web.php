@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FileUploadController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\ImportarViviendasController;
 use App\Http\Controllers\Admin\InquiryController as AdminInquiryController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -106,6 +107,15 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
         ->name('projects.units.clearBbox');
     Route::get('projects/{project}/unit-mapping', [UnitController::class, 'mapping'])
         ->name('projects.unit-mapping');
+    // Importar viviendas desde Excel o CSV. Antes del resource: si no, "import"
+    // encaja en {unit} y Laravel busca una vivienda llamada asi.
+    Route::get('projects/{project}/units/import', [ImportarViviendasController::class, 'create'])
+        ->name('projects.units.import.create');
+    Route::post('projects/{project}/units/import/analizar', [ImportarViviendasController::class, 'analizar'])
+        ->name('projects.units.import.analizar');
+    Route::post('projects/{project}/units/import/confirmar', [ImportarViviendasController::class, 'confirmar'])
+        ->name('projects.units.import.confirmar');
+
     Route::resource('projects.units', UnitController::class);
 
     // Inquiries
