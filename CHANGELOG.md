@@ -6,6 +6,29 @@ genera release-please a partir de los mensajes de commit, así que no se edita a
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 Versionado: [SemVer](https://semver.org/lang/es/).
 
+## [1.3.0](https://github.com/danibrasa/real3d_platform/compare/v1.2.1...v1.3.0) (2026-09-27)
+
+
+### Novedades
+
+* **comparador:** comparar por rentabilidad, no solo por metros ([f20e9b6](https://github.com/danibrasa/real3d_platform/commit/f20e9b6cd28d595778a7812666967226b8c64859))
+* **comparador:** comparar por rentabilidad, no solo por metros ([47426ff](https://github.com/danibrasa/real3d_platform/commit/47426ff621b07cd9e40793df210181fc50d77817))
+* **comprador:** portal para quien ya compro ([ffc249b](https://github.com/danibrasa/real3d_platform/commit/ffc249b1c6e964944120d5afca8b4e1c6eabacc1))
+* **comprador:** portal para quien ya compro ([9d5213a](https://github.com/danibrasa/real3d_platform/commit/9d5213a13e0417b62a5504e65fc6d80f09ca2a4f))
+* **import:** lector de Excel y CSV de viviendas ([9dc3a0b](https://github.com/danibrasa/real3d_platform/commit/9dc3a0b05ade2649e97f01df50c00851f5e761b4))
+* **import:** lector de Excel y CSV de viviendas ([37d5e43](https://github.com/danibrasa/real3d_platform/commit/37d5e43843ac8da8aac10b1e64e9ebca1c04e5c9))
+* **import:** pantallas para importar viviendas desde Excel ([d2cc021](https://github.com/danibrasa/real3d_platform/commit/d2cc02114a55a0441052c5180477cfb5cf67ff51))
+* **inversion:** informe de inversion en PDF ([01ddaac](https://github.com/danibrasa/real3d_platform/commit/01ddaac98d931de4632fc42093b747be37b37704))
+* **inversion:** informe de inversion en PDF ([4589a81](https://github.com/danibrasa/real3d_platform/commit/4589a81f2ade8799062a460ba3cdaaf55d6d7a6c))
+* **portal:** enseñar cuanto queda por vender ([3633f6c](https://github.com/danibrasa/real3d_platform/commit/3633f6c12a73fb8ab210e8bedf54ae9424c2c60e))
+* **portal:** enseñar cuanto queda por vender ([6834474](https://github.com/danibrasa/real3d_platform/commit/6834474f2758548c9e663d5dda7fbaeaf8739050))
+
+
+### Correcciones
+
+* **ci:** formato de Pint 1.30 y que el despliegue espere a las compro… ([85a9e32](https://github.com/danibrasa/real3d_platform/commit/85a9e321bd4cd41fb89e94a2f37f7b3724fafc46))
+* **ci:** formato de Pint 1.30 y que el despliegue espere a las comprobaciones ([19bd0f1](https://github.com/danibrasa/real3d_platform/commit/19bd0f19136a5bc6904e2b6c6f355c61f1341f5c))
+
 ## [1.2.1](https://github.com/danibrasa/real3d_platform/compare/v1.2.0...v1.2.1) (2026-09-26)
 
 
