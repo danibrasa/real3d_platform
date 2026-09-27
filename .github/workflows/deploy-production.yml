@@ -1,9 +1,14 @@
 name: Desplegar en produccion
 
-# Se dispara cuando las comprobaciones TERMINAN en main, y solo despliega si han
-# pasado. Antes escuchaba el push directamente, asi que despliegue y
-# comprobaciones corrian en paralelo: el 26-sep-2026 se publico una version con
-# el CI en rojo sin que nada lo impidiera.
+# Produccion sale de `main`, pero NO automaticamente: el entorno "produccion"
+# exige aprobacion manual, asi que cada fusion deja aqui un despliegue esperando
+# y no se publica nada hasta que alguien le da el visto bueno en
+# Actions -> el run -> Review deployments.
+#
+# Se dispara cuando las comprobaciones TERMINAN en main, y solo si han pasado.
+# Antes escuchaba el push directamente, asi que despliegue y comprobaciones
+# corrian en paralelo: el 26-sep-2026 se publico una version con el CI en rojo
+# sin que nada lo impidiera.
 on:
   workflow_run:
     workflows: ["Comprobaciones"]
@@ -14,6 +19,10 @@ on:
 concurrency:
   group: deploy-produccion
   cancel-in-progress: false
+
+# Al terminar se mueve la rama `production` al commit que ha quedado servido.
+permissions:
+  contents: write
 
 jobs:
   desplegar:
@@ -32,8 +41,12 @@ jobs:
     steps:
       - name: Que se va a desplegar
         run: |
-          echo "commit: ${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "main llego a:   ${{ github.event.workflow_run.head_sha || github.sha }}"
           echo "comprobaciones: ${{ github.event.workflow_run.conclusion || 'lanzado a mano' }}"
+          echo
+          echo "Aviso: se despliega el HEAD de main EN EL MOMENTO DE APROBAR, que"
+          echo "puede ser mas nuevo que ese commit si se han fusionado mas pull"
+          echo "requests mientras esto esperaba. El paso final dice que ha quedado."
 
       - name: Preparar la clave SSH
         run: |
@@ -56,6 +69,33 @@ jobs:
           done
 
       - name: Version desplegada
+        id: desplegado
         run: |
-          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
-            "basename \$(readlink -f /var/www/real3d/current)"
+          RELEASE=$(ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "basename \$(readlink -f /var/www/real3d/current)")
+          # El commit se pregunta al servidor en vez de darlo por supuesto: el
+          # script despliega el HEAD de main al ejecutarse, que puede no ser el
+          # commit que disparo este run.
+          SHA=$(ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "git -C /var/www/real3d/current rev-parse HEAD")
+          echo "version $RELEASE, commit $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Apuntar la rama `production` a lo que ha quedado servido
+        # Asi siempre hay una rama que es, literalmente, lo que esta en la web:
+        # `git clone -b production` sirve para levantarlo en otro sitio sin
+        # tener que averiguar antes que version hay puesta. `main` no vale para
+        # eso, porque acumula lo fusionado que aun no se ha aprobado.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ steps.desplegado.outputs.sha }}
+        run: |
+          if gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/production" \
+               -f sha="$SHA" -F force=true >/dev/null 2>&1; then
+            echo "rama production movida a $SHA"
+          else
+            # Primera vez: la rama todavia no existe.
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/production" -f sha="$SHA" >/dev/null
+            echo "rama production creada en $SHA"
+          fi

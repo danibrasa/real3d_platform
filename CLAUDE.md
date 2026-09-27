@@ -19,35 +19,62 @@ despliegue se los lleva por delante.
 ### Ramas
 | Rama | Qué es |
 |---|---|
-| `main` | Lo que hay en producción. Protegida: solo entra por pull request. |
-| `staging` | Lo que se está validando. Al fusionar, se despliega en staging.real3d.io |
+| `main` | Lo aprobado y listo para salir. Protegida: solo entra por pull request. Al fusionar se despliega en staging.real3d.io sola. |
+| `production` | Lo que está sirviendo real3d.io **ahora mismo**. No se fusiona a mano: la mueve el despliegue cuando termina bien. |
 | `feat/<issue>-<slug>` | Nuevas funciones |
 | `fix/<slug>` · `hotfix/<slug>` | Errores normales o urgencias de producción |
+
+**No hay rama `staging`.** Staging es un espejo de `main`, no una rama aparte: es el
+mismo commit el que se valida y el que se publica, así que no puede pasar que se
+pruebe una cosa y salga otra. Las ramas por entorno se separan con el tiempo
+(un hotfix que entra en producción y nunca vuelve, promociones selectivas
+imposibles, conflictos al reintegrar) y esos problemas aquí no existen.
+
+`production` es lo contrario a `main`: no es un sitio donde fusionar, es un
+indicador de dónde ha llegado el despliegue. Sirve para `git clone -b production`
+cuando hay que levantar lo que está publicado en otro sitio, sin tener que
+averiguar antes qué versión hay puesta.
 
 Commits con Conventional Commits (`feat:`, `fix:`, `chore:`, `style:`, `ci:`). Cada salida a
 producción lleva su etiqueta SemVer.
 
 ### Circuito
-1. Rama a partir de `main`.
-2. Desarrollo en local, con su test y su migración.
-3. Pull request. El CI comprueba estilo (Pint), compila los assets y pasa los tests.
-4. Validación en staging (`staging-deploy.sh <rama>` permite probar un PR sin fusionarlo).
-5. Merge en `main` → se despliega producción.
+```
+rama  →  PR  →  main  →  staging.real3d.io  →  [aprobación]  →  real3d.io
+                              (automático)                      (production)
+```
 
-Un `hotfix/` puede saltarse staging, pero nunca el CI. Todo fix de un error de producción incluye
-un test que lo reproduce.
+1. Rama a partir de `main`.
+2. Desarrollo en dev.real3d.io, con su test y su migración.
+3. Pull request. El CI comprueba estilo (Pint), compila los assets y pasa los tests.
+   Para verlo montado sin fusionarlo: `staging-deploy.sh <rama>`.
+4. Merge en `main` → staging.real3d.io se actualiza solo en cuanto el CI pasa.
+5. El equipo valida en staging.
+6. **Aprobación**: Actions → el despliegue en espera → *Review deployments*. Ahí sale a
+   producción y la rama `production` queda apuntando a ese commit.
+
+El paso 6 es el único freno, y es deliberado: `main` puede acumular varios pull requests
+fusionados que todavía no se han publicado. Para ver cuántos, `deploy-status.sh`.
+
+Un `hotfix/` puede aprobarse sin esperar a que nadie valide staging, pero nunca se salta el
+CI. Todo fix de un error de producción incluye un test que lo reproduce.
 
 ## Entornos
 
-| | Producción | Staging |
-|---|---|---|
-| URL | https://real3d.io | https://staging.real3d.io (con contraseña, `noindex`) |
-| Ruta | `/var/www/real3d/current` | `/var/www/staging` |
-| Base de datos | `realestate_3d` | `realestate_3d_staging` (datos anonimizados) |
-| Rama | `main` | `staging` |
+| | Producción | Staging | Desarrollo |
+|---|---|---|---|
+| URL | https://real3d.io | https://staging.real3d.io | https://dev.real3d.io |
+| Acceso | público | contraseña + `noindex` | contraseña + `noindex` |
+| Ruta | `/var/www/real3d/current` | `/var/www/staging` | `/var/www/dev` |
+| Base de datos | `realestate_3d` | `realestate_3d_staging` | `realestate_3d_dev` |
+| | | (datos anonimizados) | (datos anonimizados) |
+| Qué sirve | el commit aprobado (= rama `production`) | `main`, automático | la rama en la que se esté trabajando |
+| Máquina | 194.41.119.105 | 194.41.119.105 | 194.41.119.13 |
 
-Los dos viven en la VM 194.41.119.105 (VM 115 `dani` en Proxmox, nodo2). **Cuidado:** existe una
-VM gemela en 194.41.119.13 con una copia de febrero de 2026; no es producción y no se toca.
+Producción y staging comparten la VM **194.41.119.105** (VM 115 `dani` en Proxmox, nodo2).
+El desarrollo va aparte, en la **194.41.119.13** (VM 214 `dani2`, nodo0), precisamente para que
+trabajar no pueda tumbar lo que el equipo está revisando. Los nombres de Proxmox están cruzados
+respecto a lo que uno esperaría: comprobar siempre la IP, no el nombre.
 
 ## Despliegue por versiones
 
@@ -63,7 +90,11 @@ VM gemela en 194.41.119.13 con una copia de febrero de 2026; no es producción y
   vuelve sola a la versión anterior.
 - `real3d-rollback.sh [version]` — vuelve atrás en segundos (`--lista` para verlas).
   **Las migraciones de base de datos no se revierten.**
-- `staging-deploy.sh [rama]` — actualiza staging.
+- `staging-deploy.sh [rama]` — actualiza staging. Sin argumentos, `main`; con un nombre de
+  rama, permite ver un pull request montado sin fusionarlo.
+- `deploy-status.sh` — qué hay en cada entorno y qué commits están fusionados sin publicar.
+  Solo lee. Avisa si la rama `production` no coincide con lo que sirve la web, que es la
+  señal de que alguien ha desplegado a mano por SSH.
 
 ## Servicios (systemd, no hay cron instalado)
 - `real3d-queue` — worker de colas (webhooks, correos)

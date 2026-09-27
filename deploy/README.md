@@ -8,7 +8,8 @@ copia de referencia, para que no existan solo en la máquina.
 |---|---|
 | `real3d-deploy.sh [rama]` | Despliega producción por versiones. Construye la versión nueva, migra y cachea, y solo entonces cambia el enlace `current`. Si la comprobación de salud falla, vuelve sola a la anterior. |
 | `real3d-rollback.sh [version]` | Vuelve a una versión anterior. `--lista` para verlas. **No revierte migraciones de base de datos.** |
-| `staging-deploy.sh [rama]` | Actualiza staging.real3d.io. Con un nombre de rama, permite probar un pull request sin fusionarlo. |
+| `staging-deploy.sh [rama]` | Actualiza staging.real3d.io. Sin argumentos despliega `main`, que es lo que hace el workflow en cada fusion. Con un nombre de rama, permite ver un pull request montado sin fusionarlo. |
+| `deploy-status.sh` | Que version hay en cada entorno y que commits estan fusionados en `main` sin publicar. Solo lee. Funciona en cualquiera de las dos VMs: usa el primer clon del repositorio que encuentra. |
 | `dev-switch.sh [rama]` | Pone el entorno de desarrollo (dev.real3d.io, en la máquina auxiliar) en una rama. Aparta los cambios sin guardar con `git stash` en vez de abortar. Sin versiones ni vuelta atrás: es un entorno desechable. |
 | `dev-refresh.sh` | Recrea la base de datos de desarrollo desde la copia del día y la anonimiza. De paso comprueba que la copia se restaura. Vive en la máquina auxiliar. |
 | `real3d-backup.sh` | Copia diaria (base de datos y `.env`) con réplica de los volcados y de `storage/app` en la VM .13. Lo lanza `real3d-backup.timer` a las 03:30. |
@@ -36,3 +37,12 @@ Los scripts no llevan ninguna credencial dentro: leen lo que necesitan de
   rota dentro.
 - GitHub Actions los invoca por SSH como el usuario `deploy`, que tiene `sudo`
   limitado a estos scripts (`/etc/sudoers.d/deploy-real3d`).
+- **La rama `production` la mueve el workflow, no estos scripts.** Se apunta al
+  commit que ha quedado servido al terminar el despliegue, leyendolo del propio
+  servidor (`git -C /var/www/real3d/current rev-parse HEAD`) en vez de darlo por
+  supuesto: `real3d-deploy.sh main` despliega el HEAD de `main` en el momento de
+  ejecutarse, que puede ser mas nuevo que el commit que disparo el run si se han
+  fusionado mas pull requests mientras esperaba aprobacion.
+- Por eso un despliegue lanzado **a mano por SSH** deja la rama desfasada:
+  `deploy-status.sh` lo avisa. Si pasa, o se relanza desde Actions o se mueve la
+  rama a mano.
