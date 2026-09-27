@@ -3,7 +3,7 @@ name: Comprobaciones
 on:
   pull_request:
   push:
-    branches: [main, staging]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}

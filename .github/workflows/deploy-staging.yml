@@ -1,19 +1,23 @@
 name: Desplegar en staging
 
-# Igual que produccion: espera a que las comprobaciones terminen en staging y
-# solo despliega si han pasado. Staging es donde el equipo supervisa, asi que
-# no debe recibir codigo que no compila o con los tests en rojo.
+# Staging es un espejo de `main`, sin intervencion: cada pull request fusionado
+# aparece aqui en cuanto pasan las comprobaciones. El equipo revisa siempre lo
+# ultimo aprobado y nadie tiene que mover codigo de una rama a otra.
+#
+# Produccion NO sale de staging: sale del mismo `main`, cuando alguien lo aprueba
+# a mano (ver deploy-production.yml). Es el mismo commit el que recorre los dos
+# entornos, asi que lo que se valida aqui es exactamente lo que se publica.
 on:
   workflow_run:
     workflows: ["Comprobaciones"]
     types: [completed]
-    branches: [staging]
+    branches: [main]
   workflow_dispatch:
     inputs:
       rama:
-        description: 'Rama a desplegar en staging (por defecto staging)'
+        description: 'Rama a desplegar en staging (por defecto main)'
         required: false
-        default: 'staging'
+        default: 'main'
 
 concurrency:
   group: deploy-staging
@@ -24,7 +28,7 @@ jobs:
     name: staging.real3d.io
     runs-on: ubuntu-latest
     # Un disparo manual no trae workflow_run: ahi se despliega la rama pedida,
-    # que es justo como se prueba un pull request antes de fusionarlo.
+    # que es como se prueba un pull request sin fusionarlo.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -41,4 +45,4 @@ jobs:
       - name: Desplegar
         run: |
           ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
-            "sudo -n /usr/local/bin/staging-deploy.sh ${{ github.event.inputs.rama || 'staging' }}"
+            "sudo -n /usr/local/bin/staging-deploy.sh ${{ github.event.inputs.rama || 'main' }}"
