@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Inversion\CalculoInversion;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -85,6 +86,42 @@ class Unit extends Model
         return Attribute::make(
             get: fn () => 'USD '.number_format($this->price, 0, '.', ','),
         );
+    }
+
+    /**
+     * Las cuentas de inversion de esta vivienda, o null si el proyecto no
+     * declara precio por noche ni ocupacion.
+     */
+    public function investment(): ?CalculoInversion
+    {
+        $calculo = CalculoInversion::paraVivienda($this);
+
+        return $calculo->hayDatos() ? $calculo : null;
+    }
+
+    /** Rentabilidad anual, lista para un atributo HTML. */
+    public function getInvestmentYieldAttribute(): string
+    {
+        $i = $this->investment();
+
+        return $i ? (string) round($i->rentabilidad(), 1) : '';
+    }
+
+    /** Ingreso neto mensual, listo para un atributo HTML. */
+    public function getInvestmentMonthlyAttribute(): string
+    {
+        $i = $this->investment();
+
+        return $i ? (string) round($i->ingresoMensual()) : '';
+    }
+
+    /** Años hasta recuperar la inversion, listos para un atributo HTML. */
+    public function getInvestmentPaybackAttribute(): string
+    {
+        $i = $this->investment();
+        $anos = $i?->anosDeRetorno();
+
+        return $anos !== null ? (string) round($anos, 1) : '';
     }
 
     /** Quien ha comprado esta vivienda, si ya esta vendida. */

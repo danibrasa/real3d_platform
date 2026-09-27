@@ -251,6 +251,9 @@
             </section>
             @endif
 
+            {{-- Cuanto queda por vender: lo que mira quien duda --}}
+            <x-disponibilidad :project="$project" class="mb-6" />
+
             <!-- Units (QW5: Alpine.js filters) -->
             @if($project->units->count())
             <section x-data="unitFilters()" x-init="init()">
@@ -334,7 +337,7 @@
                                 @foreach($floorUnits as $unit)
                                 <tr class="hover:bg-gray-50 cursor-pointer unit-row"
                                     x-show="isVisible({{ $unit->id }})" x-transition
-                                    data-unit-id="{{ $unit->id }}" data-unit-name="{{ $unit->identifier }}" data-unit-price="{{ $unit->formatted_price }}" data-unit-bedrooms="{{ $unit->bedrooms }}" data-unit-bathrooms="{{ $unit->bathrooms }}" data-unit-area="{{ $unit->area_m2 }}" data-unit-typology="{{ $unit->typology?->name ?? '' }}" data-unit-status="{{ $unit->status }}" data-unit-floor="{{ $unit->floor }}" data-unit-floor-plan="{{ $unit->floor_plan ? '/api/units/' . $unit->id . '/floor-plan' : '' }}" data-unit-raw-price="{{ $unit->price }}" data-unit-pdf="{{ route('viewer.unit.pdf', [$project->slug, $unit->id]) }}" @if($unit->has_bbox) data-unit-bbox="{{ json_encode(['cx'=>$unit->bbox_center_x,'cy'=>$unit->bbox_center_y,'cz'=>$unit->bbox_center_z,'sx'=>$unit->bbox_size_x,'sy'=>$unit->bbox_size_y,'sz'=>$unit->bbox_size_z]) }}" @endif>
+                                    data-unit-id="{{ $unit->id }}" data-unit-name="{{ $unit->identifier }}" data-unit-price="{{ $unit->formatted_price }}" data-unit-bedrooms="{{ $unit->bedrooms }}" data-unit-bathrooms="{{ $unit->bathrooms }}" data-unit-area="{{ $unit->area_m2 }}" data-unit-typology="{{ $unit->typology?->name ?? '' }}" data-unit-status="{{ $unit->status }}" data-unit-floor="{{ $unit->floor }}" data-unit-floor-plan="{{ $unit->floor_plan ? '/api/units/' . $unit->id . '/floor-plan' : '' }}" data-unit-raw-price="{{ $unit->price }}" data-unit-pdf="{{ route('viewer.unit.pdf', [$project->slug, $unit->id]) }}" data-unit-yield="{{ $unit->investment_yield }}" data-unit-monthly="{{ $unit->investment_monthly }}" data-unit-payback="{{ $unit->investment_payback }}" @if($unit->has_bbox) data-unit-bbox="{{ json_encode(['cx'=>$unit->bbox_center_x,'cy'=>$unit->bbox_center_y,'cz'=>$unit->bbox_center_z,'sx'=>$unit->bbox_size_x,'sy'=>$unit->bbox_size_y,'sz'=>$unit->bbox_size_z]) }}" @endif>
                                     <td class="px-2 py-3">
                                         <input type="checkbox" @click.stop="toggleCompare({{ $unit->id }})"
                                                :checked="compareList.includes({{ $unit->id }})"
@@ -571,6 +574,7 @@
     </div>
 
     <!-- Unit detail modal -->
+
     <div id="unit-modal" class="fixed inset-0 z-50 hidden" style="background: rgba(0,0,0,0.5)">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -657,6 +661,9 @@
                 compareList: [],
                 compareOpen: false,
                 compareFields: [
+                    { key: 'yield', label: '{{ __('landing.compare_yield') }}' },
+                    { key: 'monthly', label: '{{ __('landing.compare_monthly') }}' },
+                    { key: 'payback', label: '{{ __('landing.compare_payback') }}' },
                     { key: 'typology', label: 'Tipologia' },
                     { key: 'floor', label: 'Piso' },
                     { key: 'bedrooms', label: 'Dormitorios' },
@@ -778,12 +785,22 @@
                         status: row.dataset.unitStatus,
                         pdf: row.dataset.unitPdf,
                         floorPlan: row.dataset.unitFloorPlan,
+                        // Lo que mira un inversor: cuanto renta, cuanto deja al
+                        // mes y en cuanto se recupera.
+                        yield: row.dataset.unitYield || null,
+                        monthly: row.dataset.unitMonthly || null,
+                        payback: row.dataset.unitPayback || null,
                     };
                 },
 
                 getCompareValue(key, unitId) {
                     const d = this.getUnitData(unitId);
                     switch (key) {
+                        // Si el proyecto no declara datos de alquiler, estas
+                        // filas salen con guion en vez de con un cero enganoso.
+                        case 'yield': return d.yield ? d.yield + '%' : '-';
+                        case 'monthly': return d.monthly ? window.formatPrice(d.monthly) : '-';
+                        case 'payback': return d.payback ? d.payback + ' {{ __('landing.compare_years') }}' : '-';
                         case 'typology': return d.typology;
                         case 'floor': return d.floor == 0 ? 'PB' : d.floor;
                         case 'bedrooms': return d.bedrooms;
@@ -800,6 +817,11 @@
                     const values = this.compareList.map(uid => {
                         const d = this.getUnitData(uid);
                         switch (key) {
+                            case 'yield': return { uid, val: parseFloat(d.yield) || 0 };
+                            case 'monthly': return { uid, val: parseFloat(d.monthly) || 0 };
+                            // Sin dato, Infinity: asi nunca gana una unidad que
+                            // no tiene numero de retorno.
+                            case 'payback': return { uid, val: parseFloat(d.payback) || Infinity };
                             case 'area': return { uid, val: d.area };
                             case 'price': return { uid, val: d.price };
                             case 'priceM2': return { uid, val: d.area > 0 ? d.price / d.area : Infinity };
@@ -808,11 +830,11 @@
                             default: return { uid, val: 0 };
                         }
                     });
-                    if (['price', 'priceM2'].includes(key)) {
+                    if (['price', 'priceM2', 'payback'].includes(key)) {
                         const min = Math.min(...values.map(v => v.val));
                         return values.find(v => v.uid === unitId)?.val === min && values.filter(v => v.val === min).length < values.length;
                     }
-                    if (['area', 'bedrooms', 'bathrooms'].includes(key)) {
+                    if (['area', 'bedrooms', 'bathrooms', 'yield', 'monthly'].includes(key)) {
                         const max = Math.max(...values.map(v => v.val));
                         return values.find(v => v.uid === unitId)?.val === max && values.filter(v => v.val === max).length < values.length;
                     }

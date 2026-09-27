@@ -1,28 +1,82 @@
 name: Desplegar en produccion
 
-# Se dispara cuando las comprobaciones TERMINAN en main, y solo despliega si han
-# pasado. Antes escuchaba el push directamente, asi que despliegue y
-# comprobaciones corrian en paralelo: el 26-sep-2026 se publico una version con
-# el CI en rojo sin que nada lo impidiera.
+# Publicar es un acto deliberado: este workflow NO se dispara al fusionar, se
+# lanza a mano cuando el equipo decide que lo que hay en staging esta listo.
+#
+# Antes escuchaba las comprobaciones sobre main, y eso encolaba un despliegue en
+# espera de aprobacion por cada pull request fusionado: fusionar siete seguidas
+# obligaba a aprobar siete veces, cada una publicando lo mismo. Ahora se fusiona
+# todo lo que haga falta, staging se va actualizando solo, y se publica una vez.
+#
+# Lo que se pierde al dejar de escuchar las comprobaciones es la garantia de que
+# el CI estaba en verde, asi que el primer job lo comprueba explicitamente antes
+# de pedir aprobacion. El 26-sep-2026 se publico una version con el CI en rojo;
+# no puede volver a pasar por esta via.
 on:
-  workflow_run:
-    workflows: ["Comprobaciones"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      motivo:
+        description: 'Que se publica (queda en el registro del despliegue)'
+        required: false
+        default: ''
 
 concurrency:
   group: deploy-produccion
   cancel-in-progress: false
 
+# Al terminar se mueve la rama `production` al commit que ha quedado servido.
+permissions:
+  contents: write
+
 jobs:
+  # Job aparte y sin `environment` a proposito: asi, si el CI esta en rojo, esto
+  # falla ANTES de molestar a nadie con una aprobacion.
+  comprobar:
+    name: El CI esta en verde
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.ci.outputs.sha }}
+    steps:
+      - name: Estado de las comprobaciones en ${{ github.ref_name }}
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA=$(gh api "repos/$GITHUB_REPOSITORY/commits/${{ github.ref_name }}" --jq .sha)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "${{ github.ref_name }} esta en $SHA"
+          echo "$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA" --jq .commit.message | head -1)"
+          echo
+
+          # Se mira el nombre del JOB de ci.yml, no el del workflow: el endpoint
+          # de check-runs lista jobs.
+          ESTADO=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" \
+            --jq '[.check_runs[] | select(.name == "Estilo, tests y compilacion")]
+                  | sort_by(.started_at) | last | .conclusion // "en curso"')
+          echo "comprobaciones: ${ESTADO:-sin ejecutar}"
+
+          if [ "$ESTADO" != "success" ]; then
+            echo "::error::Las comprobaciones no estan en verde en $SHA (${ESTADO:-sin ejecutar}). No se despliega."
+            exit 1
+          fi
+
+      - name: Que falta por publicar
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Informativo: la rama `production` dice que hay servido ahora, asi que
+          # la comparacion son los commits que este despliegue va a sacar.
+          if gh api "repos/$GITHUB_REPOSITORY/branches/production" >/dev/null 2>&1; then
+            gh api "repos/$GITHUB_REPOSITORY/compare/production...${{ github.ref_name }}" \
+              --jq '.commits[] | "  " + .sha[0:7] + " " + (.commit.message | split("\n")[0])'
+          else
+            echo "  (la rama production aun no existe: primer despliegue)"
+          fi
+
   desplegar:
     name: real3d.io
+    needs: comprobar
     runs-on: ubuntu-latest
-    # En un disparo manual no hay workflow_run que mirar, de ahi la segunda rama.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
     # El entorno "produccion" es el que exige aprobacion manual.
     # Settings -> Environments -> produccion -> Required reviewers.
     environment:
@@ -32,8 +86,9 @@ jobs:
     steps:
       - name: Que se va a desplegar
         run: |
-          echo "commit: ${{ github.event.workflow_run.head_sha || github.sha }}"
-          echo "comprobaciones: ${{ github.event.workflow_run.conclusion || 'lanzado a mano' }}"
+          echo "commit:  ${{ needs.comprobar.outputs.sha }}"
+          echo "motivo:  ${{ github.event.inputs.motivo || '(sin indicar)' }}"
+          echo "lanzado: ${{ github.actor }}"
 
       - name: Preparar la clave SSH
         run: |
@@ -45,7 +100,7 @@ jobs:
       - name: Desplegar la version nueva
         run: |
           ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
-            "sudo -n /usr/local/bin/real3d-deploy.sh main"
+            "sudo -n /usr/local/bin/real3d-deploy.sh ${{ github.ref_name }}"
 
       - name: Comprobar que la web responde
         run: |
@@ -56,6 +111,33 @@ jobs:
           done
 
       - name: Version desplegada
+        id: desplegado
         run: |
-          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
-            "basename \$(readlink -f /var/www/real3d/current)"
+          RELEASE=$(ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "basename \$(readlink -f /var/www/real3d/current)")
+          # El commit se pregunta al servidor en vez de darlo por supuesto: el
+          # script clona la rama al ejecutarse, y entre la aprobacion y este
+          # momento alguien puede haber fusionado algo mas.
+          SHA=$(ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "git -C /var/www/real3d/current rev-parse HEAD")
+          echo "version $RELEASE, commit $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Apuntar la rama `production` a lo que ha quedado servido
+        # Asi siempre hay una rama que es, literalmente, lo que esta en la web:
+        # `git clone -b production` sirve para levantarlo en otro sitio sin
+        # tener que averiguar antes que version hay puesta. `main` no vale para
+        # eso, porque acumula lo fusionado que aun no se ha publicado.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ steps.desplegado.outputs.sha }}
+        run: |
+          if gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/production" \
+               -f sha="$SHA" -F force=true >/dev/null 2>&1; then
+            echo "rama production movida a $SHA"
+          else
+            # Primera vez: la rama todavia no existe.
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/production" -f sha="$SHA" >/dev/null
+            echo "rama production creada en $SHA"
+          fi
