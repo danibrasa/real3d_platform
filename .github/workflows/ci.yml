@@ -22,6 +22,10 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: root
           MARIADB_DATABASE: testing
+          # Los tests entran con este usuario, no con root, para que el CI y
+          # el clon de desarrollo usen las mismas credenciales.
+          MARIADB_USER: testing
+          MARIADB_PASSWORD: testing
         ports:
           - 3306:3306
         options: >-
