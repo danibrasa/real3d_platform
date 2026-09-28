@@ -116,6 +116,32 @@ class VisorTrasLaBajaTest extends TestCase
         $this->get(route('viewer.landing', $proyecto))->assertOk();
     }
 
+    public function test_a_la_promotora_se_le_dice_que_su_visor_esta_apagado(): void
+    {
+        // Lo peor no era perder el visor: era perderlo sin enterarse. La pagina
+        // sigue en pie y da la impresion de que todo va bien, asi que se entera
+        // cuando se lo dice un comprador, o no se entera nunca.
+        $proyecto = $this->proyectoPublicadoDe(CompanyProfile::PLAN_STARTER);
+        $promotora = $proyecto->assignedAgencies()->first();
+
+        $this->actingAs($promotora)
+            ->get(route('admin.projects.edit', $proyecto))
+            ->assertOk()
+            ->assertSee(__('publicacion.visor_apagado'));
+    }
+
+    public function test_con_plan_de_pago_no_se_le_dice_nada_de_eso(): void
+    {
+        // Un aviso que sale siempre es ruido, y el ruido se deja de leer.
+        $proyecto = $this->proyectoPublicadoDe(CompanyProfile::PLAN_PROFESSIONAL);
+        $promotora = $proyecto->assignedAgencies()->first();
+
+        $this->actingAs($promotora)
+            ->get(route('admin.projects.edit', $proyecto))
+            ->assertOk()
+            ->assertDontSee(__('publicacion.visor_apagado'));
+    }
+
     public function test_un_proyecto_sin_promotora_se_sigue_sirviendo(): void
     {
         // Los nuestros -- demos, portada -- no tienen suscripcion que caducar.
