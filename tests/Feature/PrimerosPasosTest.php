@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\WelcomeEmail;
 use App\Models\CompanyProfile;
 use App\Models\Project;
 use App\Models\ProjectFile;
@@ -165,5 +166,39 @@ class PrimerosPasosTest extends TestCase
             ->assertOk()
             ->assertSee(__('primeros_pasos.titulo'))
             ->assertSee(__('primeros_pasos.crear_proyecto'));
+    }
+
+    // --- El correo de bienvenida ------------------------------------------
+
+    public function test_a_la_promotora_se_le_habla_como_promotora(): void
+    {
+        // El texto estaba escrito para comprador y se le enviaba igual: le decia
+        // que podia explorar proyectos y "conectar con desarrolladores", cuando
+        // la desarrolladora es ella.
+        $html = (new WelcomeEmail($this->promotora))->render();
+
+        $this->assertStringContainsString(__('emails.welcome_promotora_body'), $html);
+        $this->assertStringNotContainsString(__('emails.welcome_body'), $html);
+    }
+
+    public function test_el_correo_enseña_los_mismos_cuatro_pasos(): void
+    {
+        // Si el correo contara otra cosa que el panel, ya serian dos verdades
+        // que alguien tendria que mantener iguales a mano.
+        $html = (new WelcomeEmail($this->promotora))->render();
+
+        foreach (['crear_proyecto', 'cargar_viviendas', 'pedir_visor', 'publicar'] as $paso) {
+            $this->assertStringContainsString(__('primeros_pasos.'.$paso), $html);
+        }
+    }
+
+    public function test_a_un_comprador_se_le_sigue_hablando_como_comprador(): void
+    {
+        $comprador = User::factory()->create(['role' => 'user']);
+
+        $html = (new WelcomeEmail($comprador))->render();
+
+        $this->assertStringContainsString(__('emails.welcome_body'), $html);
+        $this->assertStringNotContainsString(__('emails.welcome_promotora_body'), $html);
     }
 }
