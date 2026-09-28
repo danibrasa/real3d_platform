@@ -23,7 +23,16 @@ echo "== base de datos"
 sudo -u www-data php artisan migrate --force
 
 # version.json, igual que en produccion pero marcando el entorno.
-TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+# La version sale de version.txt, que mantiene release-please en cada release y
+# viaja con el codigo. Antes se sacaba con `git describe`, y eso dejo de
+# funcionar el dia que se acumularon mas de veinte commits desde la ultima
+# etiqueta: el clon del despliegue es superficial (--depth 20), asi que no
+# alcanzaba la etiqueta y /version pasaba a decir "sin-tag" sin que nada fallara.
+if [ -r "$APP/version.txt" ]; then
+    TAG="v$(tr -d ' \n' < "$APP/version.txt")"
+else
+    TAG=$(git -C "$APP" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+fi
 SHA=$(git rev-parse HEAD)
 cat > "$APP/version.json" <<JSON
 {

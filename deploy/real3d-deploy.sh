@@ -54,7 +54,16 @@ ln -s "$BASE/shared/.env" "$NUEVA/.env"
 
 # 3b. version.json: que hay desplegado exactamente. Lo leen /version, la meta
 #     del HTML y el pie del panel de administracion.
-TAG=$(git -C "$NUEVA" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+# La version sale de version.txt, que mantiene release-please en cada release y
+# viaja con el codigo. Antes se sacaba con `git describe`, y eso dejo de
+# funcionar el dia que se acumularon mas de veinte commits desde la ultima
+# etiqueta: el clon del despliegue es superficial (--depth 20), asi que no
+# alcanzaba la etiqueta y /version pasaba a decir "sin-tag" sin que nada fallara.
+if [ -r "$NUEVA/version.txt" ]; then
+    TAG="v$(tr -d ' \n' < "$NUEVA/version.txt")"
+else
+    TAG=$(git -C "$NUEVA" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
+fi
 SHA=$(git -C "$NUEVA" rev-parse HEAD)
 cat > "$NUEVA/version.json" <<JSON
 {
