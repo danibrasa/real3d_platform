@@ -56,6 +56,16 @@ class InquiryController extends Controller
 
         if ($project->contact_email) {
             $recipients->push($project->contact_email);
+        } else {
+            // Sin correo de contacto configurado, el aviso solo iba a los
+            // superadmin del SaaS: la promotora dueña del proyecto no se
+            // enteraba de su propio lead, y rellenar ese campo es justo lo que
+            // se olvida al dar de alta un proyecto.
+            $recipients = $recipients->merge($project->assignedAgencies()->pluck('email'));
+
+            if ($recipients->isEmpty() && $project->creator) {
+                $recipients->push($project->creator->email);
+            }
         }
 
         $superadminEmails = User::where('role', User::ROLE_SUPERADMIN)->pluck('email');
