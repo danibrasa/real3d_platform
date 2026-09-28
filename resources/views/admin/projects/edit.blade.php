@@ -196,9 +196,17 @@
                             @endcan
                             @endcan
 
-                            @can('edit-project-technical', $project)
+                            {{-- Antes esto era `edit-project-technical`, es decir solo el
+                                 equipo, asi que la promotora no veia siquiera el desplegable
+                                 y no habia forma de que publicara lo suyo. Publicar es una
+                                 decision comercial; lo que protege la calidad es la lista de
+                                 arriba, que bloquea si no hay visor montado. --}}
+                            @can('edit-project-commercial', $project)
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Visibilidad</label>
+                                <div class="mb-3">
+                                    <x-lista-para-publicar :project="$project" />
+                                </div>
                                 <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     <option value="draft" {{ $project->status === 'draft' ? 'selected' : '' }}>Borrador</option>
                                     <option value="public" {{ $project->status === 'public' ? 'selected' : '' }}>Publico</option>
