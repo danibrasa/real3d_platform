@@ -1,0 +1,11 @@
+[Unit]
+Description=Comprobacion de que Real3D se puede usar (recorrido de alta)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/comprobacion-nocturna.sh
+# Si el entorno de desarrollo esta caido no tiene sentido insistir: ya lo
+# contara el aviso.
+TimeoutStartSec=900

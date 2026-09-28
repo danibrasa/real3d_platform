@@ -1,0 +1,13 @@
+[Unit]
+Description=Recorrido de alta de Real3D, cada noche
+
+[Timer]
+# A las 4:15, despues de la copia de seguridad de las 3:30 y antes de que
+# nadie entre a trabajar.
+OnCalendar=*-*-* 04:15:00
+# Si la maquina estaba apagada a esa hora, se hace al arrancar.
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

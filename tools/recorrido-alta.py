@@ -115,7 +115,16 @@ def errores(html):
     """Los mensajes de error que se le enseñan al usuario."""
     txt = re.sub(r"<[^>]+>", " ", html)
     fuera = []
-    for m in re.finditer(r"(El campo|The .{0,40} field|obligatorio|required|no es valido|invalid)[^.]{0,90}", txt):
+    # Ojo con aflojar esto: "required" e "invalid" sueltos salen en atributos
+    # HTML y en clases CSS de cualquier pagina, y convertian cada recorrido en
+    # una falsa alarma. Solo frases que un humano leeria como un error.
+    for m in re.finditer(
+        r"(El campo [a-z_ ]{2,30} es obligatorio"
+        r"|The [a-z_ ]{2,30} field is required"
+        r"|no es v[aá]lido"
+        r"|is not a valid"
+        r"|ya ha sido registrado"
+        r"|has already been taken)[^.]{0,80}", txt, re.I):
         t = " ".join(m.group(0).split())
         if t not in fuera:
             fuera.append(t)
@@ -147,7 +156,7 @@ def registrarse(notas, html):
     datos = dict(f["campos"])
     datos.update({
         "name": "Ana Promotora",
-        "email": "ana.%s@ejemplo-promotora.com" % SELLO,
+        "email": "ana.%s@recorrido-automatico.invalid" % SELLO,
         "password": "UnaClaveLarga2026!",
         "password_confirmation": "UnaClaveLarga2026!",
     })
@@ -176,7 +185,7 @@ def ficha_empresa(notas, _):
 
     datos = dict(f["campos"])
     datos.update({
-        "company_name": "Promotora Ejemplo %s" % SELLO,
+        "company_name": "Recorrido automatico %s" % SELLO,
         "phone": "+1 809 555 0100",
         "country": "DO",
         "city": "Punta Cana",
@@ -235,7 +244,7 @@ def crear_proyecto(notas, _):
     f = elegir(formularios(r.text), "admin/projects")
     datos = dict(f["campos"])
     datos.update({
-        "name": "Residencial Las Palmas %s" % SELLO,
+        "name": "Recorrido automatico %s" % SELLO,
         "description": "Proyecto de prueba del recorrido de alta.",
         "location": "Bavaro, Punta Cana",
     })
@@ -337,7 +346,7 @@ def publicar(notas, idp):
 
     pub = requests.Session()
     pub.auth = s.auth
-    visible = ("Las Palmas %s" % SELLO) in pub.get(BASE + "/projects", timeout=30).text
+    visible = ("Recorrido automatico %s" % SELLO) in pub.get(BASE + "/projects", timeout=30).text
     notas.append("visible para un visitante: %s (correcto: sin visor, no)"
                  % ("si" if visible else "no"))
 
@@ -381,7 +390,7 @@ def preguntar(notas, idp):
     datos = dict(f["campos"])
     datos.update({
         "name": "Comprador Extranjero",
-        "email": "comprador.%s@ejemplo.com" % SELLO,
+        "email": "comprador.%s@recorrido-automatico.invalid" % SELLO,
         "phone": "+1 305 555 0100",
         "message": "Me interesa la A-102. Puedo comprar desde el extranjero?",
     })
@@ -415,3 +424,13 @@ print("pasos que fallaron: %d" % len(rotos))
 for n, d, ok, notas in pasos:
     if not ok:
         print("  - %s" % n)
+
+# Tambien se considera fallo un paso que va bien pero avisa de un PROBLEMA: son
+# los casos en que el producto responde 200 y aun asi no hace lo que debe, que
+# es justo lo que este recorrido existe para pillar.
+con_problema = [n for n, d, ok, notas in pasos
+                if ok and any(x.startswith("PROBLEMA") for x in notas)]
+for n in con_problema:
+    print("  - %s (responde bien pero avisa de un problema)" % n)
+
+sys.exit(1 if (rotos or con_problema) else 0)
