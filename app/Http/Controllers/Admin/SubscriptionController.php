@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyProfile;
-use App\Models\User;
 use App\Support\Facturacion\PlanDeStripe;
 use Illuminate\Http\Request;
-use Laravel\Cashier\Cashier;
 
 class SubscriptionController extends Controller
 {
@@ -131,44 +129,19 @@ class SubscriptionController extends Controller
     {
         $user = $request->user();
 
-        if ($request->query('session_id') && $user->companyProfile) {
-            try {
-                $this->aplicarSesionDePago($user, $request->query('session_id'));
-            } catch (\Throwable $e) {
-                // Si Stripe no contesta no se deja al usuario colgado: el
-                // webhook pondra los limites cuando llegue.
-                report($e);
-            }
+        try {
+            // Las comprobaciones viven en PlanDeStripe porque la vuelta del
+            // alta necesita exactamente las mismas, y estaban escritas solo
+            // aqui: alli se concedia el plan por lo que dijera la direccion.
+            PlanDeStripe::aplicarSesionDePago($user, $request->query('session_id'));
+        } catch (\Throwable $e) {
+            // Si Stripe no contesta no se deja al usuario colgado: el webhook
+            // pondra los limites cuando llegue.
+            report($e);
         }
 
         return redirect()->route('admin.dashboard')
             ->with('success', __('billing.subscription_activated'));
-    }
-
-    /** Aplica el plan solo si Stripe confirma que esa sesion es de este cliente y esta cerrada. */
-    private function aplicarSesionDePago(User $user, string $sesionId): void
-    {
-        // Sin cliente en Stripe no hay nada que comprobar, y ademas evita salir
-        // a la red para preguntar por una sesion que no puede ser suya.
-        if (! $user->stripe_id) {
-            return;
-        }
-
-        $sesion = Cashier::stripe()->checkout->sessions->retrieve(
-            $sesionId, ['expand' => ['line_items']]
-        );
-
-        // Que la sesion sea de quien dice serlo: sin esta comprobacion, quien
-        // consiguiera el identificador de un pago ajeno se aplicaria ese plan.
-        if ($sesion->customer !== $user->stripe_id || $sesion->status !== 'complete') {
-            return;
-        }
-
-        $plan = PlanDeStripe::desdePrecio($sesion->line_items->data[0]->price->id ?? null);
-
-        if ($plan) {
-            PlanDeStripe::aplicar($user->companyProfile, $plan);
-        }
     }
 
     public function portal(Request $request)

@@ -33,10 +33,14 @@
                         @endif
                     </div>
                     <div class="text-right">
-                        <span x-show="interval === 'monthly'" class="text-xl font-bold">${{ $plan['price_monthly'] }}</span>
-                        <span x-show="interval === 'yearly'" class="text-xl font-bold">${{ $plan['price_yearly'] }}</span>
-                        <span x-show="interval === 'monthly'" class="text-gray-400 text-xs">{{ __('billing.per_month') }}</span>
-                        <span x-show="interval === 'yearly'" class="text-gray-400 text-xs">{{ __('billing.per_year') }}</span>
+                        @if($plan['gratis'] ?? false)
+                            <span class="text-xl font-bold text-emerald-700">{{ __('billing.free') }}</span>
+                        @else
+                            <span x-show="interval === 'monthly'" class="text-xl font-bold">${{ $plan['price_monthly'] }}</span>
+                            <span x-show="interval === 'yearly'" class="text-xl font-bold">${{ $plan['price_yearly'] }}</span>
+                            <span x-show="interval === 'monthly'" class="text-gray-400 text-xs">{{ __('billing.per_month') }}</span>
+                            <span x-show="interval === 'yearly'" class="text-gray-400 text-xs">{{ __('billing.per_year') }}</span>
+                        @endif
                     </div>
                 </div>
                 <div class="mt-2 text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1">
@@ -46,6 +50,15 @@
                     @if($limits['analytics'])<span>{{ __('billing.features.analytics') }}</span>@endif
                     @if($limits['api_access'])<span>API + Webhooks</span>@endif
                 </div>
+                {{-- La prueba solo se anunciaba en la portada, que es donde
+                     todavia no hay que decidir nada. Aqui, que es donde se
+                     decide, el plan de pago parecia un cobro inmediato. --}}
+                @if(! ($plan['gratis'] ?? false) && config('stripe.trial_days') > 0)
+                    <p class="mt-2 text-xs font-medium text-emerald-700">
+                        {{ __('billing.trial_days_free', ['dias' => config('stripe.trial_days')]) }}
+                    </p>
+                @endif
+
                 <div class="mt-3">
                     <form method="POST" action="{{ route('onboarding.plan.select') }}">
                         @csrf

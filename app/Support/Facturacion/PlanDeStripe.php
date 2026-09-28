@@ -3,6 +3,8 @@
 namespace App\Support\Facturacion;
 
 use App\Models\CompanyProfile;
+use App\Models\User;
+use Laravel\Cashier\Cashier;
 
 /**
  * Que plan corresponde a un precio de Stripe, y que limites trae.
@@ -36,6 +38,50 @@ class PlanDeStripe
         }
 
         return null;
+    }
+
+    /**
+     * Aplica el plan de una sesion de pago, solo si Stripe la confirma.
+     *
+     * Vive aqui y no en un controlador porque hacen falta las mismas
+     * comprobaciones en dos vueltas distintas: la del alta y la del cambio de
+     * plan desde el panel. Estaba escrita solo en la segunda, asi que la
+     * primera concedia el plan por lo que dijera `?plan=` en la direccion: con
+     * la sesion abierta, visitar /onboarding/complete?plan=enterprise daba el
+     * plan mas caro sin pagar nada. Un camino, no dos.
+     *
+     * Devuelve el plan aplicado, o null si no habia nada que aplicar. Quien
+     * concede de verdad sigue siendo el webhook, que llega firmado por Stripe;
+     * esto solo adelanta el resultado para que el panel no se vea con los
+     * limites viejos mientras llega.
+     */
+    public static function aplicarSesionDePago(User $usuario, ?string $sesionId): ?string
+    {
+        // Sin cliente en Stripe no hay nada que comprobar, y ademas evita salir
+        // a la red para preguntar por una sesion que no puede ser suya.
+        if (! $sesionId || ! $usuario->stripe_id || ! $usuario->companyProfile) {
+            return null;
+        }
+
+        $sesion = Cashier::stripe()->checkout->sessions->retrieve(
+            $sesionId, ['expand' => ['line_items']]
+        );
+
+        // Que la sesion sea de quien dice serlo: sin esta comprobacion, quien
+        // consiguiera el identificador de un pago ajeno se aplicaria ese plan.
+        if ($sesion->customer !== $usuario->stripe_id || $sesion->status !== 'complete') {
+            return null;
+        }
+
+        $plan = self::desdePrecio($sesion->line_items->data[0]->price->id ?? null);
+
+        if (! $plan) {
+            return null;
+        }
+
+        self::aplicar($usuario->companyProfile, $plan);
+
+        return $plan;
     }
 
     /** Deja la ficha de empresa con los limites del plan. */

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\WelcomeEmail;
 use App\Models\CompanyProfile;
 use App\Models\User;
+use App\Support\Facturacion\PlanDeStripe;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -110,36 +111,31 @@ class OnboardingController extends Controller
         $plan = $request->plan;
         $interval = $request->interval;
 
-        // Starter plan activates directly (free tier or minimal)
-        if ($plan === 'starter') {
-            $limits = CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
-            $user->companyProfile->update([
-                'plan_tier' => CompanyProfile::PLAN_STARTER,
-                'max_projects' => $limits['max_projects'],
-                'max_storage_bytes' => $limits['max_storage_bytes'],
-            ]);
+        // El plan de entrada es gratuito de verdad: se activa sin pasar por
+        // Stripe porque no hay nada que cobrar.
+        if ($plan === CompanyProfile::PLAN_STARTER) {
+            PlanDeStripe::aplicar($user->companyProfile, CompanyProfile::PLAN_STARTER);
 
             return redirect()->route('admin.dashboard')
                 ->with('success', __('billing.subscription_activated'));
         }
 
-        // Pro/Enterprise → Stripe Checkout
+        // Los de pago, por la caja de Stripe.
         $plans = config('stripe.plans');
         $priceId = $interval === 'yearly'
             ? $plans[$plan]['price_yearly_id']
             : $plans[$plan]['price_monthly_id'];
 
+        // Sin precio configurado no se activa: antes se concedia el plan
+        // "directamente", asi que un despliegue al que le faltaran las
+        // variables de Stripe regalaba Enterprise a quien lo pidiera, y no lo
+        // decia en ningun sitio. Mejor que no funcione a que funcione gratis.
         if (! $priceId) {
-            // If Stripe not configured, activate directly
-            $limits = CompanyProfile::PLAN_LIMITS[$plan];
-            $user->companyProfile->update([
-                'plan_tier' => $plan,
-                'max_projects' => $limits['max_projects'],
-                'max_storage_bytes' => $limits['max_storage_bytes'],
-            ]);
+            report(new \RuntimeException(
+                "Falta el precio de Stripe para el plan {$plan} ({$interval})"
+            ));
 
-            return redirect()->route('admin.dashboard')
-                ->with('success', __('billing.subscription_activated'));
+            return back()->with('error', __('billing.plan_unavailable'));
         }
 
         $checkout = $user->newSubscription('default', $priceId);
@@ -149,23 +145,30 @@ class OnboardingController extends Controller
         }
 
         return $checkout->checkout([
-            'success_url' => route('onboarding.complete').'?plan='.$plan,
+            // El identificador de la sesion, no el plan: el plan se lo
+            // preguntamos a Stripe al volver.
+            'success_url' => route('onboarding.complete').'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('onboarding.plan'),
         ]);
     }
 
+    /**
+     * Vuelta desde el pago, al terminar el alta.
+     *
+     * No concede nada por lo que diga la direccion. Leia el plan de `?plan=` y
+     * aplicaba sus limites sin preguntar: con la sesion abierta, visitar
+     * /onboarding/complete?plan=enterprise daba el plan mas caro sin pagar. Es
+     * el mismo agujero que ya se habia cerrado en el cambio de plan desde el
+     * panel, pero esta puerta se quedo abierta.
+     */
     public function complete(Request $request)
     {
-        $plan = $request->query('plan', 'starter');
-        $user = $request->user();
-
-        if ($user->companyProfile) {
-            $limits = CompanyProfile::PLAN_LIMITS[$plan] ?? CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
-            $user->companyProfile->update([
-                'plan_tier' => $plan,
-                'max_projects' => $limits['max_projects'],
-                'max_storage_bytes' => $limits['max_storage_bytes'],
-            ]);
+        try {
+            PlanDeStripe::aplicarSesionDePago($request->user(), $request->query('session_id'));
+        } catch (\Throwable $e) {
+            // Si Stripe no contesta no se deja al usuario colgado: el webhook
+            // pondra los limites cuando llegue.
+            report($e);
         }
 
         return redirect()->route('admin.dashboard')
