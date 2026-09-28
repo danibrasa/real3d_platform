@@ -28,7 +28,16 @@
                     @if($inquiry->phone)
                     <div>
                         <dt class="text-xs font-medium text-gray-500 uppercase">Telefono</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->phone }}</dd>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            <a href="tel:{{ $inquiry->phone }}" class="text-blue-600 hover:underline">{{ $inquiry->phone }}</a>
+                            {{-- Aqui es donde la promotora decide si llama o escribe, y
+                                 en Republica Dominicana escribe. --}}
+                            <a href="https://wa.me/{{ preg_replace('/\D/', '', $inquiry->phone) }}?text={{ urlencode(__('inquiry.saludo_whatsapp', ['nombre' => $inquiry->name, 'proyecto' => $inquiry->project->name])) }}"
+                               target="_blank" rel="noopener"
+                               class="ml-2 inline-flex items-center px-2.5 py-1 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+                                WhatsApp
+                            </a>
+                        </dd>
                     </div>
                     @endif
                     <div>

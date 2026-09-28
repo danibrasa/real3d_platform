@@ -35,7 +35,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contacto</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proyecto</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unidad</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
@@ -47,7 +47,22 @@
                         <tr class="{{ !$inquiry->read ? 'bg-blue-50' : '' }}">
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-4 py-3 text-sm font-medium {{ !$inquiry->read ? 'text-gray-900' : 'text-gray-600' }}">{{ $inquiry->name }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->email }}</td>
+                            {{-- El telefono se capturaba y no se enseñaba. En Republica
+                                 Dominicana el negocio se hace por WhatsApp: una promotora que
+                                 recibe un lead quiere escribirle, no leerlo. --}}
+                            <td class="px-4 py-3 text-sm">
+                                <a href="mailto:{{ $inquiry->email }}"
+                                   class="text-blue-600 hover:underline">{{ $inquiry->email }}</a>
+                                @if ($inquiry->phone)
+                                    <div class="mt-0.5 flex items-center gap-2">
+                                        <a href="tel:{{ $inquiry->phone }}"
+                                           class="text-gray-600 hover:underline">{{ $inquiry->phone }}</a>
+                                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $inquiry->phone) }}"
+                                           target="_blank" rel="noopener"
+                                           class="text-xs font-medium text-emerald-700 hover:underline">WhatsApp</a>
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->project->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->unit?->identifier ?? '-' }}</td>
                             <td class="px-4 py-3">
