@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Unit;
+use App\Support\Facturacion\AccesoAlVisor;
 
 class ViewerController extends Controller
 {
@@ -130,6 +131,17 @@ class ViewerController extends Controller
     public function show(Project $project)
     {
         $this->authorizeAccess($project);
+
+        // El visor 3D es lo que se paga. Al darse de baja la promotora se
+        // queda con su pagina, sus viviendas y sus contactos -- el plan
+        // gratuito entero -- pero no con el visor.
+        //
+        // Se manda a la ficha de informacion, no a un 404: quien esta mirando
+        // es un comprador que no tiene culpa de nada, y ahi encuentra el
+        // proyecto, los precios y el formulario de contacto.
+        if (! AccesoAlVisor::servidoEnPublico($project)) {
+            return redirect()->route('viewer.landing', $project);
+        }
 
         $project->load('settings', 'files');
 

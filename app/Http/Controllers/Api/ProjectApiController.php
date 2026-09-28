@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectGalleryImage;
 use App\Models\Unit;
+use App\Support\Facturacion\AccesoAlVisor;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectApiController extends Controller
@@ -38,9 +39,25 @@ class ProjectApiController extends Controller
         ]);
     }
 
+    /**
+     * Los ficheros que SON el visor 3D, y no la ficha de informacion.
+     *
+     * La distincion importa: al darse de baja se deja de servir el visor, pero
+     * la miniatura sigue haciendo falta para el listado y el portal, que son
+     * del plan gratuito.
+     */
+    private const DEL_VISOR = ['model_3d', 'image_360', 'video_360'];
+
     public function serveFile(Project $project, string $fileType)
     {
         $this->authorizeAccess($project);
+
+        // Bloquear solo la pagina del visor habria sido medio muro: el modelo y
+        // el fondo salen por aqui, y con la direccion se descargan igual.
+        if (in_array($fileType, self::DEL_VISOR, true)
+            && ! AccesoAlVisor::servidoEnPublico($project)) {
+            abort(404);
+        }
 
         $file = $project->files()
             ->where('file_type', $fileType)
