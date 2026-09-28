@@ -30,7 +30,7 @@ class ImportarViviendasController extends Controller
     /** Paso 1: elegir fichero. */
     public function create(Project $project)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizarProyecto($project);
 
         return view('admin.units.import.subir', compact('project'));
@@ -39,7 +39,7 @@ class ImportarViviendasController extends Controller
     /** Paso 2: leer el fichero y enseñar lo que se ha entendido. */
     public function analizar(Request $request, Project $project)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizarProyecto($project);
 
         $request->validate([
@@ -91,7 +91,7 @@ class ImportarViviendasController extends Controller
     /** Paso 3: crear las viviendas. */
     public function confirmar(Request $request, Project $project)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizarProyecto($project);
 
         $datos = $request->validate([

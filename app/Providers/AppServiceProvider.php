@@ -32,8 +32,19 @@ class AppServiceProvider extends ServiceProvider
 
     private function defineGates(): void
     {
+        // El reparto es deliberado: la promotora gestiona lo comercial (sus
+        // proyectos, sus viviendas, sus precios) y el montaje 3D -modelo, video
+        // 360, encuadre de camara- lo hace el equipo. Encaja con lo que las
+        // promotoras tienen de verdad: hojas de calculo y renders, no GLB.
         Gate::define('create-project', function (User $user) {
-            return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
+            if ($user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR)) {
+                return true;
+            }
+
+            // El limite del plan no se comprueba aqui: se comprueba en el
+            // controlador, para poder explicarle que ha llegado a su tope en
+            // vez de darle un 403 sin contexto.
+            return $user->isInmobiliaria();
         });
 
         Gate::define('delete-project', function (User $user) {
@@ -63,8 +74,14 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
         });
 
-        Gate::define('create-unit', function (User $user) {
-            return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
+        // Ojo al `?Project`: sin proyecto una promotora NO pasa. Asi, si algun
+        // sitio olvida pasarlo, el fallo es cerrar de mas y no abrir de mas.
+        Gate::define('create-unit', function (User $user, ?Project $project = null) {
+            if ($user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR)) {
+                return true;
+            }
+
+            return $user->isInmobiliaria() && $project && $user->canAccessProject($project);
         });
 
         Gate::define('edit-unit-full', function (User $user) {
@@ -86,8 +103,14 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
         });
 
-        Gate::define('manage-typologies', function (User $user) {
-            return $user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
+        // Las tipologias son catalogo comercial: que tipos de vivienda se
+        // venden. Nada que ver con el montaje 3D.
+        Gate::define('manage-typologies', function (User $user, ?Project $project = null) {
+            if ($user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR)) {
+                return true;
+            }
+
+            return $user->isInmobiliaria() && $project && $user->canAccessProject($project);
         });
 
         Gate::define('manage-gallery', function (User $user, ?Project $project = null) {

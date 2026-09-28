@@ -42,7 +42,7 @@ class UnitController extends Controller
 
     public function create(Project $project)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->authorizeProjectAccess($project);
 
         $typologies = $project->typologies;
@@ -52,7 +52,7 @@ class UnitController extends Controller
 
     public function store(Request $request, Project $project)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->authorizeProjectAccess($project);
 
         $validated = $request->validate([
@@ -229,7 +229,7 @@ class UnitController extends Controller
 
     public function destroy(Project $project, Unit $unit)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
 
         if ($unit->floor_plan_path) {
             Storage::delete($unit->floor_plan_path);

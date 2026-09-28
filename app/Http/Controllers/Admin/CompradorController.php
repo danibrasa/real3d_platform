@@ -25,7 +25,7 @@ class CompradorController extends Controller
     /** Ficha de la vivienda vendida: comprador y pagos. */
     public function show(Project $project, Unit $unit)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizar($project, $unit);
 
         $unit->load(['buyer', 'payments.milestone', 'typology']);
@@ -50,7 +50,7 @@ class CompradorController extends Controller
      */
     public function asignar(Request $request, Project $project, Unit $unit)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizar($project, $unit);
 
         $datos = $request->validate([
@@ -80,7 +80,7 @@ class CompradorController extends Controller
     /** Quita el comprador sin borrar su cuenta ni sus pagos. */
     public function desasignar(Project $project, Unit $unit)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizar($project, $unit);
 
         $unit->update(['buyer_id' => null]);
@@ -91,7 +91,7 @@ class CompradorController extends Controller
     /** Anota un pago recibido. */
     public function registrarPago(Request $request, Project $project, Unit $unit)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizar($project, $unit);
 
         $datos = $request->validate([
@@ -116,7 +116,7 @@ class CompradorController extends Controller
 
     public function borrarPago(Project $project, Unit $unit, BuyerPayment $payment)
     {
-        Gate::authorize('create-unit');
+        Gate::authorize('create-unit', $project);
         $this->autorizar($project, $unit);
         abort_unless($payment->unit_id === $unit->id, 404);
 

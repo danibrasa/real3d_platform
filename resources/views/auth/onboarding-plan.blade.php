@@ -50,7 +50,7 @@
                     <form method="POST" action="{{ route('onboarding.plan.select') }}">
                         @csrf
                         <input type="hidden" name="plan" value="{{ $tier }}">
-                        <input type="hidden" name="interval" x-bind:value="interval">
+                        <input type="hidden" name="interval" value="monthly" x-bind:value="interval">{{-- El value fijo es la red: sin el, si Alpine no carga el campo va vacio, la validacion rechaza el alta y el usuario ve que pulsa y no pasa nada. Alpine lo sobreescribe cuando funciona. --}}
                         <button type="submit" class="w-full py-2 text-sm font-medium rounded-md transition
                             {{ $tier === 'professional' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                             {{ __('billing.get_started') }}
