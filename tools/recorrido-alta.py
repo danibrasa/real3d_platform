@@ -12,6 +12,7 @@ Uso: CLAVE_WEB=<pass http> onboarding.py https://dev.real3d.io
 
 import io
 import os
+import subprocess
 import re
 import sys
 import time
@@ -314,6 +315,28 @@ def importar(notas, idp):
         raise RuntimeError("se importo pero no se ven las viviendas")
 
 
+@paso("7b. El equipo monta el visor")
+def montar_visor(notas, idp):
+    """El unico tramo que no hace la promotora.
+
+    Se ejecuta el mandato que venga en GANCHO_VISOR, con el id del proyecto. Si
+    no hay ninguno, el recorrido sigue sin visor y se detiene en el paso 9, que
+    tambien es un resultado valido: comprueba que publicar queda bloqueado.
+    """
+    gancho = os.environ.get("GANCHO_VISOR", "").strip()
+    if not gancho:
+        notas.append("sin GANCHO_VISOR: el recorrido acabara antes del comprador")
+        return False
+
+    r = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
+    for linea in (r.stdout + r.stderr).strip().split("\n"):
+        if linea:
+            notas.append(linea)
+    if r.returncode != 0:
+        raise RuntimeError("el gancho del visor fallo")
+    return True
+
+
 @paso("8. Publicar el proyecto")
 def publicar(notas, idp):
     r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
@@ -333,25 +356,33 @@ def publicar(notas, idp):
     if errores(r.text):
         notas.append("avisos: %s" % "; ".join(errores(r.text)))
 
-    # Con el reparto acordado, una promotora NO publica un proyecto sin visor:
-    # el montaje 3D lo hace el equipo. Lo que se comprueba aqui es que se le
-    # explique, no que publique. Un rechazo mudo seria el fallo.
     r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
     texto = re.sub(r"<[^>]+>", " ", r.text)
-
-    explica = "Falta el visor" in texto or "viewer is missing" in texto
-    notas.append("la ficha dice que falta para publicar: %s" % ("si" if explica else "NO"))
-    if not explica:
-        notas.append("PROBLEMA: no se publica y no se dice por que")
+    con_visor = os.environ.get("GANCHO_VISOR", "").strip() != ""
 
     pub = requests.Session()
     pub.auth = s.auth
     visible = ("Recorrido automatico %s" % SELLO) in pub.get(BASE + "/projects", timeout=30).text
-    notas.append("visible para un visitante: %s (correcto: sin visor, no)"
-                 % ("si" if visible else "no"))
+    en_portal = ("Recorrido automatico %s" % SELLO) in pub.get(BASE + "/portal", timeout=30).text
 
-    if visible:
-        raise RuntimeError("se ha publicado un proyecto sin nada que enseñar")
+    notas.append("visible en /projects: %s" % ("si" if visible else "no"))
+    notas.append("visible en /portal:   %s" % ("si" if en_portal else "no"))
+
+    if con_visor:
+        # Con visor montado y coordenadas puestas tiene que salir en los dos.
+        if not visible:
+            notas.append("PROBLEMA: hay visor montado y aun asi no se publica")
+        elif not en_portal:
+            notas.append("PROBLEMA: publicado pero no aparece en el portal")
+    else:
+        # Sin visor no debe publicarse, y sobre todo debe DECIR por que.
+        explica = "Falta el visor" in texto or "viewer is missing" in texto
+        notas.append("la ficha explica que falta: %s" % ("si" if explica else "NO"))
+        if not explica:
+            notas.append("PROBLEMA: no se publica y no se dice por que")
+        if visible:
+            raise RuntimeError("se ha publicado un proyecto sin nada que enseñar")
+
     return idp
 
 
@@ -375,7 +406,10 @@ def preguntar(notas, idp):
         notas.append("el tramo del comprador queda pendiente de eso, no roto")
         return
 
-    r = pub.get(BASE + "/projects/" + slug, timeout=30)
+    # El formulario de consulta esta en la ficha de informacion, no en el visor
+    # 3D: desde el visor se contacta por WhatsApp o por el chatbot, que tienen
+    # su propio camino.
+    r = pub.get(BASE + "/projects/%s/info" % slug, timeout=30)
     notas.append("la ficha publica devuelve %s" % r.status_code)
     if r.status_code != 200:
         notas.append("esperado: el proyecto sigue en borrador hasta que el equipo")
@@ -399,6 +433,21 @@ def preguntar(notas, idp):
     if r.status_code >= 400:
         raise RuntimeError("la consulta fue rechazada")
 
+    # Que responda 200 no significa nada: el aviso a la promotora se encola, y
+    # si el worker no lo procesa el lead se pierde igual. Eso paso en produccion
+    # y nadie se entero en semanas.
+    comprobar = os.environ.get("GANCHO_CORREO", "").strip()
+    if not comprobar:
+        notas.append("sin GANCHO_CORREO: no se comprueba que el aviso salga")
+        return
+
+    r = subprocess.run(comprobar.split(), capture_output=True, text=True)
+    for linea in (r.stdout + r.stderr).strip().split("\n"):
+        if linea:
+            notas.append(linea)
+    if r.returncode != 0:
+        notas.append("PROBLEMA: la consulta se guarda pero el aviso no sale")
+
 
 # ------------------------------------------------------------------- ejecucion
 
@@ -412,6 +461,7 @@ panel(r)
 idp = crear_proyecto(r)
 if idp:
     importar(idp)
+    montar_visor(idp)
     publicar(idp)
     preguntar(idp)
 

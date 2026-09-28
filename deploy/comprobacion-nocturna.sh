@@ -28,7 +28,12 @@ trap 'rm -f "$SALIDA"' EXIT
 # La contraseña del acceso web vive en el fichero de siempre, no aqui.
 CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 
-CLAVE_WEB="$CLAVE_WEB" python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
+# GANCHO_VISOR simula lo unico que no hace la promotora: que el equipo monte el
+# visor. Sin el, el recorrido se detiene antes del comprador y no se comprueba
+# el tramo mas importante del producto.
+# GANCHO_CORREO comprueba que el aviso del lead sale de la cola de verdad: que
+# el formulario responda 200 no prueba que la promotora se entere.
+CLAVE_WEB="$CLAVE_WEB" GANCHO_VISOR="php $APP/tools/montar-visor-de-prueba.php $APP" GANCHO_CORREO="php $APP/tools/comprobar-cola.php $APP 40"     python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
 RESULTADO=$?
 
 # Se limpia siempre, salga bien o mal: si no, cada noche deja una promotora

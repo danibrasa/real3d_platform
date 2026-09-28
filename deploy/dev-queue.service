@@ -1,0 +1,20 @@
+[Unit]
+Description=Worker de colas del entorno de desarrollo de Real3D
+After=network.target mariadb.service
+
+[Service]
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=5
+WorkingDirectory=/var/www/dev
+# Igual que el de produccion, para que desarrollo se comporte como ella. Sin
+# este worker los avisos de consulta se quedaban encolados sin salir, que es
+# justo el fallo que se arreglo en produccion el 28-sep-2026: si el entorno
+# donde se verifica no lo reproduce, no sirve para verificar.
+ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --timeout=90
+StandardOutput=append:/var/log/dev-queue.log
+StandardError=append:/var/log/dev-queue.log
+
+[Install]
+WantedBy=multi-user.target
