@@ -57,6 +57,17 @@ CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 # un comprobador que esquiva lo que suele romperse no comprueba gran cosa.
 # GANCHO_CORREO comprueba que el aviso del lead sale de la cola de verdad: que
 # el formulario responda 200 no prueba que la promotora se entere.
+# GANCHO_VISOR va como www-data, que es quien escribe cuando escribe la
+# aplicacion. Corriendo como root dejaba los directorios del proyecto con
+# permisos que el servidor web no puede atravesar: el fichero quedaba en disco,
+# la comprobacion decia "visor subido e identico al original", y el visor
+# devolvia 404 a cualquiera que lo abriera. Semanas diciendo que si sobre
+# ficheros que nadie podia ver.
+#
+# GANCHO_BAJA es lo que hace una baja: deja a la promotora en el plan gratuito,
+# como haria el webhook de Stripe al cancelar. Sirve para el ultimo paso, que
+# comprueba que al dejar de pagar el visor deja de servirse y la pagina no.
+#
 # GANCHO_PLAN es lo que en produccion hace una contratacion. Sin el, el
 # recorrido se para en el paso 7b -- limpiamente y diciendo por que, pero se
 # para -- y perderiamos la vigilancia de todo lo que viene detras: subida del
@@ -65,7 +76,8 @@ CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 # que esto no esquiva el muro: pasa por el.
 CLAVE_WEB="$CLAVE_WEB" \
     GANCHO_PLAN="php $APP/tools/dar-plan-de-prueba.php $APP" \
-    GANCHO_VISOR="php $APP/tools/subir-visor-de-prueba.php $APP" \
+    GANCHO_BAJA="php $APP/tools/quitar-plan-de-prueba.php $APP" \
+    GANCHO_VISOR="sudo -u www-data php $APP/tools/subir-visor-de-prueba.php $APP" \
     GANCHO_CORREO="php $APP/tools/comprobar-cola.php $APP 40" \
     python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
 RESULTADO=$?

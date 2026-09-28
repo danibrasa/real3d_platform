@@ -3,6 +3,7 @@
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Borra lo que deja el recorrido de alta.
@@ -10,6 +11,12 @@ use Illuminate\Contracts\Console\Kernel;
  * El recorrido se da de alta como promotora y crea un proyecto cada vez que
  * corre. Sin esto, en un mes hay treinta promotoras fantasma en desarrollo y
  * nadie sabe cuales son de verdad.
+ *
+ * Borra tambien los ficheros, que antes no. La fila se iba y el directorio
+ * projects/<id> se quedaba, asi que desarrollo acumulo cientos de ficheros
+ * sueltos; y un dia un proyecto nuevo reutilizo un id y se encontro dentro el
+ * visor del anterior. La aplicacion si los borra al eliminar un proyecto
+ * (ProjectController::destroy); el que no lo hacia era este.
  *
  * Uso: php limpiar-recorrido.php /ruta/de/la/app
  */
@@ -32,6 +39,7 @@ foreach ($usuarios as $u) {
         $p->units()->delete();
         $p->assignedAgencies()->detach();
         $p->settings()?->delete();
+        Storage::deleteDirectory("projects/{$p->id}");
         $p->delete();
         $proyectos++;
     }
@@ -47,6 +55,7 @@ foreach ($huerfanos as $p) {
     $viviendas += $p->units()->count();
     $p->units()->delete();
     $p->settings()?->delete();
+    Storage::deleteDirectory("projects/{$p->id}");
     $p->delete();
     $proyectos++;
 }
