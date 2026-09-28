@@ -59,8 +59,13 @@ ln -s "$BASE/shared/.env" "$NUEVA/.env"
 # funcionar el dia que se acumularon mas de veinte commits desde la ultima
 # etiqueta: el clon del despliegue es superficial (--depth 20), asi que no
 # alcanzaba la etiqueta y /version pasaba a decir "sin-tag" sin que nada fallara.
-if [ -r "$NUEVA/version.txt" ]; then
-    TAG="v$(tr -d ' \n' < "$NUEVA/version.txt")"
+VERSION=$(tr -d ' \n' < "$NUEVA/version.txt" 2>/dev/null || true)
+
+# Que el fichero se pueda leer no basta: vacio daba TAG="v", que es el mismo
+# fallo mudo que esto arregla. Y se quita un prefijo "v" si algun dia lo trae,
+# para no acabar con "vv1.3.1".
+if printf '%s' "$VERSION" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
+    TAG="v${VERSION#v}"
 else
     TAG=$(git -C "$NUEVA" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
 fi
