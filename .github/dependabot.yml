@@ -73,3 +73,14 @@ updates:
     groups:
       acciones:
         patterns: ["*"]
+        # Igual que en composer y npm: en el grupo van solo las menores. Estaba
+        # sin poner, y por eso el primer pull request de acciones llego con tres
+        # saltos de version mayor juntos, uno de ellos el de release-please.
+        #
+        # Aqui NO se ignoran las mayores, al contrario que en los otros dos
+        # ecosistemas: las acciones hay que subirlas tarde o temprano porque
+        # GitHub retira las versiones de Node en las que corren. Al dejarlas
+        # fuera del grupo, cada una llega en su propio pull request y se lee una
+        # por una, que es lo que pide cambiar la herramienta que tiene la clave
+        # de despliegue.
+        update-types: [minor, patch]
