@@ -7,6 +7,7 @@ use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -54,13 +55,24 @@ class ContactarLeadTest extends TestCase
         ]);
     }
 
-    public function test_el_telefono_se_ve_en_el_listado(): void
+    public function test_el_telefono_se_puede_pulsar_desde_el_listado(): void
     {
-        // Se capturaba y no se enseñaba: para llamar habia que abrir la ficha.
+        // Comprobar que el numero "se ve" no distingue un telefono pulsable de
+        // uno escrito a pelo, que es justo la mejora. Se comprueba el enlace.
         $this->actingAs($this->promotora)
             ->get(route('admin.inquiries.index'))
             ->assertOk()
-            ->assertSee('+1 809 555 0100');
+            ->assertSee('href="tel:+1 809 555 0100"', false);
+    }
+
+    public function test_el_correo_se_puede_pulsar_desde_el_listado(): void
+    {
+        // La otra mitad de lo que se prometio y no se cubria: si alguien quita
+        // el mailto, el listado sigue enseñando el correo y el test pasaba.
+        $this->actingAs($this->promotora)
+            ->get(route('admin.inquiries.index'))
+            ->assertOk()
+            ->assertSee('href="mailto:comprador@ejemplo.com"', false);
     }
 
     public function test_desde_el_listado_se_puede_escribir_por_whatsapp(): void
@@ -69,7 +81,7 @@ class ContactarLeadTest extends TestCase
             ->get(route('admin.inquiries.index'))
             ->assertOk()
             // El numero va sin simbolos ni espacios, que es lo que acepta wa.me.
-            ->assertSee('https://wa.me/18095550100', false);
+            ->assertSee('href="https://wa.me/18095550100"', false);
     }
 
     public function test_en_la_ficha_el_mensaje_viene_empezado(): void
@@ -91,7 +103,26 @@ class ContactarLeadTest extends TestCase
         $this->actingAs($this->promotora)
             ->get(route('admin.inquiries.index'))
             ->assertOk()
-            ->assertDontSee('wa.me/', false);
+            ->assertDontSee('wa.me/', false)
+            ->assertDontSee('href="tel:', false);
+    }
+
+    public function test_la_consulta_siempre_tiene_proyecto(): void
+    {
+        // El mensaje de WhatsApp de la ficha usa el nombre del proyecto sin
+        // proteger contra nulos, y eso es correcto: la clave ajena es
+        // obligatoria y con borrado en cascada, asi que una consulta huerfana
+        // no puede existir. Queda fijado por si alguien la hace opcional algun
+        // dia: entonces habria que revisar esa vista.
+        $this->assertDatabaseHas('inquiries', [
+            'id' => $this->consulta->id,
+            'project_id' => $this->consulta->project_id,
+        ]);
+
+        $columna = collect(DB::select('SHOW COLUMNS FROM inquiries'))
+            ->firstWhere('Field', 'project_id');
+
+        $this->assertSame('NO', $columna->Null, 'project_id no puede volverse opcional sin revisar la vista de la ficha');
     }
 
     public function test_una_promotora_no_ve_los_leads_de_otra(): void
