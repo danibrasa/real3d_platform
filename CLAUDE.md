@@ -38,6 +38,28 @@ averiguar antes qué versión hay puesta.
 Commits con Conventional Commits (`feat:`, `fix:`, `chore:`, `style:`, `ci:`). Cada salida a
 producción lleva su etiqueta SemVer.
 
+### Qué protege a `main` (ruleset, no *branch protection*)
+
+En repositorios privados del plan Free, la protección clásica de ramas no funciona: hay que
+usar **Rulesets** (Settings → Rules). El que hay sobre `main` exige:
+
+- **Pull request** para cualquier cambio (0 aprobaciones: el equipo es pequeño y el freno
+  de verdad está al publicar, no al fusionar).
+- **Que pase `Estilo, tests y compilacion`**, que es el *job* de `ci.yml`. Ojo: en la lista
+  va el nombre del job, no el del workflow («Comprobaciones»).
+- Ni borrar la rama ni forzar el historial.
+
+**Trampa conocida con release-please.** Sus pull requests las abre el `GITHUB_TOKEN` del
+propio workflow, y GitHub aparca en `action_required` los workflows que dispara su propio
+token, para que un workflow no pueda encadenarse consigo mismo sin fin. Resultado: el CI de
+esas PRs **no arranca solo**, y como ahora es obligatorio, quedan sin poder fusionarse.
+
+Hay que entrar en su ejecución y pulsar *Approve and run*: un clic por cada versión. Si
+llega a molestar, la salida estándar es darle a `release.yml` un token propio en un secreto
+en vez del `GITHUB_TOKEN`, y entonces su CI arranca como el de cualquier rama.
+
+Esto **no afecta a Dependabot**: sus pull requests sí ejecutan el CI con normalidad.
+
 ### Circuito
 ```
 rama  →  PR  →  main  →  staging.real3d.io  →  [aprobación]  →  real3d.io
