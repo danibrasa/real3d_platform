@@ -133,22 +133,67 @@ def pedir(url):
         return r.read().decode("utf-8", errors="replace")
 
 
-def permitido(url):
-    """Lo que diga robots.txt, no lo que me convenga."""
+class NoPermitido(Exception):
+    """robots.txt dice que no para esta ruta."""
+
+
+def pedir_si_permite(url):
+    """La unica puerta para pedir paginas: robots.txt primero, siempre."""
+    if not permitido(url):
+        raise NoPermitido(url)
+    return pedir(url)
+
+
+# Las reglas de cada sitio, leidas una vez. La cache es del fichero, no del
+# permiso: el permiso se decide por ruta, cada vez.
+_REGLAS = {}
+
+
+def reglas_de(url):
+    """Los Disallow del agente generico, que es el que nos aplica.
+
+    Devuelve None si el robots.txt no se pudo leer, que no es lo mismo que
+    una lista vacia: sin poder leerlo no se asume permiso.
+    """
     partes = urllib.parse.urlparse(url)
+    if partes.netloc in _REGLAS:
+        return _REGLAS[partes.netloc]
+
     try:
         robots = pedir("%s://%s/robots.txt" % (partes.scheme, partes.netloc))
     except Exception:
-        # Sin robots.txt legible no se asume permiso: se asume que no.
-        return False
+        _REGLAS[partes.netloc] = None
+        return None
 
-    # Reglas del agente generico, que es el que nos aplica.
     reglas = []
     for bloque in re.split(r"(?im)^user-agent:", robots):
         if bloque.strip().lower().startswith("*"):
-            reglas += re.findall(r"(?im)^disallow:\s*(\S+)", bloque)
+            reglas += [r for r in re.findall(r"(?im)^disallow:\s*(\S+)", bloque)]
 
-    return not any(partes.path.startswith(r) for r in reglas if r != "/")
+    _REGLAS[partes.netloc] = reglas
+    return reglas
+
+
+def permitido(url):
+    """Lo que diga robots.txt para ESTA ruta, no lo que me convenga.
+
+    Se comprobaba una sola vez, sobre la URL del listado, y valia como
+    permiso para las demas paginas y para las veintiuna fichas. Es decir:
+    de veintitantas peticiones se comprobaba una, y el mensaje del commit
+    decia "comprueba robots.txt" como si cubriera todas.
+
+    Ahora se pregunta por cada URL. El fichero se lee una vez por sitio.
+    """
+    reglas = reglas_de(url)
+    if reglas is None:
+        return False
+
+    ruta = urllib.parse.urlparse(url).path or "/"
+
+    # Un "Disallow: /" es el sitio entero cerrado. Antes se descartaba junto
+    # con las reglas vacias -- el unico caso en que decir que no es seguro
+    # era justamente el que se saltaba.
+    return not any(ruta.startswith(r) for r in reglas if r)
 
 
 def limpiar(texto):
@@ -200,9 +245,22 @@ def mirar_ficha(html):
     }
 
 
+# El numero dentro de un enlace de whatsapp, sin el resto del enlace.
+NUMERO_WA = re.compile(r"(?:wa\.me/|phone=)(\d+)")
+
+
 def normalizar(clave, valor):
-    """Para comparar: de un wa.me solo el numero, de un telefono solo digitos."""
-    if clave in ("telefono", "whatsapp"):
+    """Para comparar: de un wa.me solo el numero, de un telefono solo digitos.
+
+    Del whatsapp hay que sacar el numero de verdad y no "todos los digitos
+    que aparezcan": el texto prerrellenado va url-codificado y sus %2C y %20
+    son digitos tambien, asi que el mismo telefono en veintiun enlaces salia
+    como veintiun telefonos distintos y no se filtraba ninguno.
+    """
+    if clave == "whatsapp":
+        m = NUMERO_WA.search(valor)
+        return m.group(1)[-10:] if m else valor.lower()
+    if clave == "telefono":
         return re.sub(r"\D", "", valor)[-10:]
     return valor.lower().rstrip("/")
 
@@ -254,7 +312,10 @@ def recoger(fuente, paginas):
         url = fuente["listado"] if n == 1 else fuente["paginado"] % n
 
         try:
-            html = pedir(url)
+            html = pedir_si_permite(url)
+        except NoPermitido:
+            print("  %s -> robots.txt no lo permite" % url, file=sys.stderr)
+            break
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 break  # Se acabaron las paginas.
@@ -310,10 +371,6 @@ def main():
     for fuente in FUENTES:
         print("== %s" % fuente["nombre"])
 
-        if not permitido(fuente["listado"]):
-            print("  robots.txt no lo permite: se salta", file=sys.stderr)
-            continue
-
         todos += recoger(fuente, args.paginas)
 
     # Un mismo proyecto puede salir en dos sitios.
@@ -329,7 +386,9 @@ def main():
         print("\n== fichas (%d)" % len(filas))
         for i, fila in enumerate(filas, 1):
             try:
-                fila.update(mirar_ficha(pedir(fila["ficha"])))
+                fila.update(mirar_ficha(pedir_si_permite(fila["ficha"])))
+            except NoPermitido:
+                fila["no_se_pudo_leer"] = "robots.txt no lo permite"
             except Exception as e:
                 # Sin poder leerla no se dice ni que si ni que no.
                 fila["no_se_pudo_leer"] = str(e)
