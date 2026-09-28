@@ -96,8 +96,10 @@ class SubscriptionController extends Controller
 
         $checkout = $user->newSubscription('default', $priceId);
 
-        if (config('stripe.trial_days') > 0 && ! $user->subscription('default')) {
-            $checkout->trialDays(config('stripe.trial_days'));
+        // La espera mientras montamos el visor, no la prueba: el reloj de los
+        // dias de verdad lo arranca PruebaGratuita cuando el visor esta listo.
+        if (config('stripe.trial_espera_dias') > 0 && ! $user->subscription('default')) {
+            $checkout->trialDays(config('stripe.trial_espera_dias'));
         }
 
         return $checkout->checkout([

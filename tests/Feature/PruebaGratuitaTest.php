@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\Facturacion\PruebaGratuita;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\SuscripcionDeMentira;
 use Tests\TestCase;
 
 /**
@@ -43,9 +44,81 @@ class PruebaGratuitaTest extends TestCase
         ]);
     }
 
-    public function test_se_ancla_cuando_hay_suscripcion_en_prueba(): void
+    public function test_se_ancla_cuando_hay_suscripcion(): void
     {
-        $this->assertTrue(PruebaGratuita::debeAnclarse($this->perfil(), enPrueba: true));
+        $this->assertTrue(PruebaGratuita::debeAnclarse($this->perfil(), haySuscripcion: true));
+    }
+
+    public function test_la_espera_larga_no_deja_a_nadie_sin_prueba(): void
+    {
+        // El fallo de la primera version: se exigia que la suscripcion siguiera
+        // en prueba al montar el visor. Si tardabamos mas que la prueba, al
+        // llegar el visor ya se le estaba cobrando, no se anclaba nada, y la
+        // promotora se quedaba pagando sin haber podido probar -- justo lo que
+        // esto venia a evitar.
+        $perfil = $this->perfil();
+        $suscripcion = new SuscripcionDeMentira;
+
+        $fin = PruebaGratuita::anclar($perfil, $suscripcion);
+
+        $this->assertNotNull($fin, 'no se anclo la prueba habiendo suscripcion');
+        $this->assertSame(1, $suscripcion->veces);
+    }
+
+    public function test_la_prueba_termina_a_los_dias_configurados(): void
+    {
+        $perfil = $this->perfil();
+        $suscripcion = new SuscripcionDeMentira;
+
+        $fin = PruebaGratuita::anclar($perfil, $suscripcion);
+
+        $esperado = now()->addDays((int) config('stripe.trial_days'));
+
+        $this->assertNotNull($suscripcion->pedida, 'no se le pidio a Stripe mover la fecha');
+        $this->assertSame($esperado->toDateString(), $suscripcion->pedida->toDateString());
+        $this->assertSame($esperado->toDateString(), $fin->toDateString());
+        $this->assertNotNull($perfil->fresh()->prueba_desde);
+    }
+
+    public function test_si_stripe_falla_no_queda_marcada_la_prueba(): void
+    {
+        // Al reves, la empresa constaria como "prueba empezada" mientras la
+        // pasarela sigue con la fecha vieja y le cobra al dia siguiente.
+        $perfil = $this->perfil();
+        $suscripcion = new SuscripcionDeMentira(revienta: true);
+
+        try {
+            PruebaGratuita::anclar($perfil, $suscripcion);
+            $this->fail('deberia haber propagado el fallo de Stripe');
+        } catch (\RuntimeException $e) {
+            // Lo esperado: quien llama decide, y marcarMontado lo registra y
+            // sigue para no dejar sin aviso a la promotora.
+        }
+
+        $this->assertNull($perfil->fresh()->prueba_desde);
+    }
+
+    public function test_una_suscripcion_cancelada_no_ancla_nada(): void
+    {
+        $perfil = $this->perfil();
+        $suscripcion = new SuscripcionDeMentira(cancelada: true);
+
+        $this->assertNull(PruebaGratuita::anclar($perfil, $suscripcion));
+        $this->assertSame(0, $suscripcion->veces);
+        $this->assertNull($perfil->fresh()->prueba_desde);
+    }
+
+    public function test_el_segundo_visor_no_estira_la_prueba(): void
+    {
+        $perfil = $this->perfil();
+        $primera = new SuscripcionDeMentira;
+
+        PruebaGratuita::anclar($perfil, $primera);
+
+        // Otro proyecto de la misma empresa, dado por montado despues.
+        $segunda = new SuscripcionDeMentira;
+        $this->assertNull(PruebaGratuita::anclar($perfil->fresh(), $segunda));
+        $this->assertSame(0, $segunda->veces, 'se volvio a mover la fecha en Stripe');
     }
 
     public function test_no_se_ancla_dos_veces(): void
@@ -55,14 +128,14 @@ class PruebaGratuitaTest extends TestCase
         // a pagar nunca.
         $perfil = $this->perfil(pruebaDesde: now()->subDays(3)->toDateTimeString());
 
-        $this->assertFalse(PruebaGratuita::debeAnclarse($perfil, enPrueba: true));
+        $this->assertFalse(PruebaGratuita::debeAnclarse($perfil, haySuscripcion: true));
     }
 
-    public function test_sin_suscripcion_en_prueba_no_hay_nada_que_anclar(): void
+    public function test_sin_suscripcion_no_hay_nada_que_anclar(): void
     {
-        // El plan gratuito no tiene prueba porque no tiene nada que probar
-        // despues: no se acaba nunca.
-        $this->assertFalse(PruebaGratuita::debeAnclarse($this->perfil(), enPrueba: false));
+        // El plan gratuito no tiene prueba porque no se acaba nunca.
+        $this->assertFalse(PruebaGratuita::debeAnclarse($this->perfil(), haySuscripcion: false));
+        $this->assertNull(PruebaGratuita::anclar($this->perfil(), null));
     }
 
     public function test_quien_no_tiene_empresa_no_rompe_nada(): void
