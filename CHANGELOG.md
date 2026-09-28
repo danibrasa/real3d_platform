@@ -6,6 +6,22 @@ genera release-please a partir de los mensajes de commit, así que no se edita a
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 Versionado: [SemVer](https://semver.org/lang/es/).
 
+## [1.3.1](https://github.com/danibrasa/real3d_platform/compare/v1.3.0...v1.3.1) (2026-09-28)
+
+
+### Correcciones
+
+* **facturacion:** el plan dejaba concederse escribiendo una URL ([599737a](https://github.com/danibrasa/real3d_platform/commit/599737a40bcc44fa1179cb67107760228bbe118d))
+* **facturacion:** el plan dejaba concederse escribiendo una URL ([5c2778b](https://github.com/danibrasa/real3d_platform/commit/5c2778b29304035bf405ae471ff9ff826c50db5c))
+* **leads:** que la consulta llegue a su promotora y se pueda contestar ([ea7ca2b](https://github.com/danibrasa/real3d_platform/commit/ea7ca2b84c1f0b1d61ab3c7aa8b51e6317c8ce37))
+* **leads:** que la consulta llegue a su promotora y se pueda contestar ([b39d77f](https://github.com/danibrasa/real3d_platform/commit/b39d77f804c50d91f5c27205ccd6152be6ad6e71))
+
+
+### Documentacion
+
+* que protege a main, y por que el CI de release-please no arranca solo ([cc9c6e4](https://github.com/danibrasa/real3d_platform/commit/cc9c6e4d7c6229043c6ad38139403371734f7f46))
+* que protege a main, y por que el CI de release-please no arranca solo ([fbbc45d](https://github.com/danibrasa/real3d_platform/commit/fbbc45d95d8e9c581eec597f0cf33282df8da090))
+
 ## [1.3.0](https://github.com/danibrasa/real3d_platform/compare/v1.2.1...v1.3.0) (2026-09-27)
 
 
