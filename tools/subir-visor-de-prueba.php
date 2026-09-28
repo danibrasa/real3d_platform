@@ -74,7 +74,7 @@ if (! $id) {
     exit(1);
 }
 
-foreach ($trozos as $i => $trozo) {
+$mandarTrozo = function (int $i, string $trozo) use ($controlador, $peticion, $id, $proyecto) {
     $temporal = tempnam(sys_get_temp_dir(), 'trozo');
     file_put_contents($temporal, $trozo);
 
@@ -84,6 +84,39 @@ foreach ($trozos as $i => $trozo) {
         ]),
         $proyecto
     );
+};
+
+// Se manda solo el primero y se corta, como una conexion que se cae.
+$mandarTrozo(0, $trozos[0]);
+
+// Y se vuelve a empezar: el servidor tiene que reconocer la subida a medias y
+// decir que trozo ya tiene, en vez de hacer subir el fichero entero otra vez.
+// En produccion, 12 de 28 subidas nunca terminaron por no tener esto.
+$reintento = $controlador->initUpload($peticion([
+    'file_type' => 'image_360',
+    'original_name' => 'fondo-de-prueba.png',
+    'total_size' => strlen($contenido),
+    'total_chunks' => count($trozos),
+]), $proyecto);
+
+$datos = json_decode($reintento->getContent(), true);
+
+if (($datos['upload_id'] ?? null) !== $id) {
+    fwrite(STDERR, "la subida cortada NO se reanuda: empieza una nueva\n");
+    exit(1);
+}
+
+if (($datos['trozos_ya_subidos'] ?? []) !== [0]) {
+    fwrite(STDERR, 'la subida reanudada no reconoce el trozo ya enviado: '
+        .json_encode($datos['trozos_ya_subidos'] ?? null)."\n");
+    exit(1);
+}
+
+// Y ahora los que faltaban, que es lo que haria el navegador.
+foreach ($trozos as $i => $trozo) {
+    if ($i > 0) {
+        $mandarTrozo($i, $trozo);
+    }
 }
 
 $final = $controlador->completeUpload($peticion(['upload_id' => $id]), $proyecto);
@@ -106,4 +139,5 @@ if ($proyecto->latitude === null || $proyecto->longitude === null) {
     $proyecto->update(['latitude' => 18.5820, 'longitude' => -68.4055]);
 }
 
-echo "visor subido por trozos e identico al original ({$fichero->file_size} bytes, ".count($trozos)." trozos)\n";
+echo 'visor subido por trozos, reanudado tras un corte e identico al original '
+    ."({$fichero->file_size} bytes, ".count($trozos)." trozos)\n";
