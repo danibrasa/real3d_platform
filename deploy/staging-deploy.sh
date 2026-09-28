@@ -23,21 +23,13 @@ echo "== base de datos"
 sudo -u www-data php artisan migrate --force
 
 # version.json, igual que en produccion pero marcando el entorno.
-# La version sale de version.txt, que mantiene release-please en cada release y
-# viaja con el codigo. Antes se sacaba con `git describe`, y eso dejo de
-# funcionar el dia que se acumularon mas de veinte commits desde la ultima
-# etiqueta: el clon del despliegue es superficial (--depth 20), asi que no
-# alcanzaba la etiqueta y /version pasaba a decir "sin-tag" sin que nada fallara.
-VERSION=$(tr -d ' \n' < "$APP/version.txt" 2>/dev/null || true)
-
-# Que el fichero se pueda leer no basta: vacio daba TAG="v", que es el mismo
-# fallo mudo que esto arregla. Y se quita un prefijo "v" si algun dia lo trae,
-# para no acabar con "vv1.3.1".
-if printf '%s' "$VERSION" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
-    TAG="v${VERSION#v}"
-else
-    TAG=$(git -C "$APP" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
-fi
+# El numero de version que acaba publicado. La logica vive en
+# deploy/leer-version.sh para poder probarla: aqui estaba duplicada en dos
+# guiones y sin un solo test que la sujetara, y cuando se perdio -/version
+# decia "sin-tag"- no fallo nada, simplemente dejo de estar el numero.
+TAG=$(bash "$(dirname "$0")/leer-version.sh" "$APP" 2>/dev/null \
+    || bash "$APP/deploy/leer-version.sh" "$APP" 2>/dev/null \
+    || echo "sin-tag")
 SHA=$(git rev-parse HEAD)
 cat > "$APP/version.json" <<JSON
 {

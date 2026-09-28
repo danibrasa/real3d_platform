@@ -54,21 +54,13 @@ ln -s "$BASE/shared/.env" "$NUEVA/.env"
 
 # 3b. version.json: que hay desplegado exactamente. Lo leen /version, la meta
 #     del HTML y el pie del panel de administracion.
-# La version sale de version.txt, que mantiene release-please en cada release y
-# viaja con el codigo. Antes se sacaba con `git describe`, y eso dejo de
-# funcionar el dia que se acumularon mas de veinte commits desde la ultima
-# etiqueta: el clon del despliegue es superficial (--depth 20), asi que no
-# alcanzaba la etiqueta y /version pasaba a decir "sin-tag" sin que nada fallara.
-VERSION=$(tr -d ' \n' < "$NUEVA/version.txt" 2>/dev/null || true)
-
-# Que el fichero se pueda leer no basta: vacio daba TAG="v", que es el mismo
-# fallo mudo que esto arregla. Y se quita un prefijo "v" si algun dia lo trae,
-# para no acabar con "vv1.3.1".
-if printf '%s' "$VERSION" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
-    TAG="v${VERSION#v}"
-else
-    TAG=$(git -C "$NUEVA" describe --tags --abbrev=0 2>/dev/null || echo "sin-tag")
-fi
+# El numero de version que acaba publicado. La logica vive en
+# deploy/leer-version.sh para poder probarla: aqui estaba duplicada en dos
+# guiones y sin un solo test que la sujetara, y cuando se perdio -/version
+# decia "sin-tag"- no fallo nada, simplemente dejo de estar el numero.
+TAG=$(bash "$(dirname "$0")/leer-version.sh" "$NUEVA" 2>/dev/null \
+    || bash "$NUEVA/deploy/leer-version.sh" "$NUEVA" 2>/dev/null \
+    || echo "sin-tag")
 SHA=$(git -C "$NUEVA" rev-parse HEAD)
 cat > "$NUEVA/version.json" <<JSON
 {
