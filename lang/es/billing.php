@@ -65,6 +65,9 @@ return [
     'current' => 'Plan actual',
     'trial_active' => 'Periodo de prueba activo',
     'trial_ends' => 'Periodo de prueba termina :date',
+    // Mientras no hay visor no hay prueba, y por eso no hay fecha que dar:
+    // la que lleva la suscripcion es el plazo que nos damos para montarlo.
+    'trial_waiting' => 'Tu prueba empieza cuando tu visor este montado',
     'features' => [
         'projects' => ':count proyecto|:count proyectos',
         'storage' => ':size almacenamiento',
