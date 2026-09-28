@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectSetting;
 use App\Services\WebhookService;
+use App\Support\Publicacion\ListaParaPublicar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -155,9 +156,32 @@ class ProjectController extends Controller
                 'chatbot_welcome_es' => 'nullable|string|max:1000',
                 'chatbot_welcome_en' => 'nullable|string|max:1000',
                 'chatbot_instructions' => 'nullable|string|max:2000',
+                // El estado se le permite, pero no a ciegas: mas abajo se
+                // comprueba que haya algo que enseñar. Antes no estaba en esta
+                // lista, asi que lo enviaba, se ignoraba en silencio y la web le
+                // respondia "Proyecto actualizado" con el proyecto en borrador.
+                'status' => 'required|in:draft,public,private,unlisted',
             ]);
         } else {
             abort(403);
+        }
+
+        // Publicar algo sin visor deja una pagina vacia con el nombre de la
+        // promotora encima. Se le dice que falta y de quien es cada cosa.
+        if (isset($validated['status'])
+            && ListaParaPublicar::esSalirALaWeb($validated['status'], $project->status)) {
+            $lista = ListaParaPublicar::de($project);
+
+            if (! $lista->puedePublicarse()) {
+                $motivos = array_map(
+                    fn ($p) => __('publicacion.'.$p['clave']),
+                    $lista->bloqueos()
+                );
+
+                return back()
+                    ->withInput()
+                    ->with('error', __('publicacion.rechazado').' '.implode(' ', $motivos));
+            }
         }
 
         $oldStatus = $project->status;
