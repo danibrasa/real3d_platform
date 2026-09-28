@@ -94,6 +94,8 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
         ->name('projects.visor.retirar');
     Route::get('visores-pendientes', [SolicitudDeVisorController::class, 'pendientes'])
         ->name('visores.pendientes');
+    Route::post('projects/{project}/visor-montado', [SolicitudDeVisorController::class, 'marcarMontado'])
+        ->name('projects.visor.montado');
 
     Route::put('projects/{project}/settings', [ProjectSettingsController::class, 'update'])
         ->name('projects.settings.update');

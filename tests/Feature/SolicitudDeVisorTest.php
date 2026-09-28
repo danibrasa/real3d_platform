@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Mail\SolicitudDeVisor;
+use App\Mail\VisorMontado;
 use App\Models\CompanyProfile;
 use App\Models\Project;
+use App\Models\ProjectFile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -181,5 +183,88 @@ class SolicitudDeVisorTest extends TestCase
 
         $this->assertStringContainsString($this->proyecto->name, $html);
         $this->assertStringContainsString($this->promotora->name, $html);
+    }
+
+    // --- El equipo cierra el circulo --------------------------------------
+
+    private function montarVisor(): void
+    {
+        ProjectFile::create([
+            'project_id' => $this->proyecto->id,
+            'file_type' => 'image_360',
+            'original_name' => 'fondo.png',
+            'storage_path' => 'x/fondo.png',
+            'mime_type' => 'image/png',
+            'file_size' => 100,
+            'upload_complete' => true,
+        ]);
+    }
+
+    public function test_el_equipo_da_por_montado_el_visor(): void
+    {
+        Mail::fake();
+        $jefe = User::factory()->create(['role' => 'superadmin']);
+        $this->actingAs($this->promotora)->post(route('admin.projects.visor.pedir', $this->proyecto));
+        $this->montarVisor();
+
+        $this->actingAs($jefe)
+            ->post(route('admin.projects.visor.montado', $this->proyecto))
+            ->assertRedirect();
+
+        // Sale de la cola: si se quedara, la lista solo creceria.
+        $this->assertNull($this->proyecto->fresh()->viewer_requested_at);
+    }
+
+    public function test_se_avisa_a_quien_lo_pidio(): void
+    {
+        Mail::fake();
+        $jefe = User::factory()->create(['role' => 'superadmin']);
+        $this->actingAs($this->promotora)->post(route('admin.projects.visor.pedir', $this->proyecto));
+        $this->montarVisor();
+
+        $this->actingAs($jefe)->post(route('admin.projects.visor.montado', $this->proyecto));
+
+        Mail::assertQueued(
+            VisorMontado::class,
+            fn ($c) => $c->hasTo($this->promotora->email)
+        );
+    }
+
+    public function test_no_se_da_por_montado_lo_que_no_esta_montado(): void
+    {
+        // Avisar de que ya puede publicar sin haber subido nada la mandaria a
+        // publicar una pagina vacia con su nombre encima.
+        Mail::fake();
+        $jefe = User::factory()->create(['role' => 'superadmin']);
+        $this->actingAs($this->promotora)->post(route('admin.projects.visor.pedir', $this->proyecto));
+
+        $this->actingAs($jefe)
+            ->post(route('admin.projects.visor.montado', $this->proyecto))
+            ->assertSessionHas('error');
+
+        $this->assertNotNull($this->proyecto->fresh()->viewer_requested_at);
+        Mail::assertNotQueued(VisorMontado::class);
+    }
+
+    public function test_una_promotora_no_puede_darlo_por_montado(): void
+    {
+        Mail::fake();
+        $this->actingAs($this->promotora)->post(route('admin.projects.visor.pedir', $this->proyecto));
+        $this->montarVisor();
+
+        $this->actingAs($this->promotora)
+            ->post(route('admin.projects.visor.montado', $this->proyecto))
+            ->assertForbidden();
+
+        $this->assertNotNull($this->proyecto->fresh()->viewer_requested_at);
+    }
+
+    public function test_el_correo_de_visor_montado_se_pinta(): void
+    {
+        $jefe = User::factory()->create(['role' => 'superadmin']);
+
+        $html = (new VisorMontado($this->proyecto, $jefe))->render();
+
+        $this->assertStringContainsString($this->proyecto->name, $html);
     }
 }

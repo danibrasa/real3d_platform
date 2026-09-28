@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\SolicitudDeVisor;
+use App\Mail\VisorMontado;
 use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
@@ -66,6 +67,46 @@ class SolicitudDeVisorController extends Controller
         AuditLog::record('viewer_request_withdrawn', $project);
 
         return back()->with('success', __('visor.retirado'));
+    }
+
+    /**
+     * El equipo da por montado el visor y avisa a quien lo pedia.
+     *
+     * Sin esto la solicitud se quedaba en la cola para siempre: el equipo subia
+     * el modelo y nadie cerraba el circulo, asi que la promotora no sabia que ya
+     * podia publicar y el equipo veia una lista que solo crecia.
+     */
+    public function marcarMontado(Request $request, Project $project)
+    {
+        $user = $request->user();
+
+        abort_unless($user->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR), 403);
+
+        if (! $project->viewer_requested_at) {
+            return back()->with('info', __('visor.no_estaba_pedido'));
+        }
+
+        // No se da por montado lo que no lo esta: si no hay ni modelo ni fondo,
+        // avisar a la promotora de que ya puede publicar seria mandarla a una
+        // pagina vacia con su nombre encima.
+        if (! ListaParaPublicar::de($project)->puedePublicarse()) {
+            return back()->with('error', __('visor.aun_no_hay_visor'));
+        }
+
+        $quienLoPidio = $project->solicitanteDelVisor;
+
+        $project->update(['viewer_requested_at' => null, 'viewer_requested_by' => null]);
+
+        AuditLog::record('viewer_ready', $project, null, [
+            'proyecto' => $project->name,
+            'montado_por' => $user->email,
+        ]);
+
+        if ($quienLoPidio) {
+            Mail::to($quienLoPidio->email)->queue(new VisorMontado($project, $user));
+        }
+
+        return back()->with('success', __('visor.marcado_montado', ['proyecto' => $project->name]));
     }
 
     /**

@@ -57,7 +57,16 @@
                                         @forelse ($lista->bloqueos() as $b)
                                             <div class="text-xs text-amber-700">{{ __('publicacion.'.$b['clave']) }}</div>
                                         @empty
-                                            <span class="text-xs text-emerald-700">Ya se puede publicar</span>
+                                            {{-- Solo se puede cerrar el circulo cuando hay algo que
+                                                 enseñar: dar por montado un visor que no existe manda
+                                                 a la promotora a publicar una pagina vacia. --}}
+                                            <form method="POST" action="{{ route('admin.projects.visor.montado', $p) }}">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="px-2.5 py-1 bg-emerald-600 text-white rounded text-xs font-semibold hover:bg-emerald-700 transition">
+                                                    {{ __('visor.montado_boton') }}
+                                                </button>
+                                            </form>
                                         @endforelse
                                     </td>
                                 </tr>
