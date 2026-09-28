@@ -91,4 +91,20 @@ class LeerVersionTest extends TestCase
     {
         $this->assertSame('sin-tag', $this->leer(null));
     }
+
+    public function test_sin_fichero_tira_de_la_etiqueta_de_git(): void
+    {
+        // El respaldo tambien es codigo: si alguien le cambia los flags a
+        // `git describe`, nadie se enteraria. Es la rama que fallaba con clones
+        // superficiales, asi que conviene tenerla sujeta.
+        shell_exec(sprintf(
+            'cd %s && git init -q && git config user.email t@t.t && git config user.name t '
+            .'&& git commit -q --allow-empty -m inicial && git tag v9.9.9 2>/dev/null',
+            escapeshellarg($this->carpeta)
+        ));
+
+        $this->assertSame('v9.9.9', $this->leer(null));
+
+        shell_exec('rm -rf '.escapeshellarg($this->carpeta.'/.git'));
+    }
 }
