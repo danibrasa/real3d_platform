@@ -24,14 +24,14 @@ class UnitTypologyController extends Controller
 
     public function create(Project $project)
     {
-        Gate::authorize('manage-typologies');
+        Gate::authorize('manage-typologies', $project);
 
         return view('admin.typologies.create', compact('project'));
     }
 
     public function store(Request $request, Project $project)
     {
-        Gate::authorize('manage-typologies');
+        Gate::authorize('manage-typologies', $project);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -58,14 +58,14 @@ class UnitTypologyController extends Controller
 
     public function edit(Project $project, UnitTypology $typology)
     {
-        Gate::authorize('manage-typologies');
+        Gate::authorize('manage-typologies', $project);
 
         return view('admin.typologies.edit', compact('project', 'typology'));
     }
 
     public function update(Request $request, Project $project, UnitTypology $typology)
     {
-        Gate::authorize('manage-typologies');
+        Gate::authorize('manage-typologies', $project);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -94,7 +94,7 @@ class UnitTypologyController extends Controller
 
     public function destroy(Project $project, UnitTypology $typology)
     {
-        Gate::authorize('manage-typologies');
+        Gate::authorize('manage-typologies', $project);
 
         if ($typology->floor_plan_path) {
             Storage::delete($typology->floor_plan_path);

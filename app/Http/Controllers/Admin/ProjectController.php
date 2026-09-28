@@ -26,6 +26,14 @@ class ProjectController extends Controller
     {
         Gate::authorize('create-project');
 
+        // Decirselo aqui y no despues de rellenarlo todo.
+        $user = auth()->user();
+        if ($user->isInmobiliaria() && $user->companyProfile
+            && ! $user->companyProfile->canCreateProject()) {
+            return redirect()->route('admin.projects.index')
+                ->with('error', __('billing.project_limit_reached'));
+        }
+
         return view('admin.projects.create');
     }
 
@@ -51,6 +59,13 @@ class ProjectController extends Controller
         $validated['status'] = 'draft';
 
         $project = Project::create($validated);
+
+        // Sin esto, una promotora crea el proyecto y lo ve desaparecer:
+        // accessibleProjects() y canAccessProject() miran la tabla de
+        // asignaciones, no `created_by`.
+        if ($request->user()->isInmobiliaria()) {
+            $request->user()->assignedProjects()->attach($project->id);
+        }
 
         // Crear settings por defecto
         ProjectSetting::create(['project_id' => $project->id]);
