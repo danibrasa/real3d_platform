@@ -33,16 +33,21 @@ CLON = "/var/www/dev"
 JOB_CI = "Estilo, tests y compilacion"   # el job, como lo ve check-runs
 WORKFLOW_CI = "Comprobaciones"           # el workflow, como lo ve actions/runs
 
-# El orden importa: el flujo nuevo primero, y la del portal del comprador al
-# final porque es la que hay que resolver contra todo lo demas.
-RAMAS = [
-    # Las ramas a fusionar, en orden. Se edita aqui antes de lanzarlo.
-    #
-    # Ojo: este fichero vive en el repositorio a proposito. Antes andaba suelto
-    # en /root y se editaba a mano en dos sitios, hasta que una copia piso a la
-    # otra y se perdio la integracion del revisor sin que nada lo dijera.
-    "test/whatsapp-real",
-]
+# Las ramas se pasan como argumentos, en el orden en que hay que fusionarlas:
+#
+#   python3 tools/fusionar.py fix/lo-primero feat/lo-segundo
+#
+# Antes se editaba una lista aqui dentro antes de cada ejecucion, y eso tenia
+# dos precios. El pequeno: el repositorio quedaba sucio despues de cada tanda.
+# El caro: la lista se colo en un commit de facturacion con el nombre de una
+# rama de otro asunto todavia dentro, asi que el fichero que decide QUE se
+# fusiona llevaba, sin decirlo, el nombre de algo que nadie habia pedido
+# fusionar. Un dato de cada ejecucion no es codigo y no debe vivir en el
+# codigo.
+#
+# El fichero si vive en el repositorio a proposito: antes andaba suelto en
+# /root y se editaba a mano en dos sitios, hasta que una copia piso a la otra
+# y se perdio la integracion del revisor sin que nada lo dijera.
 
 PIE = (
     "\n\n---\n\n"
@@ -308,11 +313,19 @@ def resolver_conflicto(rama):
 
 
 def main():
+    ramas = [r for r in sys.argv[1:] if not r.startswith("-")]
+
+    if not ramas:
+        sys.exit(
+            "uso: fusionar.py <rama> [rama...]\n"
+            "     en el orden en que hay que fusionarlas"
+        )
+
     git("fetch", "-q", "origin", "--prune")
     log("main esta en %s\n" % git("log", "--oneline", "-1", "origin/main"))
 
-    for i, rama in enumerate(RAMAS, 1):
-        log("[%d/%d] %s" % (i, len(RAMAS), rama))
+    for i, rama in enumerate(ramas, 1):
+        log("[%d/%d] %s" % (i, len(ramas), rama))
 
         # El repositorio borra la rama al fusionar la PR, asi que una rama que ya
         # no existe en origin es una rama que ya esta dentro.
