@@ -19,9 +19,28 @@
         </div>
         <div class="body">
             <p>{{ __('emails.welcome_greeting', ['name' => $user->name]) }}</p>
-            <p>{{ __('emails.welcome_body') }}</p>
+
+            {{-- El mismo correo iba a promotoras y a compradores, con un texto
+                 escrito para comprador: le decia a la promotora que podia
+                 explorar proyectos y "conectar con desarrolladores", cuando la
+                 desarrolladora es ella. --}}
+            @if ($user->isInmobiliaria())
+                <p>{{ __('emails.welcome_promotora_body') }}</p>
+                <ol style="color:#374151; line-height:1.8; padding-left:20px;">
+                    <li>{{ __('primeros_pasos.crear_proyecto') }}</li>
+                    <li>{{ __('primeros_pasos.cargar_viviendas') }}</li>
+                    <li>{{ __('primeros_pasos.pedir_visor') }}</li>
+                    <li>{{ __('primeros_pasos.publicar') }}</li>
+                </ol>
+                <p>{{ __('emails.welcome_promotora_cierre') }}</p>
+            @else
+                <p>{{ __('emails.welcome_body') }}</p>
+            @endif
+
             <p style="text-align: center;">
-                <a href="{{ route('dashboard') }}" class="btn">{{ __('emails.welcome_cta') }}</a>
+                <a href="{{ route('dashboard') }}" class="btn">
+                    {{ $user->isInmobiliaria() ? __('emails.welcome_promotora_cta') : __('emails.welcome_cta') }}
+                </a>
             </p>
             <p>{{ __('emails.welcome_closing') }}</p>
         </div>

@@ -13,4 +13,7 @@ return [
     'subscription_confirmed_trial' => 'Tienes :days dias de prueba gratis para explorar todas las funcionalidades.',
     'subscription_confirmed_cta' => 'Ir al Dashboard',
     'subscription_confirmed_closing' => 'Gracias por confiar en nosotros.',
+    'welcome_promotora_body' => 'Ya tienes tu cuenta lista. Para tener tu proyecto en la web son cuatro pasos, y tres los haces tú:',
+    'welcome_promotora_cierre' => 'El modelo 3D y el fondo 360 los montamos nosotros con tus planos y renders, así que no necesitas nada técnico. Si no tienes el listado de viviendas en Excel, vale el folleto en PDF o una foto del cuadro de precios.',
+    'welcome_promotora_cta' => 'Empezar',
 ];
