@@ -135,11 +135,17 @@ def revisar(rama):
     del corte y una rama se fusiono con dos hallazgos graves que nadie llego a
     leer. Un aviso que depende de que alguien scrollee no es un aviso.
 
-    Sigue decidiendo una persona: para fusionar igualmente hay que pasar
-    --aunque-haya-hallazgos, que es una decision que se toma, no una que se
-    omite por no mirar.
+    Una revision que no llego a hacerse tampoco deja seguir, por el mismo
+    motivo: nadie ha visto un veredicto. Antes se imprimia "se fusiona sin
+    revision" y se fusionaba, que es la version silenciosa del mismo problema
+    -- y ademas la que mas facil es de provocar sin querer, porque basta con
+    que falte la clave o se cuelgue la llamada.
 
-    Devuelve True si se puede seguir.
+    Sigue decidiendo una persona, pero tiene que decirlo:
+      --aunque-haya-hallazgos   fusiona con hallazgos graves
+      --sin-revisor             fusiona cuando la revision no se pudo hacer
+
+    Devuelve "limpia", "hallazgos" o "sin-revision".
     """
     clave = ""
     try:
@@ -152,8 +158,8 @@ def revisar(rama):
         pass
 
     if not clave:
-        log("      (sin clave: no se revisa)")
-        return True
+        log("      | NO SE PUDO REVISAR: no hay clave en el .env")
+        return "sin-revision"
 
     entorno = dict(os.environ, GH_ANTHROPIC_KEY=clave, CLON=CLON)
 
@@ -168,7 +174,7 @@ def revisar(rama):
         )
     except subprocess.TimeoutExpired:
         log("      | NO SE PUDO REVISAR: el revisor se colgo (mas de 5 min)")
-        return True
+        return "sin-revision"
 
     for linea in r.stdout.strip().split("\n"):
         if linea.strip():
@@ -178,19 +184,23 @@ def revisar(rama):
         log("      |")
         log("      | HALLAZGOS GRAVES: no se fusiona esta rama.")
         log("      | Leelos y arreglalos, o repite con --aunque-haya-hallazgos")
-        return False
+        return "hallazgos"
 
     if r.returncode != 0:
         # Cualquier otra cosa -el 2 previsto, pero tambien un cuelgue, un 127 o
         # una excepcion sin capturar- significa que no hubo revision. Tratar
         # solo los codigos previstos dejaba pasar en silencio justo el caso mas
         # probable de rotura real: que el revisor se rompa.
-        log("      | NO SE PUDO REVISAR (codigo %d): se fusiona sin revision" % r.returncode)
+        log("      | NO SE PUDO REVISAR (codigo %d): no se fusiona esta rama." % r.returncode)
         for linea in r.stderr.strip().split("\n")[-3:]:
             if linea.strip():
                 log("      | " + linea)
 
-    return True
+        log("      | Arreglalo, o repite con --sin-revisor")
+
+        return "sin-revision"
+
+    return "limpia"
 
 
 def estado_fusion(numero, intentos=15):
@@ -328,7 +338,10 @@ def resolver_conflicto(rama):
 
 def main():
     ramas = [r for r in sys.argv[1:] if not r.startswith("-")]
-    pese_a_todo = "--aunque-haya-hallazgos" in sys.argv[1:]
+    permitido = {
+        "hallazgos": "--aunque-haya-hallazgos" in sys.argv[1:],
+        "sin-revision": "--sin-revisor" in sys.argv[1:],
+    }
 
     if not ramas:
         sys.exit(
@@ -375,9 +388,10 @@ def main():
 
         # Antes de esperar al CI: si hay algo gordo, mejor verlo ya, y sobre
         # todo antes de fusionarlo.
-        if not revisar(rama) and not pese_a_todo:
-            log("      no se fusiona: %s" % rama)
-            detenidas.append(rama)
+        veredicto = revisar(rama)
+
+        if veredicto != "limpia" and not permitido[veredicto]:
+            detenidas.append("%s (%s)" % (rama, veredicto))
             continue
 
         for intento in (1, 2, 3, 4):
@@ -421,7 +435,7 @@ def main():
         log("=== fusionadas menos %d ===" % len(detenidas))
         log(git("log", "--oneline", "-8", "origin/main"))
         log("")
-        log("DETENIDAS POR EL REVISOR: %s" % ", ".join(detenidas))
+        log("NO SE FUSIONARON: %s" % ", ".join(detenidas))
         sys.exit(1)
 
     log("=== todas fusionadas ===")

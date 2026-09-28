@@ -20,11 +20,23 @@ class SuscripcionDeMentira
     public function __construct(
         private bool $cancelada = false,
         private bool $revienta = false,
+        private bool $enPrueba = true,
     ) {}
 
     public function canceled(): bool
     {
         return $this->cancelada;
+    }
+
+    /**
+     * Existe para poder simular la espera larga: cuando montamos el visor mas
+     * tarde de lo que duraba la prueba original, esto ya es falso. El codigo no
+     * debe mirarlo -- mirarlo era el fallo -- y el test lo comprueba poniendolo
+     * en falso y exigiendo que se ancle igual.
+     */
+    public function onTrial(): bool
+    {
+        return $this->enPrueba;
     }
 
     public function extendTrial(Carbon $fecha): void
