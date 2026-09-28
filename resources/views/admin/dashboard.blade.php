@@ -6,6 +6,11 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            {{-- Lo primero que ve una promotora nueva. Antes de esto el panel
+                 estaba vacio: un menu y nada mas, y tenia que adivinar sola que
+                 empezaba creando un proyecto. Desaparece cuando ya no hace falta. --}}
+            <x-primeros-pasos />
+
             <!-- Stats -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-{{ isset($stats['total_users']) ? '7' : (isset($stats['unread_inquiries']) ? '6' : '5') }} gap-4 mb-6">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
