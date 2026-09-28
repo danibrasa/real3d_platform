@@ -46,9 +46,12 @@ class Project extends Model
         'chatbot_welcome_es',
         'chatbot_welcome_en',
         'chatbot_instructions',
+        'viewer_requested_at',
+        'viewer_requested_by',
     ];
 
     protected $casts = [
+        'viewer_requested_at' => 'datetime',
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
         'latitude' => 'float',
@@ -68,6 +71,12 @@ class Project extends Model
                 }
             }
         });
+    }
+
+    /** Quien pidio que le montaran el visor. */
+    public function solicitanteDelVisor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'viewer_requested_by');
     }
 
     public function creator(): BelongsTo

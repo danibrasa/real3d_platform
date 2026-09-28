@@ -43,4 +43,33 @@
             @endforeach
         </ul>
     @endif
+
+    {{-- La costura del reparto. Sin este boton la promotora leia "lo hace el
+         equipo de Real3D" y no tenia forma de avisar a nadie: se quedaba
+         esperando a que alguien adivinara que habia terminado. --}}
+    @if (collect($bloqueos)->contains(fn ($b) => $b['clave'] === 'sin_visor'))
+        <div class="mt-3 pt-3 border-t border-amber-200">
+            @if ($project->viewer_requested_at)
+                <p class="text-xs text-emerald-800">
+                    {{ __('visor.pedido_el', ['fecha' => $project->viewer_requested_at->translatedFormat('j \d\e F')]) }}
+                </p>
+                <form method="POST" action="{{ route('admin.projects.visor.retirar', $project) }}" class="mt-1">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-xs text-gray-500 hover:text-gray-700 underline">
+                        {{ __('visor.retirar') }}
+                    </button>
+                </form>
+            @else
+                <p class="text-xs text-gray-600 mb-2">{{ __('visor.pedir_ayuda') }}</p>
+                <form method="POST" action="{{ route('admin.projects.visor.pedir', $project) }}">
+                    @csrf
+                    <button type="submit"
+                            class="px-3 py-1.5 bg-amber-600 text-white rounded-md text-xs font-semibold hover:bg-amber-700 transition">
+                        {{ __('visor.pedir') }}
+                    </button>
+                </form>
+            @endif
+        </div>
+    @endif
 </div>

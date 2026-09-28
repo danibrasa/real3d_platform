@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ProjectSettingsController;
+use App\Http\Controllers\Admin\SolicitudDeVisorController;
 use App\Http\Controllers\Admin\StrategicAnalysisController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\UnitController;
@@ -86,6 +87,14 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('projects', ProjectController::class);
+    // La costura del reparto: la promotora avisa de que ha terminado lo suyo.
+    Route::post('projects/{project}/pedir-visor', [SolicitudDeVisorController::class, 'pedir'])
+        ->name('projects.visor.pedir');
+    Route::delete('projects/{project}/pedir-visor', [SolicitudDeVisorController::class, 'retirar'])
+        ->name('projects.visor.retirar');
+    Route::get('visores-pendientes', [SolicitudDeVisorController::class, 'pendientes'])
+        ->name('visores.pendientes');
+
     Route::put('projects/{project}/settings', [ProjectSettingsController::class, 'update'])
         ->name('projects.settings.update');
 
