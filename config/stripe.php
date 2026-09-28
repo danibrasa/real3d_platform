@@ -35,5 +35,14 @@ return [
             'price_yearly' => 3830,
         ],
     ],
+    // Los dias de prueba de verdad, contados desde que el visor esta
+    // montado (ver App\Support\Facturacion\PruebaGratuita).
     'trial_days' => 14,
+
+    // Lo que dura la prueba con la que nace la suscripcion, que no es una
+    // oferta sino el plazo que nos damos para montar el visor: mientras no
+    // este, no hay nada que probar y no se cobra. En cuanto esta, se
+    // recorta a trial_days. Si alguna vez tardamos mas que esto, el
+    // problema no es la facturacion.
+    'trial_espera_dias' => 60,
 ];

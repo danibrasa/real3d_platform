@@ -140,8 +140,9 @@ class OnboardingController extends Controller
 
         $checkout = $user->newSubscription('default', $priceId);
 
-        if (config('stripe.trial_days') > 0) {
-            $checkout->trialDays(config('stripe.trial_days'));
+        // La espera, no la prueba: el reloj de verdad lo arranca el visor.
+        if (config('stripe.trial_espera_dias') > 0) {
+            $checkout->trialDays(config('stripe.trial_espera_dias'));
         }
 
         return $checkout->checkout([

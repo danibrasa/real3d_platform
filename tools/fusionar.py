@@ -129,9 +129,17 @@ def revisar(rama):
     Se llama con la clave del entorno de desarrollo. Si no hay clave, no se
     revisa y se dice: callarse haria creer que la revision salio limpia.
 
-    Un hallazgo grave no bloquea la fusion por si solo -quien decide sigue
-    siendo quien lee- pero sale por pantalla para que nadie lo fusione sin
-    haberlo visto.
+    Un hallazgo grave detiene la fusion. Antes solo se imprimia un aviso, con
+    el argumento de que quien decide es quien lee; pero esto se lanza sin nadie
+    delante y su salida se mira con un tail, asi que el aviso salio por encima
+    del corte y una rama se fusiono con dos hallazgos graves que nadie llego a
+    leer. Un aviso que depende de que alguien scrollee no es un aviso.
+
+    Sigue decidiendo una persona: para fusionar igualmente hay que pasar
+    --aunque-haya-hallazgos, que es una decision que se toma, no una que se
+    omite por no mirar.
+
+    Devuelve True si se puede seguir.
     """
     clave = ""
     try:
@@ -145,7 +153,7 @@ def revisar(rama):
 
     if not clave:
         log("      (sin clave: no se revisa)")
-        return
+        return True
 
     entorno = dict(os.environ, GH_ANTHROPIC_KEY=clave, CLON=CLON)
 
@@ -160,15 +168,19 @@ def revisar(rama):
         )
     except subprocess.TimeoutExpired:
         log("      | NO SE PUDO REVISAR: el revisor se colgo (mas de 5 min)")
-        return
+        return True
 
     for linea in r.stdout.strip().split("\n"):
         if linea.strip():
             log("      | " + linea)
 
     if r.returncode == 1:
-        log("      | ATENCION: hay hallazgos graves ahi arriba")
-    elif r.returncode != 0:
+        log("      |")
+        log("      | HALLAZGOS GRAVES: no se fusiona esta rama.")
+        log("      | Leelos y arreglalos, o repite con --aunque-haya-hallazgos")
+        return False
+
+    if r.returncode != 0:
         # Cualquier otra cosa -el 2 previsto, pero tambien un cuelgue, un 127 o
         # una excepcion sin capturar- significa que no hubo revision. Tratar
         # solo los codigos previstos dejaba pasar en silencio justo el caso mas
@@ -177,6 +189,8 @@ def revisar(rama):
         for linea in r.stderr.strip().split("\n")[-3:]:
             if linea.strip():
                 log("      | " + linea)
+
+    return True
 
 
 def estado_fusion(numero, intentos=15):
@@ -314,12 +328,15 @@ def resolver_conflicto(rama):
 
 def main():
     ramas = [r for r in sys.argv[1:] if not r.startswith("-")]
+    pese_a_todo = "--aunque-haya-hallazgos" in sys.argv[1:]
 
     if not ramas:
         sys.exit(
             "uso: fusionar.py <rama> [rama...]\n"
             "     en el orden en que hay que fusionarlas"
         )
+
+    detenidas = []
 
     git("fetch", "-q", "origin", "--prune")
     log("main esta en %s\n" % git("log", "--oneline", "-1", "origin/main"))
@@ -356,8 +373,12 @@ def main():
 
         numero = pr["number"]
 
-        # Antes de esperar al CI: si hay algo gordo, mejor verlo ya.
-        revisar(rama)
+        # Antes de esperar al CI: si hay algo gordo, mejor verlo ya, y sobre
+        # todo antes de fusionarlo.
+        if not revisar(rama) and not pese_a_todo:
+            log("      no se fusiona: %s" % rama)
+            detenidas.append(rama)
+            continue
 
         for intento in (1, 2, 3, 4):
             pr = estado_fusion(numero)
@@ -392,8 +413,18 @@ def main():
 
         git("fetch", "-q", "origin", "--prune")
 
-    log("=== todas fusionadas ===")
     git("fetch", "-q", "origin", "--prune")
+
+    if detenidas:
+        # Ultima linea y codigo de salida distinto de cero: asi tampoco se
+        # pierde cuando la salida se mira con un tail.
+        log("=== fusionadas menos %d ===" % len(detenidas))
+        log(git("log", "--oneline", "-8", "origin/main"))
+        log("")
+        log("DETENIDAS POR EL REVISOR: %s" % ", ".join(detenidas))
+        sys.exit(1)
+
+    log("=== todas fusionadas ===")
     log(git("log", "--oneline", "-12", "origin/main"))
 
 
