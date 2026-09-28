@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanyProfile;
+use App\Models\User;
+use App\Support\Facturacion\PlanDeStripe;
 use Illuminate\Http\Request;
+use Laravel\Cashier\Cashier;
 
 class SubscriptionController extends Controller
 {
@@ -100,22 +103,72 @@ class SubscriptionController extends Controller
         }
 
         return $checkout->checkout([
-            'success_url' => route('admin.subscription.success').'?plan='.$plan,
+            // Se manda el identificador de la sesion, no el plan: el plan hay
+            // que preguntarselo a Stripe, porque esta direccion la controla
+            // quien navega. Stripe sustituye el hueco por el identificador real.
+            'success_url' => route('admin.subscription.success').'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('admin.subscription.index'),
         ]);
     }
 
+    /**
+     * Vuelta desde el pago de Stripe.
+     *
+     * Aqui NO se concede nada por lo que diga la direccion. Antes se leia el
+     * plan de `?plan=` y se aplicaban sus limites sin preguntar nada, asi que
+     * bastaba con visitar /admin/subscription/success?plan=enterprise, estando
+     * registrado, para darse el plan mas caro sin pagar un euro.
+     *
+     * Ahora se le pregunta a Stripe por la sesion de pago: que exista, que sea
+     * de este cliente y que este cerrada. El plan sale del precio que hay
+     * dentro de la sesion.
+     *
+     * Quien concede de verdad sigue siendo el webhook, que llega firmado por
+     * Stripe. Esto solo adelanta el resultado para que el panel no se vea con
+     * los limites viejos durante los segundos que tarde en llegar.
+     */
     public function success(Request $request)
     {
-        $plan = $request->query('plan', 'starter');
         $user = $request->user();
-        $profile = $user->companyProfile;
-        if ($profile) {
-            $this->syncPlanLimits($profile, $plan);
+
+        if ($request->query('session_id') && $user->companyProfile) {
+            try {
+                $this->aplicarSesionDePago($user, $request->query('session_id'));
+            } catch (\Throwable $e) {
+                // Si Stripe no contesta no se deja al usuario colgado: el
+                // webhook pondra los limites cuando llegue.
+                report($e);
+            }
         }
 
         return redirect()->route('admin.dashboard')
             ->with('success', __('billing.subscription_activated'));
+    }
+
+    /** Aplica el plan solo si Stripe confirma que esa sesion es de este cliente y esta cerrada. */
+    private function aplicarSesionDePago(User $user, string $sesionId): void
+    {
+        // Sin cliente en Stripe no hay nada que comprobar, y ademas evita salir
+        // a la red para preguntar por una sesion que no puede ser suya.
+        if (! $user->stripe_id) {
+            return;
+        }
+
+        $sesion = Cashier::stripe()->checkout->sessions->retrieve(
+            $sesionId, ['expand' => ['line_items']]
+        );
+
+        // Que la sesion sea de quien dice serlo: sin esta comprobacion, quien
+        // consiguiera el identificador de un pago ajeno se aplicaria ese plan.
+        if ($sesion->customer !== $user->stripe_id || $sesion->status !== 'complete') {
+            return;
+        }
+
+        $plan = PlanDeStripe::desdePrecio($sesion->line_items->data[0]->price->id ?? null);
+
+        if ($plan) {
+            PlanDeStripe::aplicar($user->companyProfile, $plan);
+        }
     }
 
     public function portal(Request $request)
@@ -151,26 +204,16 @@ class SubscriptionController extends Controller
 
         $subscription = $user->subscription('default');
         if ($subscription) {
+            // Aqui si vale el plan pedido: el swap lo cambia de verdad en
+            // Stripe (con su cobro o su prorrateo) antes de tocar los limites.
             $subscription->swap($priceId);
-            $profile = $user->companyProfile;
-            if ($profile) {
-                $this->syncPlanLimits($profile, $plan);
+            if ($user->companyProfile) {
+                PlanDeStripe::aplicar($user->companyProfile, $plan);
             }
 
             return back()->with('success', __('billing.plan_changed'));
         }
 
         return back()->with('error', __('billing.no_active_subscription'));
-    }
-
-    private function syncPlanLimits(CompanyProfile $profile, string $tier): void
-    {
-        $limits = CompanyProfile::PLAN_LIMITS[$tier] ?? CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_STARTER];
-
-        $profile->update([
-            'plan_tier' => $tier,
-            'max_projects' => $limits['max_projects'],
-            'max_storage_bytes' => $limits['max_storage_bytes'],
-        ]);
     }
 }
