@@ -17,7 +17,7 @@ return [
     'plan_unavailable' => 'Ese plan no se puede contratar ahora mismo. Estamos en ello: escribenos y lo resolvemos.',
     'free' => 'Gratis',
     'no_card' => 'sin tarjeta',
-    'trial_days_free' => ':dias dias de prueba. No se cobra nada hasta que termine.',
+    'trial_days_free' => ':dias dias de prueba que empiezan cuando tu visor este montado, no al contratar.',
     'stripe_not_configured' => 'Stripe no esta configurado. Contacta al soporte.',
     'no_stripe_customer' => 'No tienes un perfil de facturacion. Suscribete primero.',
     'no_active_subscription' => 'No tienes una suscripcion activa.',

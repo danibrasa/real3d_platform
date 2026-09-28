@@ -1,0 +1,163 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Mail\VisorMontado;
+use App\Models\CompanyProfile;
+use App\Models\Project;
+use App\Models\ProjectFile;
+use App\Models\User;
+use App\Support\Facturacion\PruebaGratuita;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
+
+/**
+ * Cuando empiezan a contar los catorce dias.
+ *
+ * Empezaban al pagar. Como el visor lo montamos nosotros, entre que la
+ * promotora lo pide y lo tiene pueden pasar dias en los que su panel esta
+ * vacio y su pagina no se puede publicar: no hay nada que probar. Una espera
+ * de cinco dias dejaba nueve de prueba y catorce de cobro.
+ *
+ * Ahora la prueba se ancla cuando el visor se da por montado. Lo que se
+ * comprueba aqui son las reglas, que es lo que puede equivocarse; la llamada a
+ * Stripe va aparte a proposito para no tener que simular una pasarela para
+ * saber si una condicion esta bien escrita.
+ */
+class PruebaGratuitaTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function perfil(?string $pruebaDesde = null): CompanyProfile
+    {
+        $user = User::factory()->create(['role' => User::ROLE_INMOBILIARIA]);
+
+        return CompanyProfile::create([
+            'user_id' => $user->id,
+            'company_name' => 'Promotora Bahia',
+            'slug' => 'promotora-bahia-'.$user->id,
+            'plan_tier' => CompanyProfile::PLAN_PROFESSIONAL,
+            'max_projects' => 5,
+            'prueba_desde' => $pruebaDesde,
+        ]);
+    }
+
+    public function test_se_ancla_cuando_hay_suscripcion_en_prueba(): void
+    {
+        $this->assertTrue(PruebaGratuita::debeAnclarse($this->perfil(), enPrueba: true));
+    }
+
+    public function test_no_se_ancla_dos_veces(): void
+    {
+        // El segundo proyecto que se da por montado no regala otros catorce
+        // dias: si lo hiciera, una promotora con proyectos seguidos no llegaria
+        // a pagar nunca.
+        $perfil = $this->perfil(pruebaDesde: now()->subDays(3)->toDateTimeString());
+
+        $this->assertFalse(PruebaGratuita::debeAnclarse($perfil, enPrueba: true));
+    }
+
+    public function test_sin_suscripcion_en_prueba_no_hay_nada_que_anclar(): void
+    {
+        // El plan gratuito no tiene prueba porque no tiene nada que probar
+        // despues: no se acaba nunca.
+        $this->assertFalse(PruebaGratuita::debeAnclarse($this->perfil(), enPrueba: false));
+    }
+
+    public function test_quien_no_tiene_empresa_no_rompe_nada(): void
+    {
+        $suelto = User::factory()->create(['role' => User::ROLE_INMOBILIARIA]);
+
+        $this->assertNull(PruebaGratuita::anclarAlMontarVisor($suelto));
+        $this->assertNull(PruebaGratuita::anclarAlMontarVisor(null));
+    }
+
+    public function test_sin_suscripcion_no_se_llama_a_stripe_ni_se_marca(): void
+    {
+        // Sin suscripcion no hay reloj que mover, y sobre todo: no se sale a la
+        // red. Si se marcara igualmente, el dia que contratara ya constaria
+        // como prueba gastada sin haberla tenido.
+        $perfil = $this->perfil();
+
+        $this->assertNull(PruebaGratuita::anclarAlMontarVisor($perfil->user));
+        $this->assertNull($perfil->fresh()->prueba_desde);
+    }
+
+    /**
+     * Un proyecto que de verdad se puede dar por montado.
+     *
+     * Hace falta el fichero: sin modelo ni fondo, marcarMontado se corta antes
+     * con "aun no hay visor" y no llega a ejecutar nada de lo que se quiere
+     * comprobar. La primera version de este test no lo ponia, pasaba en verde,
+     * y lo unico que demostraba es que la ruta devuelve una redireccion.
+     */
+    private function proyectoConVisorPedido(CompanyProfile $perfil): Project
+    {
+        $proyecto = Project::create([
+            'name' => 'Residencial Bahia',
+            'slug' => 'residencial-bahia-'.$perfil->id,
+            'status' => 'draft',
+            'created_by' => $perfil->user_id,
+            'viewer_requested_at' => now(),
+            'viewer_requested_by' => $perfil->user_id,
+        ]);
+
+        ProjectFile::create([
+            'project_id' => $proyecto->id,
+            'file_type' => 'image_360',
+            'original_name' => 'fondo.png',
+            'storage_path' => 'x/fondo.png',
+            'mime_type' => 'image/png',
+            'file_size' => 100,
+            'upload_complete' => true,
+        ]);
+
+        return $proyecto;
+    }
+
+    public function test_dar_por_montado_funciona_aunque_no_haya_suscripcion(): void
+    {
+        // El caso de hoy: todavia no hay clientes de pago. Dar por montado un
+        // visor tiene que seguir cerrando la solicitud y avisando.
+        Mail::fake();
+        $equipo = User::factory()->create(['role' => User::ROLE_GESTOR]);
+        $perfil = $this->perfil();
+        $proyecto = $this->proyectoConVisorPedido($perfil);
+
+        $this->actingAs($equipo)->post(route('admin.projects.visor.montado', $proyecto));
+
+        // Que haya salido de la cola es lo que prueba que llego al final y no
+        // se corto en el "aun no hay visor".
+        $this->assertNull($proyecto->fresh()->viewer_requested_at);
+        Mail::assertQueued(VisorMontado::class);
+
+        // Y sin suscripcion no se marca prueba: el dia que contrate no puede
+        // constarle como gastada sin haberla tenido.
+        $this->assertNull($perfil->fresh()->prueba_desde);
+    }
+
+    public function test_sin_visor_montado_no_se_toca_la_prueba(): void
+    {
+        $equipo = User::factory()->create(['role' => User::ROLE_GESTOR]);
+        $perfil = $this->perfil();
+
+        // Sin el fichero: el equipo se equivoca de boton y lo da por montado
+        // antes de montarlo.
+        $proyecto = Project::create([
+            'name' => 'Residencial Sin Nada',
+            'slug' => 'residencial-sin-nada-'.$perfil->id,
+            'status' => 'draft',
+            'created_by' => $perfil->user_id,
+            'viewer_requested_at' => now(),
+            'viewer_requested_by' => $perfil->user_id,
+        ]);
+
+        $this->actingAs($equipo)->post(route('admin.projects.visor.montado', $proyecto));
+
+        // Sigue en la cola y la prueba no ha empezado: seria lo peor de los dos
+        // mundos, gastar dias de prueba sobre un visor que no existe.
+        $this->assertNotNull($proyecto->fresh()->viewer_requested_at);
+        $this->assertNull($perfil->fresh()->prueba_desde);
+    }
+}

@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
             <h2 class="text-3xl sm:text-4xl font-bold mb-4">{{ app()->getLocale() === 'en' ? 'Simple, transparent pricing' : 'Precios simples y transparentes' }}</h2>
-            <p class="text-slate-400 max-w-2xl mx-auto">{{ app()->getLocale() === 'en' ? 'Choose the plan that fits your business. Start with a 14-day free trial.' : 'Elige el plan que se ajuste a tu negocio. Comienza con 14 dias de prueba gratis.' }}</p>
+            <p class="text-slate-400 max-w-2xl mx-auto">{{ app()->getLocale() === 'en' ? 'Choose the plan that fits your business. The free trial starts when your viewer is live.' : 'Elige el plan que se ajuste a tu negocio. La prueba empieza cuando tu visor este montado.' }}</p>
         </div>
 
         <div x-data="{ interval: 'monthly' }" class="space-y-8">
