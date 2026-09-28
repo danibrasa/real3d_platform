@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Support\Import\LectorDePdf;
+use App\Support\Import\LectorDeDocumentos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +17,7 @@ use Tests\TestCase;
  * siendo un hueco, y que una respuesta rara falle de forma limpia en vez de
  * crear basura.
  */
-class LectorDePdfTest extends TestCase
+class LectorDeDocumentosTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -43,7 +43,7 @@ class LectorDePdfTest extends TestCase
     {
         $this->responde($json);
 
-        return (new LectorDePdf(clave: 'clave-de-prueba', modelo: 'modelo-de-prueba'))
+        return (new LectorDeDocumentos(clave: 'clave-de-prueba', modelo: 'modelo-de-prueba'))
             ->leer($this->pdfFalso());
     }
 
@@ -55,9 +55,9 @@ class LectorDePdfTest extends TestCase
             "bathrooms":2,"area_m2":85.5,"price":185000,"status":"available",
             "typology":"Tipo A","notes":null}]}');
 
-        $this->assertSame(LectorDePdf::CAMPOS, $leido['cabeceras']);
+        $this->assertSame(LectorDeDocumentos::CAMPOS, $leido['cabeceras']);
         $this->assertSame(1, $leido['total']);
-        $this->assertCount(count(LectorDePdf::CAMPOS), $leido['filas'][0]);
+        $this->assertCount(count(LectorDeDocumentos::CAMPOS), $leido['filas'][0]);
         $this->assertSame('A-101', $leido['filas'][0][0]);
         $this->assertSame('185000', $leido['filas'][0][5]);
     }
@@ -122,7 +122,7 @@ class LectorDePdfTest extends TestCase
     {
         Http::fake();
 
-        $lector = new LectorDePdf(clave: '', modelo: 'x');
+        $lector = new LectorDeDocumentos(clave: '', modelo: 'x');
 
         $this->assertFalse($lector->disponible());
         $this->expectException(\RuntimeException::class);
@@ -134,6 +134,51 @@ class LectorDePdfTest extends TestCase
         Http::fake(['api.anthropic.com/*' => Http::response('sin cuota', 429)]);
 
         $this->expectException(\RuntimeException::class);
-        (new LectorDePdf(clave: 'x', modelo: 'y'))->leer($this->pdfFalso());
+        (new LectorDeDocumentos(clave: 'x', modelo: 'y'))->leer($this->pdfFalso());
+    }
+
+    // --- Imagenes ---------------------------------------------------------
+
+    private function ficheroFalso(string $extension): string
+    {
+        $ruta = sys_get_temp_dir().'/prueba-'.uniqid().'.'.$extension;
+        file_put_contents($ruta, 'contenido de prueba');
+
+        return $ruta;
+    }
+
+    public function test_lee_tambien_una_foto_del_listado(): void
+    {
+        // No todas las promotoras tienen el listado en PDF: muchas lo tienen en
+        // una imagen dentro de una presentacion, o le hacen una foto al cuadro
+        // impreso. Para quien sube el fichero tiene que ser lo mismo.
+        $this->responde('{"viviendas":[{"identifier":"M-201","price":168000}]}');
+
+        $leido = (new LectorDeDocumentos(clave: 'x', modelo: 'y'))
+            ->leer($this->ficheroFalso('png'));
+
+        $this->assertSame(1, $leido['total']);
+    }
+
+    public function test_una_imagen_va_como_imagen_y_un_pdf_como_documento(): void
+    {
+        // La API los trata distinto: mandar una foto como "document" falla.
+        foreach (['pdf' => 'document', 'jpg' => 'image', 'png' => 'image', 'webp' => 'image'] as $ext => $esperado) {
+            $this->responde('{"viviendas":[]}');
+
+            (new LectorDeDocumentos(clave: 'x', modelo: 'y'))->leer($this->ficheroFalso($ext));
+
+            Http::assertSent(function ($peticion) use ($esperado) {
+                return $peticion['messages'][0]['content'][0]['type'] === $esperado;
+            });
+        }
+    }
+
+    public function test_un_formato_que_no_se_sabe_leer_se_dice(): void
+    {
+        $this->responde('{"viviendas":[]}');
+
+        $this->expectException(\RuntimeException::class);
+        (new LectorDeDocumentos(clave: 'x', modelo: 'y'))->leer($this->ficheroFalso('docx'));
     }
 }

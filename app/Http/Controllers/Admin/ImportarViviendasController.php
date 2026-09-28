@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UnitTypology;
-use App\Support\Import\LectorDePdf;
+use App\Support\Import\LectorDeDocumentos;
 use App\Support\Import\LectorDeViviendas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,14 +46,15 @@ class ImportarViviendasController extends Controller
         $maxKb = max(10240, (int) config('importacion.max_mb', 15) * 1024);
 
         $request->validate([
-            'fichero' => ['required', 'file', 'max:'.$maxKb, 'mimes:xlsx,csv,txt,ods,pdf'],
+            'fichero' => ['required', 'file', 'max:'.$maxKb, 'mimes:xlsx,csv,txt,ods,pdf,jpg,jpeg,png,webp,gif'],
         ], [], ['fichero' => __('el fichero')]);
 
         $subido = $request->file('fichero');
         $nombre = Str::uuid().'.'.$subido->getClientOriginalExtension();
         $subido->storeAs(self::CARPETA, $nombre);
 
-        $esPdf = strtolower($subido->getClientOriginalExtension()) === 'pdf';
+        // PDF o imagen van al mismo sitio: los dos los lee un modelo.
+        $esPdf = isset(LectorDeDocumentos::TIPOS[strtolower($subido->getClientOriginalExtension())]);
 
         try {
             $leido = $esPdf
@@ -65,7 +66,7 @@ class ImportarViviendasController extends Controller
 
             return back()->withErrors([
                 'fichero' => $esPdf
-                    ? __('No se ha podido leer el PDF. Prueba con el listado en Excel si lo tienes.')
+                    ? __('No se ha podido leer el documento. Prueba con el listado en Excel si lo tienes.')
                     : __('No se ha podido leer el fichero. Comprueba que sea un Excel o un CSV válido.'),
             ]);
         }
@@ -185,9 +186,9 @@ class ImportarViviendasController extends Controller
         return $sin;
     }
 
-    private function lectorPdf(): LectorDePdf
+    private function lectorPdf(): LectorDeDocumentos
     {
-        $lector = new LectorDePdf(segundos: (int) config('importacion.segundos', 100));
+        $lector = new LectorDeDocumentos(segundos: (int) config('importacion.segundos', 100));
 
         if (! config('importacion.pdf_habilitado', true) || ! $lector->disponible()) {
             throw new \RuntimeException('La lectura de PDFs no esta configurada.');
