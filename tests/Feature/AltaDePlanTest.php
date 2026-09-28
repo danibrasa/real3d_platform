@@ -74,6 +74,22 @@ class AltaDePlanTest extends TestCase
             'sin precio de Stripe se ha activado Professional igualmente');
     }
 
+    public function test_una_sesion_de_pago_inventada_no_concede_nada(): void
+    {
+        $user = $this->promotoraRecienRegistrada();
+
+        // Sin cliente en Stripe, un identificador de sesion no puede ser suyo:
+        // se corta antes de salir a la red, asi que el test no necesita
+        // inventarse un Stripe para comprobarlo.
+        $this->assertNull($user->stripe_id);
+
+        $this->actingAs($user)->get(route('onboarding.complete').'?session_id=cs_test_inventada');
+
+        $this->assertSame(CompanyProfile::PLAN_STARTER,
+            $user->companyProfile->fresh()->plan_tier,
+            'una sesion de pago que no es de este cliente ha concedido plan');
+    }
+
     public function test_el_plan_de_entrada_si_se_puede_elegir_porque_es_gratis(): void
     {
         $user = $this->promotoraRecienRegistrada();
