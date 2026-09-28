@@ -2,7 +2,6 @@
 
 namespace App\Support\Facturacion;
 
-use App\Models\CompanyProfile;
 use App\Models\Project;
 use App\Models\User;
 
@@ -48,15 +47,11 @@ class AccesoAlVisor
      */
     public static function servidoEnPublico(Project $proyecto): bool
     {
-        $planes = $proyecto->assignedAgencies
-            ->map(fn (User $u) => $u->companyProfile?->plan_tier)
-            ->filter();
-
-        if ($planes->isEmpty()) {
-            return true;
-        }
-
-        return $planes->contains(fn (string $plan) => $plan !== CompanyProfile::PLAN_STARTER);
+        // Se pregunta por la prestacion y no por el nombre del plan. Con
+        // "distinto de starter" el visor quedaba fuera de la tabla de limites,
+        // y por eso la auditoria no lo cubrio: era el unico que se comprobaba
+        // a mano y fue el unico que estuvo meses sin puerta.
+        return PlanDelProyecto::incluye($proyecto, 'visor_3d');
     }
 
     public static function puedePedirlo(?User $usuario): bool
@@ -69,9 +64,7 @@ class AccesoAlVisor
             return true;
         }
 
-        $plan = $usuario->companyProfile?->plan_tier;
-
         // Sin ficha de empresa no hay plan que mirar, y sin plan no se pide.
-        return $plan !== null && $plan !== CompanyProfile::PLAN_STARTER;
+        return (bool) $usuario->companyProfile?->hasFeature('visor_3d');
     }
 }

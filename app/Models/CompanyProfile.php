@@ -24,6 +24,8 @@ class CompanyProfile extends Model
             'embed_widget' => false,
             'max_agents' => 0,
             'max_units_per_project' => 20,
+            // Lo unico que nos cuesta dinero hacer: lo monta el equipo.
+            'visor_3d' => false,
         ],
         self::PLAN_PROFESSIONAL => [
             'max_projects' => 5,
@@ -34,6 +36,7 @@ class CompanyProfile extends Model
             'embed_widget' => true,
             'max_agents' => 5,
             'max_units_per_project' => 100,
+            'visor_3d' => true,
         ],
         self::PLAN_ENTERPRISE => [
             'max_projects' => 999,
@@ -44,6 +47,7 @@ class CompanyProfile extends Model
             'embed_widget' => true,
             'max_agents' => 50,
             'max_units_per_project' => 9999,
+            'visor_3d' => true,
         ],
     ];
 
