@@ -5,7 +5,17 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/comprobacion-nocturna.sh
+# El fichero del repositorio, no una copia en /usr/local/bin.
+#
+# Habia dos. La de /usr/local/bin la instala real3d-deploy.sh, pero eso corre en
+# produccion y esta comprobacion vive en la VM auxiliar, donde no despliega
+# nadie: la copia se quedaba congelada el dia que se instalo. Hoy mismo edite el
+# guion, lo ejecute entero en verde, y esta noche habria corrido la version
+# vieja sin que nada lo dijera.
+#
+# El guion ya apunta a /var/www/dev con su propio APP, asi que ejecutarlo desde
+# ahi es donde de verdad vive. Un fichero, no dos.
+ExecStart=/var/www/dev/deploy/comprobacion-nocturna.sh
 # Si el entorno de desarrollo esta caido no tiene sentido insistir: ya lo
 # contara el aviso.
 TimeoutStartSec=900
