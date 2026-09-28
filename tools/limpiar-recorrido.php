@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
+
 /**
  * Borra lo que deja el recorrido de alta.
  *
@@ -13,12 +17,12 @@ $ruta = rtrim($argv[1] ?? '/var/www/dev', '/');
 
 require $ruta.'/vendor/autoload.php';
 $app = require $ruta.'/bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 // El mismo dominio que usa tools/recorrido-alta.py. Si cambia alli, cambia aqui.
 const MARCA = '@recorrido-automatico.invalid';
 
-$usuarios = App\Models\User::where('email', 'like', '%'.MARCA)->get();
+$usuarios = User::where('email', 'like', '%'.MARCA)->get();
 $proyectos = 0;
 $viviendas = 0;
 
@@ -38,7 +42,7 @@ foreach ($usuarios as $u) {
 }
 
 // Por si algun recorrido murio a medias y dejo el proyecto sin dueño.
-$huerfanos = App\Models\Project::where('name', 'like', 'Recorrido automatico%')->get();
+$huerfanos = Project::where('name', 'like', 'Recorrido automatico%')->get();
 foreach ($huerfanos as $p) {
     $viviendas += $p->units()->count();
     $p->units()->delete();
