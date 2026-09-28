@@ -7,6 +7,7 @@ use App\Models\ChatbotConversation;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Services\ChatbotService;
+use App\Support\Leads\AvisoDeConsulta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -129,6 +130,12 @@ class ChatbotController extends Controller
             'message' => $chatNote,
             'read' => false,
         ]);
+
+        // Avisar a la promotora, que es lo que faltaba: esto guardaba el
+        // lead en la base y no mandaba nada. La promotora lo tenia delante
+        // y no lo sabia. Mismo fallo que ya costo semanas por el
+        // formulario, repetido aqui.
+        AvisoDeConsulta::enviar($inquiry, $project);
 
         // Update conversation
         $conversation->update([

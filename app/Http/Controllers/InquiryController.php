@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\InquiryAutoReply;
-use App\Mail\NewInquiryNotification;
 use App\Models\Inquiry;
 use App\Models\Project;
-use App\Models\User;
 use App\Services\WebhookService;
+use App\Support\Leads\AvisoDeConsulta;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class InquiryController extends Controller
 {
@@ -52,33 +49,9 @@ class InquiryController extends Controller
         ], $project->id);
 
         // Notify project contact + superadmins
-        $recipients = collect();
-
-        if ($project->contact_email) {
-            $recipients->push($project->contact_email);
-        } else {
-            // Sin correo de contacto configurado, el aviso solo iba a los
-            // superadmin del SaaS: la promotora dueña del proyecto no se
-            // enteraba de su propio lead, y rellenar ese campo es justo lo que
-            // se olvida al dar de alta un proyecto.
-            $recipients = $recipients->merge($project->assignedAgencies()->pluck('email'));
-
-            if ($recipients->isEmpty() && $project->creator) {
-                $recipients->push($project->creator->email);
-            }
-        }
-
-        $superadminEmails = User::where('role', User::ROLE_SUPERADMIN)->pluck('email');
-        $recipients = $recipients->merge($superadminEmails)->unique();
-
-        if ($recipients->isNotEmpty()) {
-            foreach ($recipients as $email) {
-                Mail::to($email)->queue(new NewInquiryNotification($inquiry));
-            }
-        }
-
-        // Auto-reply to the buyer
-        Mail::to($inquiry->email)->queue(new InquiryAutoReply($inquiry));
+        // Los destinatarios y el aviso viven en AvisoDeConsulta: el
+        // chatbot guarda leads igual que esto y no avisaba a nadie.
+        AvisoDeConsulta::enviar($inquiry, $project);
 
         return back()->with('success', 'Gracias por tu consulta. Nos pondremos en contacto pronto.');
     }
