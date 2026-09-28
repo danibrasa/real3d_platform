@@ -32,6 +32,29 @@ class FileUploadController extends Controller
             return response()->json(['error' => __('billing.storage_quota_exceeded')], 403);
         }
 
+        // Si ya hay una subida a medias de este mismo fichero, se continua
+        // donde se quedo en vez de empezar de cero.
+        //
+        // Un video 360 de trescientos megas son sesenta trozos. Si la conexion
+        // se corta en el cuarenta, hasta ahora se tiraban los cuarenta y habia
+        // que subirlo entero otra vez: en produccion, 12 de 28 subidas nunca
+        // llegaron a terminar.
+        $aMedias = UploadChunk::where('project_id', $project->id)
+            ->where('file_type', $validated['file_type'])
+            ->where('original_name', $validated['original_name'])
+            ->where('total_size', $validated['total_size'])
+            ->where('completed', false)
+            ->where('created_at', '>', now()->subHours(24))
+            ->latest('id')
+            ->first();
+
+        if ($aMedias) {
+            return response()->json([
+                'upload_id' => $aMedias->upload_id,
+                'trozos_ya_subidos' => $this->trozosPresentes($aMedias),
+            ]);
+        }
+
         $uploadId = Str::uuid()->toString();
         $tempDir = "uploads/chunks/{$uploadId}";
         Storage::makeDirectory($tempDir);
@@ -46,7 +69,7 @@ class FileUploadController extends Controller
             'temp_directory' => $tempDir,
         ]);
 
-        return response()->json(['upload_id' => $uploadId]);
+        return response()->json(['upload_id' => $uploadId, 'trozos_ya_subidos' => []]);
     }
 
     public function uploadChunk(Request $request, Project $project)
@@ -67,12 +90,35 @@ class FileUploadController extends Controller
         $chunkPath = $upload->temp_directory."/chunk_{$request->chunk_index}";
         Storage::put($chunkPath, file_get_contents($chunkFile->getRealPath()));
 
-        $upload->increment('received_chunks');
+        // Se cuenta lo que hay en disco, no las veces que se ha llamado: el
+        // navegador reintenta un trozo hasta tres veces, y con increment() cada
+        // reintento sumaba uno, asi que el contador acababa por encima del total.
+        $upload->update(['received_chunks' => count($this->trozosPresentes($upload))]);
 
         return response()->json([
             'received' => $upload->received_chunks,
             'total' => $upload->total_chunks,
         ]);
+    }
+
+    /**
+     * Que trozos hay ya en disco, por su numero.
+     *
+     * @return array<int, int>
+     */
+    private function trozosPresentes(UploadChunk $upload): array
+    {
+        $numeros = [];
+
+        foreach (Storage::files($upload->temp_directory) as $ruta) {
+            if (preg_match('/chunk_(\d+)$/', $ruta, $coincidencias)) {
+                $numeros[] = (int) $coincidencias[1];
+            }
+        }
+
+        sort($numeros);
+
+        return $numeros;
     }
 
     public function completeUpload(Request $request, Project $project)

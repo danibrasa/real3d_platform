@@ -108,19 +108,32 @@ document.addEventListener('DOMContentLoaded', function () {
             var data = await initRes.json();
             var upload_id = data.upload_id;
 
+            // El servidor dice que trozos tiene ya de este mismo fichero. Si se
+            // corto la conexion a mitad, se siguen mandando solo los que faltan
+            // en vez de empezar de cero: con un video de trescientos megas eso
+            // es la diferencia entre terminar y abandonar.
+            var yaSubidos = {};
+            (data.trozos_ya_subidos || []).forEach(function (n) { yaSubidos[n] = true; });
+
+            var hechos = 0;
+
             // 2. Upload chunks sequentially with retry
             for (var i = 0; i < totalChunks; i++) {
-                var start = i * CHUNK_SIZE;
-                var chunk = file.slice(start, start + CHUNK_SIZE);
-                var formData = new FormData();
-                formData.append('upload_id', upload_id);
-                formData.append('chunk_index', i);
-                formData.append('chunk', chunk, file.name);
+                if (!yaSubidos[i]) {
+                    var start = i * CHUNK_SIZE;
+                    var chunk = file.slice(start, start + CHUNK_SIZE);
+                    var formData = new FormData();
+                    formData.append('upload_id', upload_id);
+                    formData.append('chunk_index', i);
+                    formData.append('chunk', chunk, file.name);
 
-                await sendChunkWithRetry(formData);
+                    await sendChunkWithRetry(formData);
+                }
+
+                hechos++;
 
                 // Update progress
-                var pct = Math.round(((i + 1) / totalChunks) * 100);
+                var pct = Math.round((hechos / totalChunks) * 100);
                 if (progressBar) progressBar.style.width = pct + '%';
             }
 

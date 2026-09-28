@@ -249,4 +249,110 @@ class SubidaPorTrozosTest extends TestCase
         );
         $this->assertDatabaseCount('project_files', 0);
     }
+
+    // --- Reanudar lo que se corto -----------------------------------------
+
+    /** Empieza una subida y manda solo algunos trozos, como una conexion que se cae. */
+    private function empezarYCortar(string $contenido, int $tamañoTrozo, int $cuantos): array
+    {
+        $trozos = str_split($contenido, $tamañoTrozo);
+
+        $r = $this->actingAs($this->equipo)->postJson(
+            route('admin.projects.upload.init', $this->proyecto),
+            ['file_type' => 'model_3d', 'original_name' => 'modelo.glb',
+                'total_size' => strlen($contenido), 'total_chunks' => count($trozos)]
+        );
+
+        $id = $r->json('upload_id');
+
+        foreach (array_slice($trozos, 0, $cuantos, true) as $i => $trozo) {
+            $this->actingAs($this->equipo)->post(
+                route('admin.projects.upload.chunk', $this->proyecto),
+                ['upload_id' => $id, 'chunk_index' => $i,
+                    'chunk' => UploadedFile::fake()->createWithContent("t{$i}", $trozo)]
+            );
+        }
+
+        return ['id' => $id, 'trozos' => $trozos];
+    }
+
+    public function test_una_subida_cortada_se_reanuda(): void
+    {
+        // El caso que explica que en produccion 12 de 28 subidas nunca acabaran:
+        // se cae la conexion y hasta ahora habia que subirlo entero otra vez.
+        $contenido = random_bytes(80);
+        $primera = $this->empezarYCortar($contenido, 10, 5);
+
+        // El navegador lo vuelve a intentar: init debe reconocer lo que ya hay.
+        $r = $this->actingAs($this->equipo)->postJson(
+            route('admin.projects.upload.init', $this->proyecto),
+            ['file_type' => 'model_3d', 'original_name' => 'modelo.glb',
+                'total_size' => strlen($contenido), 'total_chunks' => 8]
+        );
+
+        $this->assertSame($primera['id'], $r->json('upload_id'), 'Tiene que continuar la misma subida');
+        $this->assertSame([0, 1, 2, 3, 4], $r->json('trozos_ya_subidos'));
+    }
+
+    public function test_reanudada_el_fichero_sale_igual_de_bien(): void
+    {
+        $contenido = random_bytes(80);
+        $primera = $this->empezarYCortar($contenido, 10, 5);
+
+        // Se mandan solo los que faltaban.
+        foreach (array_slice($primera['trozos'], 5, null, true) as $i => $trozo) {
+            $this->actingAs($this->equipo)->post(
+                route('admin.projects.upload.chunk', $this->proyecto),
+                ['upload_id' => $primera['id'], 'chunk_index' => $i,
+                    'chunk' => UploadedFile::fake()->createWithContent("t{$i}", $trozo)]
+            );
+        }
+
+        $this->actingAs($this->equipo)->postJson(
+            route('admin.projects.upload.complete', $this->proyecto),
+            ['upload_id' => $primera['id']]
+        )->assertOk();
+
+        $fichero = ProjectFile::firstOrFail();
+        $this->assertSame($contenido, Storage::get($fichero->storage_path));
+    }
+
+    public function test_otro_fichero_distinto_empieza_de_cero(): void
+    {
+        // Reanudar solo vale para el mismo fichero: si cambia el tamaño o el
+        // nombre, los trozos de antes no valen y mezclarlos daria un fichero
+        // corrupto que ademas parecia correcto.
+        $this->empezarYCortar(random_bytes(80), 10, 5);
+
+        $r = $this->actingAs($this->equipo)->postJson(
+            route('admin.projects.upload.init', $this->proyecto),
+            ['file_type' => 'model_3d', 'original_name' => 'otro.glb',
+                'total_size' => 80, 'total_chunks' => 8]
+        );
+
+        $this->assertSame([], $r->json('trozos_ya_subidos'));
+    }
+
+    public function test_el_contador_no_se_pasa_con_los_reintentos(): void
+    {
+        // El navegador reintenta un trozo hasta tres veces. Con increment() cada
+        // reintento sumaba uno y el contador acababa por encima del total, que
+        // es lo que ve el usuario como progreso.
+        $r = $this->actingAs($this->equipo)->postJson(
+            route('admin.projects.upload.init', $this->proyecto),
+            ['file_type' => 'model_3d', 'original_name' => 'm.glb',
+                'total_size' => 30, 'total_chunks' => 3]
+        );
+        $id = $r->json('upload_id');
+
+        foreach ([0, 0, 0] as $i) {
+            $this->actingAs($this->equipo)->post(
+                route('admin.projects.upload.chunk', $this->proyecto),
+                ['upload_id' => $id, 'chunk_index' => $i,
+                    'chunk' => UploadedFile::fake()->createWithContent('t', 'aaaaaaaaaa')]
+            );
+        }
+
+        $this->assertSame(1, UploadChunk::where('upload_id', $id)->value('received_chunks'));
+    }
 }
