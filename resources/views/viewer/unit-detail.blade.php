@@ -128,10 +128,14 @@
                         </p>
                     </div>
                     <div class="text-left md:text-right">
-                        <div class="text-3xl md:text-4xl font-bold" data-currency-amount="{{ $unit->price }}">
-                            {{ $currencyService->format($unit->price, $currentCurrency) }}
+                        <div class="text-3xl md:text-4xl font-bold" @if($unit->price !== null) data-currency-amount="{{ $unit->price }}" @endif>
+                            @if($unit->price === null)
+                                {{ __('general.price_on_request') }}
+                            @else
+                                {{ $currencyService->format($unit->price, $currentCurrency) }}
+                            @endif
                         </div>
-                        @if($unit->area_m2 > 0)
+                        @if($unit->price !== null && $unit->area_m2 > 0)
                             <div class="text-blue-200 text-sm mt-1">
                                 {{ __('unit_detail.price_per_m2') }}:
                                 <span data-currency-amount="{{ $unit->price / $unit->area_m2 }}">
@@ -315,8 +319,12 @@
                                 <h3 class="font-bold text-gray-800 group-hover:text-blue-600 transition">{{ $similar->identifier }}</h3>
                                 <x-unit-status-badge :status="$similar->status" />
                             </div>
-                            <div class="text-xl font-bold text-gray-800 mb-3" data-currency-amount="{{ $similar->price }}">
-                                {{ $currencyService->format($similar->price, $currentCurrency) }}
+                            <div class="text-xl font-bold text-gray-800 mb-3" @if($similar->price !== null) data-currency-amount="{{ $similar->price }}" @endif>
+                                @if($similar->price === null)
+                                    <span class="text-base text-gray-500">{{ __('general.price_on_request') }}</span>
+                                @else
+                                    {{ $currencyService->format($similar->price, $currentCurrency) }}
+                                @endif
                             </div>
                             <div class="flex items-center gap-3 text-sm text-gray-500">
                                 <span>{{ $similar->bedrooms }} {{ __('landing.beds') }}</span>

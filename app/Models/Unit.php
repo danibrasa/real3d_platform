@@ -84,7 +84,11 @@ class Unit extends Model
     protected function formattedPrice(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'USD '.number_format($this->price, 0, '.', ','),
+            // number_format(null) avisa en PHP 8.1+ y ademas imprime "0",
+            // que es justo lo que se quiere evitar.
+            get: fn () => $this->price === null
+                ? __('general.price_on_request')
+                : 'USD '.number_format($this->price, 0, '.', ','),
         );
     }
 
@@ -147,6 +151,12 @@ class Unit extends Model
     /** Lo que queda por pagar segun el precio de la vivienda. */
     public function pendingAmount(): float
     {
+        // Sin precio no se puede decir cuanto queda: devolver 0 haria creer
+        // que esta pagada del todo.
+        if ($this->price === null) {
+            return 0.0;
+        }
+
         return max(0, (float) $this->price - $this->totalPaid());
     }
 
