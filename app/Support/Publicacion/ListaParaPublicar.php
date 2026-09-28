@@ -3,6 +3,7 @@
 namespace App\Support\Publicacion;
 
 use App\Models\Project;
+use App\Support\Facturacion\AccesoAlVisor;
 
 /**
  * Que le falta a un proyecto para salir a la web.
@@ -59,6 +60,24 @@ class ListaParaPublicar
     public function avisos(): array
     {
         $fuera = [];
+
+        // El visor esta montado y no se esta viendo, porque el plan no lo
+        // incluye.
+        //
+        // Dice eso y no "lo has perdido": la condicion tambien se cumple para
+        // un proyecto al que le montamos el visor y nunca tuvo plan de pago
+        // -- un favor, una demo, algo anterior al muro -- y a ese no se le ha
+        // caido nada. Lo que hay que decirle es lo mismo en los dos casos:
+        // esta montado, no se ve, y de que depende.
+        //
+        // Va el primero a proposito: los demas avisos son cosas que faltan por
+        // hacer, y este es algo que ya esta hecho y no se esta aprovechando.
+        // Sin el, la promotora se entera cuando se lo dice un comprador, o no
+        // se entera nunca: su pagina sigue en pie y todo aparenta ir bien.
+        if (($this->tieneModelo() || $this->tieneFondo())
+            && ! AccesoAlVisor::servidoEnPublico($this->proyecto)) {
+            $fuera[] = ['clave' => 'visor_apagado', 'de' => self::PROMOTORA];
+        }
 
         if ($this->tieneFondo() && ! $this->tieneModelo()) {
             $fuera[] = ['clave' => 'sin_modelo', 'de' => self::EQUIPO];
