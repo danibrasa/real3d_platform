@@ -101,15 +101,49 @@ class LoQueSaleEnTodas(unittest.TestCase):
         self.assertTrue(filas[7]["contacto_hay"])
         self.assertIsNone(filas[3]["contacto"]["telefono"])
 
-    def test_el_whatsapp_se_compara_por_el_numero(self):
-        # El texto prerrellenado lleva el nombre del proyecto, asi que los 21
-        # enlaces son distintos aunque el numero sea el mismo.
+    # Los tres enlaces tal cual salen de las fichas. Es el mismo telefono en
+    # los tres, el del portal.
+    ENLACES = [
+        "wa.me/18096084271?text=Hola%2C%20me%20interesa%20el%20proyecto"
+        "%20Cana%20Rock%20Universe.%20Quisiera%20m%C3%A1s%20informaci%C3%B3n.",
+        "wa.me/18096084271?text=Hola%2C%20quisiera%20sugerir%20un%20proyecto"
+        "%20para%20review%20en%20Portal%20Inmobiliario%20RD.",
+        "wa.me/18096084271",
+    ]
+
+    def test_el_whatsapp_es_el_numero_y_no_los_digitos_del_enlace(self):
+        """Contar todos los digitos daba los %20 y los %C3, no el telefono.
+
+        Con el codigo anterior estos tres enlaces daban 2020312033,
+        2020202020 y 8096084271: dos numeros inventados por la codificacion
+        del texto y uno bueno. Que aun asi se filtraran los 21 fue suerte --
+        cada variante se repetia en todas las fichas por igual.
+        """
+        for enlace in self.ENLACES:
+            with self.subTest(enlace=enlace[:40]):
+                self.assertEqual(P.normalizar("whatsapp", enlace), "8096084271")
+
+    def test_el_mismo_numero_escrito_de_tres_formas_es_uno(self):
         filas = [{"promotora": "P%d" % i,
-                  "contacto": {"whatsapp": ["wa.me/18096084271?text=proyecto%d" % i],
+                  "contacto": {"whatsapp": [self.ENLACES[i % 3]],
                                "telefono": None, "email": None, "web": None}}
                  for i in range(21)]
         P.quitar_lo_que_sale_en_todas(filas)
-        self.assertTrue(all(f["contacto"]["whatsapp"] is None for f in filas))
+        self.assertTrue(all(f["contacto"]["whatsapp"] is None for f in filas),
+                        "el telefono del portal sigue contando como contacto")
+
+    def test_el_whatsapp_de_otro_numero_se_queda(self):
+        # Que no se lleve por delante el bueno: si una promotora pone SU
+        # whatsapp, no se repite en las 21 y tiene que sobrevivir.
+        filas = [{"promotora": "P%d" % i,
+                  "contacto": {"whatsapp": [self.ENLACES[0]],
+                               "telefono": None, "email": None, "web": None}}
+                 for i in range(21)]
+        filas[4]["contacto"]["whatsapp"].append("wa.me/18095551234?text=Hola")
+        P.quitar_lo_que_sale_en_todas(filas)
+        self.assertEqual(filas[4]["contacto"]["whatsapp"],
+                         ["wa.me/18095551234?text=Hola"])
+        self.assertIsNone(filas[9]["contacto"]["whatsapp"])
 
     def test_con_pocas_fichas_no_se_filtra_y_se_dice(self):
         # Con tres fichas cualquier coincidencia parece decorado. Antes de
