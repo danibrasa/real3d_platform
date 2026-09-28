@@ -57,12 +57,17 @@ class PruebaGratuitaTest extends TestCase
         // promotora se quedaba pagando sin haber podido probar -- justo lo que
         // esto venia a evitar.
         $perfil = $this->perfil();
-        $suscripcion = new SuscripcionDeMentira;
+
+        // La espera larga, dicha en el propio caso y no dada por supuesta: la
+        // prueba original ya vencio cuando por fin hay visor.
+        $suscripcion = new SuscripcionDeMentira(enPrueba: false);
 
         $fin = PruebaGratuita::anclar($perfil, $suscripcion);
 
-        $this->assertNotNull($fin, 'no se anclo la prueba habiendo suscripcion');
+        $this->assertNotNull($fin,
+            'con la prueba original vencida no se anclo nada: la promotora se queda pagando sin haber probado');
         $this->assertSame(1, $suscripcion->veces);
+        $this->assertNotNull($perfil->fresh()->prueba_desde);
     }
 
     public function test_la_prueba_termina_a_los_dias_configurados(): void
