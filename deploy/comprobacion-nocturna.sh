@@ -86,9 +86,25 @@ RESULTADO=$?
 # fantasma en desarrollo.
 php "$APP/tools/limpiar-recorrido.php" "$APP" >> "$SALIDA" 2>&1
 
+# La copia de produccion, restaurada de verdad.
+#
+# El servicio de copias termina en success cada noche, y eso solo dice que el
+# fichero se escribio. Esta VM existe para probar restauraciones y hasta hoy no
+# lo hacia nadie: la primera vez que se restauro una fue a mano, hoy. Va aqui y
+# no en su propio temporizador para que haya un solo vigilante y un solo aviso.
+{
+    echo
+    echo "--- copia de seguridad"
+} >> "$SALIDA"
+
+bash "$APP/deploy/comprobar-copia.sh" >> "$SALIDA" 2>&1
+COPIA=$?
+
 cat "$SALIDA"
 
-[ "$RESULTADO" -eq 0 ] && exit 0
+# Cualquiera de las dos cosas mal es motivo de aviso: un recorrido roto y
+# una copia que no restaura son igual de urgentes.
+[ "$RESULTADO" -eq 0 ] && [ "$COPIA" -eq 0 ] && exit 0
 
 # Solo se avisa cuando algo va mal. Un correo cada noche diciendo que todo bien
 # se deja de leer a la semana, y entonces tampoco se lee el que importa.
@@ -105,7 +121,7 @@ $para = $argv[2];
 
 try {
     Illuminate\Support\Facades\Mail::mailer("alertas")->raw($cuerpo, function ($m) use ($para) {
-        $m->to($para)->subject("Real3D: el recorrido de alta ha fallado");
+        $m->to($para)->subject("Real3D: la comprobacion nocturna ha fallado");
     });
     echo "aviso enviado\n";
 } catch (Throwable $e) {
