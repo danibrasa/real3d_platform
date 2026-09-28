@@ -3,6 +3,7 @@
 namespace App\Support\Facturacion;
 
 use App\Models\CompanyProfile;
+use App\Models\Project;
 use App\Models\User;
 
 /**
@@ -26,6 +27,36 @@ class AccesoAlVisor
     public static function esDelEquipo(User $usuario): bool
     {
         return $usuario->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR);
+    }
+
+    /**
+     * Si el visor 3D de este proyecto se sigue sirviendo al publico.
+     *
+     * Cerrar quien puede PEDIR un visor no bastaba. Una vez montado y
+     * publicado, lo publico solo miraba el estado del proyecto: se podia
+     * contratar, esperar a que lo montaramos, darse de baja, y quedarselo
+     * funcionando para siempre. Con la prueba de catorce dias, ni siquiera
+     * hacia falta llegar a pagar una factura.
+     *
+     * Lo que se pierde al darse de baja es solo el visor. La pagina sigue
+     * publicada, con sus viviendas y recibiendo contactos, que es exactamente
+     * el plan gratuito: se pierde lo que se dejo de pagar y nada mas.
+     *
+     * Un proyecto sin promotora detras si se sirve. No es un cliente que se
+     * haya dado de baja: es un proyecto nuestro -- una demo, el portal -- y no
+     * hay suscripcion que pueda caducar. Cerrarlo romperia la portada.
+     */
+    public static function servidoEnPublico(Project $proyecto): bool
+    {
+        $planes = $proyecto->assignedAgencies
+            ->map(fn (User $u) => $u->companyProfile?->plan_tier)
+            ->filter();
+
+        if ($planes->isEmpty()) {
+            return true;
+        }
+
+        return $planes->contains(fn (string $plan) => $plan !== CompanyProfile::PLAN_STARTER);
     }
 
     public static function puedePedirlo(?User $usuario): bool
