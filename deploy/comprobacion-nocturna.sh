@@ -35,7 +35,14 @@ CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 # un comprobador que esquiva lo que suele romperse no comprueba gran cosa.
 # GANCHO_CORREO comprueba que el aviso del lead sale de la cola de verdad: que
 # el formulario responda 200 no prueba que la promotora se entere.
+# GANCHO_PLAN es lo que en produccion hace una contratacion. Sin el, el
+# recorrido se para en el paso 7b -- limpiamente y diciendo por que, pero se
+# para -- y perderiamos la vigilancia de todo lo que viene detras: subida del
+# visor, publicacion y aviso del lead, que es donde han salido los fallos mas
+# caros. El paso anterior comprueba que sin plan el visor esta cerrado, asi
+# que esto no esquiva el muro: pasa por el.
 CLAVE_WEB="$CLAVE_WEB" \
+    GANCHO_PLAN="php $APP/tools/dar-plan-de-prueba.php $APP" \
     GANCHO_VISOR="php $APP/tools/subir-visor-de-prueba.php $APP" \
     GANCHO_CORREO="php $APP/tools/comprobar-cola.php $APP 40" \
     python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
