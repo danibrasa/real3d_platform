@@ -63,6 +63,7 @@ class CompanyProfile extends Model
         'address',
         'storage_used_bytes',
         'plan_tier',
+        'prueba_desde',
         'max_projects',
         'max_storage_bytes',
         'is_verified',
@@ -70,6 +71,7 @@ class CompanyProfile extends Model
     ];
 
     protected $casts = [
+        'prueba_desde' => 'datetime',
         'storage_used_bytes' => 'integer',
         'max_projects' => 'integer',
         'max_storage_bytes' => 'integer',

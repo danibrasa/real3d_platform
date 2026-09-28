@@ -8,6 +8,7 @@ use App\Mail\VisorMontado;
 use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Facturacion\PruebaGratuita;
 use App\Support\Publicacion\ListaParaPublicar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -97,9 +98,25 @@ class SolicitudDeVisorController extends Controller
 
         $project->update(['viewer_requested_at' => null, 'viewer_requested_by' => null]);
 
+        // Aqui empieza a contar la prueba, que es el primer momento en que hay
+        // algo que probar. Contandola desde el pago, la promotora se gastaba
+        // los dias esperando a que le montaramos el visor.
+        //
+        // Si Stripe no contesta no se bloquea nada de lo de arriba: el visor
+        // esta montado igual y la promotora tiene que enterarse. Queda sin
+        // anclar, que es recuperable, en vez de quedarse sin aviso.
+        $finDePrueba = null;
+
+        try {
+            $finDePrueba = PruebaGratuita::anclarAlMontarVisor($quienLoPidio);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         AuditLog::record('viewer_ready', $project, null, [
             'proyecto' => $project->name,
             'montado_por' => $user->email,
+            'prueba_hasta' => $finDePrueba?->toDateString(),
         ]);
 
         if ($quienLoPidio) {

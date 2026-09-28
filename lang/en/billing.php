@@ -17,7 +17,7 @@ return [
     'plan_unavailable' => 'That plan cannot be purchased right now. We are on it: write to us and we will sort it out.',
     'free' => 'Free',
     'no_card' => 'no card needed',
-    'trial_days_free' => ':dias-day free trial. Nothing is charged until it ends.',
+    'trial_days_free' => ':dias-day free trial, starting when your viewer is live -- not when you sign up.',
     'stripe_not_configured' => 'Stripe is not configured. Contact support.',
     'no_stripe_customer' => 'You don\'t have a billing profile. Subscribe first.',
     'no_active_subscription' => 'You don\'t have an active subscription.',
