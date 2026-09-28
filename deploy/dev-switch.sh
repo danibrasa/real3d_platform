@@ -61,7 +61,18 @@ ln -sfn "$APP/storage/app/public" "$APP/public/storage"
 # esto el worker sigue ejecutando la rama anterior. En produccion lo reinicia el
 # despliegue; aqui no lo reiniciaba nadie, y costo un rato entender por que un
 # correo recien arreglado seguia fallando.
-systemctl restart dev-queue.service 2>/dev/null && echo "worker de colas reiniciado"
+if systemctl restart dev-queue.service; then
+    echo "worker de colas reiniciado"
+else
+    # Callarse aqui seria dejar el worker con el codigo de la rama anterior, que
+    # es justo lo que este reinicio existe para evitar. Un aviso mudo no avisa.
+    #
+    # No se sale con error a proposito: el trabajo de este guion es dejar dev en
+    # una rama, y eso ha salido bien. Fallar aqui diria que el cambio de rama
+    # fallo, que es falso y ademas haria abandonar a medias. Un worker parado lo
+    # caza el recorrido nocturno, que prueba la cola entera de punta a punta.
+    echo "AVISO: no se pudo reiniciar dev-queue.service; el worker sigue con el codigo viejo"
+fi
 
 CODE=$(curl -sL -o /dev/null -w '%{http_code}' -u "real3d:$(cat /root/.dev-web-pass)" https://dev.real3d.io/)
 echo "dev.real3d.io responde $CODE"

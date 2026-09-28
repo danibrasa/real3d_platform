@@ -12,6 +12,7 @@ copia de referencia, para que no existan solo en la máquina.
 | `deploy-status.sh` | Que version hay en cada entorno y que commits estan fusionados en `main` sin publicar. Solo lee. Funciona en cualquiera de las dos VMs: usa el primer clon del repositorio que encuentra. |
 | `dev-switch.sh [rama]` | Pone el entorno de desarrollo (dev.real3d.io, en la máquina auxiliar) en una rama. Aparta los cambios sin guardar con `git stash` en vez de abortar. Sin versiones ni vuelta atrás: es un entorno desechable. |
 | `dev-refresh.sh` | Recrea la base de datos de desarrollo desde la copia del día y la anonimiza. De paso comprueba que la copia se restaura. Vive en la máquina auxiliar. |
+| `tools/revisor.py [rango]` | Revisa un cambio sin conocer el razonamiento de quien lo escribio: recibe el mensaje del commit -que es la afirmacion a comprobar- y el diff, y busca afirmaciones sin respaldo, tests que pasarian con el fallo presente, y caminos que devuelven exito sin hacer nada. Devuelve 1 solo con hallazgos graves. |
 | `comprobacion-nocturna.sh` | Recorre el alta entera en dev.real3d.io como una promotora nueva y avisa por correo si algo se rompe, o si algo responde 200 sin hacer lo que debe. Se limpia lo que crea. Lo lanza `real3d-comprobacion.timer` a las 4:15. |
 | `real3d-backup.sh` | Copia diaria (base de datos y `.env`) con réplica de los volcados y de `storage/app` en la VM .13. Lo lanza `real3d-backup.timer` a las 03:30. |
 
