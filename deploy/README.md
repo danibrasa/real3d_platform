@@ -12,6 +12,7 @@ copia de referencia, para que no existan solo en la máquina.
 | `deploy-status.sh` | Que version hay en cada entorno y que commits estan fusionados en `main` sin publicar. Solo lee. Funciona en cualquiera de las dos VMs: usa el primer clon del repositorio que encuentra. |
 | `dev-switch.sh [rama]` | Pone el entorno de desarrollo (dev.real3d.io, en la máquina auxiliar) en una rama. Aparta los cambios sin guardar con `git stash` en vez de abortar. Sin versiones ni vuelta atrás: es un entorno desechable. |
 | `dev-refresh.sh` | Recrea la base de datos de desarrollo desde la copia del día y la anonimiza. De paso comprueba que la copia se restaura. Vive en la máquina auxiliar. |
+| `comprobacion-nocturna.sh` | Recorre el alta entera en dev.real3d.io como una promotora nueva y avisa por correo si algo se rompe, o si algo responde 200 sin hacer lo que debe. Se limpia lo que crea. Lo lanza `real3d-comprobacion.timer` a las 4:15. |
 | `real3d-backup.sh` | Copia diaria (base de datos y `.env`) con réplica de los volcados y de `storage/app` en la VM .13. Lo lanza `real3d-backup.timer` a las 03:30. |
 
 ## Instalar o actualizar en el servidor
@@ -26,7 +27,8 @@ Los scripts no llevan ninguna credencial dentro: leen lo que necesitan de
 ## Cosas que conviene saber antes de tocarlos
 
 - **No hay `cron` instalado** en las VMs. Todo lo periódico va con temporizadores
-  de systemd (`real3d-backup.timer`, `real3d-schedule.timer`).
+  de systemd (`real3d-backup.timer`, `real3d-schedule.timer`,
+  `real3d-comprobacion.timer`).
 - **El enlace `public/storage` lo crea root**, apuntando a
   `shared/storage/app/public`. No sirve `artisan storage:link` como `www-data`:
   `public/` es de `deploy:www-data` sin escritura de grupo, así que falla y deja
