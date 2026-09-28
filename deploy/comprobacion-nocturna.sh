@@ -25,6 +25,28 @@ trap 'rm -f "$SALIDA"' EXIT
     echo
 } > "$SALIDA"
 
+# Por que canal sale el correo, dicho en voz alta.
+#
+# Este recorrido genera varios avisos por vuelta -bienvenida, solicitud de
+# visor, visor montado, lead- y cada uno le cuesta un envio a la cuenta. Con el
+# mailer por defecto apuntando a un proveedor de verdad, y compartiendo cuenta
+# con produccion, unas cuantas vueltas seguidas se comen el cupo diario y
+# produccion se queda sin poder avisar de un lead. Paso el 28-sep-2026 y no lo
+# dijo nadie: se supo porque el proveedor mando un correo.
+MAILER=$(php -r 'require "/var/www/dev/vendor/autoload.php";
+$a = require "/var/www/dev/bootstrap/app.php";
+$a->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+echo config("mail.default");' 2>/dev/null || echo "desconocido")
+
+{
+    echo "correo del recorrido: $MAILER"
+    if [ "$MAILER" != "log" ] && [ "$MAILER" != "array" ]; then
+        echo "  OJO: cada vuelta gasta envios de la cuenta de correo,"
+        echo "  que es la misma que usa produccion."
+    fi
+    echo
+} >> "$SALIDA"
+
 # La contraseña del acceso web vive en el fichero de siempre, no aqui.
 CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 
@@ -70,7 +92,7 @@ $cuerpo = file_get_contents($argv[1]);
 $para = $argv[2];
 
 try {
-    Illuminate\Support\Facades\Mail::raw($cuerpo, function ($m) use ($para) {
+    Illuminate\Support\Facades\Mail::mailer("alertas")->raw($cuerpo, function ($m) use ($para) {
         $m->to($para)->subject("Real3D: el recorrido de alta ha fallado");
     });
     echo "aviso enviado\n";

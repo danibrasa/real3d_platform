@@ -49,6 +49,27 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        // Las alarmas salen por aqui, y no por el mailer por defecto.
+        //
+        // En desarrollo el mailer por defecto es 'log' a proposito: el
+        // recorrido nocturno genera varios correos por vuelta y se comio el
+        // cupo diario de la cuenta, que es la misma que usa produccion. Pero
+        // el aviso de que ese recorrido ha fallado si tiene que salir de la
+        // maquina, y es uno por noche mala.
+        //
+        // Sin variables propias cae en las de siempre, asi que en produccion
+        // funciona sin configurar nada.
+        'alertas' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_ALERTAS_SCHEME', env('MAIL_SCHEME')),
+            'host' => env('MAIL_ALERTAS_HOST', env('MAIL_HOST', '127.0.0.1')),
+            'port' => env('MAIL_ALERTAS_PORT', env('MAIL_PORT', 2525)),
+            'username' => env('MAIL_ALERTAS_USERNAME', env('MAIL_USERNAME')),
+            'password' => env('MAIL_ALERTAS_PASSWORD', env('MAIL_PASSWORD')),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],
