@@ -27,8 +27,15 @@
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="3306"/>
         <env name="DB_DATABASE" value="testing"/>
-        <env name="DB_USERNAME" value="root"/>
-        <env name="DB_PASSWORD" value="root"/>
+        <!-- Un usuario propio de los tests, no root. En el CI lo crea el
+             servicio de MariaDB; en el clon de desarrollo esta creado a mano
+             con permiso solo sobre la base "testing". Con root aqui, el clon
+             de desarrollo solo podia correr los tests si root tenia una
+             contrasena conocida y escrita en el repositorio, en una maquina
+             con IP publica. Hoy dejo de tenerla y se cayeron 191 tests de
+             golpe, que es como nos hemos enterado. -->
+        <env name="DB_USERNAME" value="testing"/>
+        <env name="DB_PASSWORD" value="testing"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
