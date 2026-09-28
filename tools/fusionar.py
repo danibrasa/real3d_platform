@@ -203,6 +203,32 @@ def revisar(rama):
     return "limpia"
 
 
+# Los veredictos del revisor, y que bandera hace falta para pasar por encima
+# de cada uno. "limpia" no lleva bandera porque no hay nada que consentir.
+BANDERA = {
+    "hallazgos": "--aunque-haya-hallazgos",
+    "sin-revision": "--sin-revisor",
+}
+
+
+def puede_seguir(veredicto, argumentos):
+    """Si con ese veredicto se fusiona o no.
+
+    Es una funcion y no dos lineas dentro del bucle para que se pueda
+    comprobar. Los tests miraban lo que devolvia revisar(), que es la mitad
+    de la historia: si la comparacion de aqui estuviera del reves, el
+    veredicto seria correcto y se fusionaria igual, y ningun test lo diria.
+    """
+    if veredicto == "limpia":
+        return True
+
+    bandera = BANDERA.get(veredicto)
+
+    # Un veredicto que no conocemos no se consiente con ninguna bandera: es
+    # un fallo de programacion, no una decision que nadie haya tomado.
+    return bandera is not None and bandera in argumentos
+
+
 def estado_fusion(numero, intentos=15):
     """La PR, esperando a que GitHub sepa si se puede fusionar.
 
@@ -338,10 +364,7 @@ def resolver_conflicto(rama):
 
 def main():
     ramas = [r for r in sys.argv[1:] if not r.startswith("-")]
-    permitido = {
-        "hallazgos": "--aunque-haya-hallazgos" in sys.argv[1:],
-        "sin-revision": "--sin-revisor" in sys.argv[1:],
-    }
+    banderas = [a for a in sys.argv[1:] if a.startswith("-")]
 
     if not ramas:
         sys.exit(
@@ -390,7 +413,7 @@ def main():
         # todo antes de fusionarlo.
         veredicto = revisar(rama)
 
-        if veredicto != "limpia" and not permitido[veredicto]:
+        if not puede_seguir(veredicto, banderas):
             detenidas.append("%s (%s)" % (rama, veredicto))
             continue
 
