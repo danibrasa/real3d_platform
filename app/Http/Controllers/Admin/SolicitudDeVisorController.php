@@ -8,6 +8,7 @@ use App\Mail\VisorMontado;
 use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Facturacion\AccesoAlVisor;
 use App\Support\Facturacion\PruebaGratuita;
 use App\Support\Publicacion\ListaParaPublicar;
 use Illuminate\Http\Request;
@@ -29,6 +30,17 @@ class SolicitudDeVisorController extends Controller
         $user = $request->user();
 
         abort_unless($user->canAccessProject($project), 403);
+
+        // El visor es lo unico que cuesta dinero hacer: lo monta el equipo, uno
+        // a uno. Era tambien lo unico que separaba el plan gratuito del de pago
+        // y no lo comprobaba nadie, asi que en la practica no lo separaba nada.
+        //
+        // No es un 403 sino un aviso con salida: quien llega aqui no esta
+        // haciendo nada raro, le falta contratar, y la pantalla de al lado se
+        // lo resuelve.
+        if (! AccesoAlVisor::puedePedirlo($user)) {
+            return back()->with('error', __('visor.hace_falta_plan'));
+        }
 
         if ($project->viewer_requested_at) {
             return back()->with('info', __('visor.ya_pedido'));

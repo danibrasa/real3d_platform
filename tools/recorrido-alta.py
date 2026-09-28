@@ -83,10 +83,22 @@ def formularios(html):
 
 
 def elegir(forms, pista=""):
-    """El formulario cuya accion contenga la pista, o el primero con campos."""
-    for f in forms:
-        if pista and pista in f["action"]:
-            return f
+    """El formulario cuya accion contenga la pista.
+
+    Si se da una pista y ningun formulario casa, devuelve None. Antes caia al
+    "primero con campos", y esa red se comio una comprobacion entera: el paso
+    que miraba si el plan gratuito tenia boton de pedir visor decia que SI
+    porque recogia el formulario de cerrar sesion. Peor todavia, un paso
+    llego a enviar a una direccion los campos de otro formulario -- con su
+    _method=DELETE dentro -- y lo que volvia era un 405 que parecia un fallo
+    del producto.
+
+    Un buscador que siempre encuentra algo no informa de nada. Sin pista si
+    vale el primero util, que es el caso de "la unica forma de esta pagina".
+    """
+    if pista:
+        return next((f for f in forms if pista in f["action"]), None)
+
     utiles = [f for f in forms if len(f["campos"]) > 1]
     return utiles[0] if utiles else (forms[0] if forms else None)
 
@@ -330,7 +342,73 @@ def importar(notas, idp):
         raise RuntimeError("se importo pero no se ven las viviendas")
 
 
-@paso("7a. La promotora avisa de que esta lista")
+@paso("7a. Sin plan de pago, el visor esta cerrado")
+def visor_cerrado_sin_plan(notas, idp):
+    """El plan gratuito da el producto entero menos el visor.
+
+    Es lo unico que cuesta dinero hacer -lo monta el equipo, uno a uno- y por
+    tanto lo unico que separa el plan gratuito del de pago. Durante un tiempo
+    no lo comprobo nadie: una promotora gratuita pedia su visor y se lo
+    montabamos, asi que los dos planes daban lo mismo.
+    """
+    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
+
+    hay_boton = elegir(formularios(r.text), "pedir-visor") is not None
+    notas.append("con el plan gratuito, el panel ofrece el boton: %s"
+                 % ("SI" if hay_boton else "no"))
+    if hay_boton:
+        notas.append("PROBLEMA: el plan gratuito puede pedir lo unico que se paga")
+
+    # Y que no sea una puerta muda: tiene que decir que falta y adonde ir.
+    texto = re.sub(r"<[^>]+>", " ", r.text)
+    explica = "visor" in texto.lower() and ("plan" in texto.lower() or "planes" in texto.lower())
+    notas.append("y le explica que hace falta un plan: %s" % ("si" if explica else "NO"))
+    if not explica:
+        notas.append("PROBLEMA: se le cierra la puerta sin decirle por que")
+
+    # Y por detras tampoco, que es donde de verdad se cuela la gente. Con el
+    # token de la propia pagina: sin el, lo que se comprueba es que funciona la
+    # proteccion CSRF, que no es lo que se esta preguntando aqui.
+    token = re.search(r'name="_token"\s+value="([^"]+)"', r.text)
+    if not token:
+        notas.append("sin token en la pagina: no se puede probar el atajo")
+        return
+
+    s.post(BASE + "/admin/projects/%d/pedir-visor" % idp,
+           data={"_token": token.group(1)}, timeout=60)
+
+    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
+    colado = "Visor pedido el" in re.sub(r"<[^>]+>", " ", r.text)
+    notas.append("pidiendolo a mano, con token valido, se cuela: %s"
+                 % ("SI" if colado else "no"))
+    if colado:
+        notas.append("PROBLEMA: la puerta solo esta en la pantalla, no en el servidor")
+
+
+@paso("7b. Contrata un plan")
+def contratar(notas, idp):
+    """Lo que en produccion hace una contratacion.
+
+    Aqui no se puede contratar porque el entorno de desarrollo no tiene
+    pasarela, asi que se hace por el otro camino legitimo: el que usa un
+    superadmin al conceder un plan a mano. No es saltarse la puerta -- el paso
+    anterior acaba de comprobar que esta cerrada -- es pasar por ella.
+    """
+    gancho = os.environ.get("GANCHO_PLAN", "").strip()
+    if not gancho:
+        notas.append("sin GANCHO_PLAN: el recorrido acabara antes del visor")
+        return False
+
+    r = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
+    for linea in (r.stdout + r.stderr).strip().splitlines():
+        if linea:
+            notas.append(linea)
+    if r.returncode != 0:
+        raise RuntimeError("el gancho del plan fallo")
+    return True
+
+
+@paso("7c. La promotora avisa de que esta lista")
 def pedir_visor(notas, idp):
     """La costura entre lo que hace ella y lo que hace el equipo.
 
@@ -338,6 +416,14 @@ def pedir_visor(notas, idp):
     delante de un aviso que decia "lo hace el equipo de Real3D" sin ningun boton.
     Que ese boton exista y funcione es parte del camino, no un extra.
     """
+    # Sin plan contratado esto no aplica: el paso anterior acaba de comprobar
+    # que el visor esta cerrado, y seguir aqui solo produciria un fallo
+    # confuso que parece del producto y es de la configuracion.
+    if not os.environ.get("GANCHO_PLAN", "").strip():
+        notas.append("sin GANCHO_PLAN no hay plan de pago: este paso no aplica")
+        notas.append("el recorrido acabara antes del visor")
+        return
+
     r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
 
     f = elegir(formularios(r.text), "pedir-visor")
@@ -362,7 +448,7 @@ def pedir_visor(notas, idp):
         notas.append("PROBLEMA: una promotora ve los proyectos de las demas")
 
 
-@paso("7b. El equipo monta el visor")
+@paso("7d. El equipo monta el visor")
 def montar_visor(notas, idp):
     """El unico tramo que no hace la promotora.
 
@@ -371,8 +457,9 @@ def montar_visor(notas, idp):
     tambien es un resultado valido: comprueba que publicar queda bloqueado.
     """
     gancho = os.environ.get("GANCHO_VISOR", "").strip()
-    if not gancho:
-        notas.append("sin GANCHO_VISOR: el recorrido acabara antes del comprador")
+    if not gancho or not os.environ.get("GANCHO_PLAN", "").strip():
+        notas.append("sin GANCHO_VISOR o sin GANCHO_PLAN: el recorrido acabara")
+        notas.append("antes del comprador")
         return False
 
     r = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
@@ -405,7 +492,8 @@ def publicar(notas, idp):
 
     r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
     texto = re.sub(r"<[^>]+>", " ", r.text)
-    con_visor = os.environ.get("GANCHO_VISOR", "").strip() != ""
+    con_visor = (os.environ.get("GANCHO_VISOR", "").strip() != ""
+                 and os.environ.get("GANCHO_PLAN", "").strip() != "")
 
     pub = requests.Session()
     pub.auth = s.auth
@@ -508,6 +596,8 @@ panel(r)
 idp = crear_proyecto(r)
 if idp:
     importar(idp)
+    visor_cerrado_sin_plan(idp)
+    contratar(idp)
     pedir_visor(idp)
     montar_visor(idp)
     publicar(idp)

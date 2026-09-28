@@ -60,6 +60,15 @@
                         {{ __('visor.retirar') }}
                     </button>
                 </form>
+            @elseif(! \App\Support\Facturacion\AccesoAlVisor::puedePedirlo(auth()->user()))
+                {{-- Un boton que va a devolver un error no es un boton: se dice
+                     lo que hace falta, y se lleva ahi de un clic. --}}
+                <p class="text-xs text-gray-600 mb-2">{{ __('visor.pedir_ayuda') }}</p>
+                <p class="text-xs text-gray-700 mb-2 font-medium">{{ __('visor.hace_falta_plan') }}</p>
+                <a href="{{ route('admin.subscription.index') }}"
+                   class="inline-block px-3 py-1.5 bg-amber-600 text-white rounded-md text-xs font-semibold hover:bg-amber-700 transition">
+                    {{ __('visor.ver_planes') }}
+                </a>
             @else
                 <p class="text-xs text-gray-600 mb-2">{{ __('visor.pedir_ayuda') }}</p>
                 <form method="POST" action="{{ route('admin.projects.visor.pedir', $project) }}">

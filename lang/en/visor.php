@@ -23,4 +23,6 @@ return [
     'aun_no_hay_visor' => 'There is no 3D model or 360 background uploaded yet: upload them before marking it ready.',
     'montado_boton' => 'Mark as ready',
     'correo_montado_asunto' => 'Your 3D viewer is ready',
+    'hace_falta_plan' => 'We build the 3D viewer ourselves, and it comes with the paid plans. The first 14 days are free, starting when your viewer is live.',
+    'ver_planes' => 'See the plans',
 ];
