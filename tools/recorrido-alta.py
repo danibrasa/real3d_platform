@@ -82,6 +82,30 @@ def formularios(html):
     return p.forms
 
 
+def slug_publico(idp):
+    """El slug de ESTE proyecto, sacado de su pagina de edicion.
+
+    No esta en el formulario porque no es editable, asi que se saca del enlace
+    a la ficha publica, que es de donde lo cogeria una persona.
+
+    Se exige que lleve el sello de esta vuelta. Antes valia el primer enlace
+    /projects/<algo> que apareciera, y en esa pagina puede haber enlaces a
+    otros proyectos -un listado relacionado, una miga de pan-: el paso habria
+    comprobado el visor de un proyecto ajeno y habria dado verde o rojo sin
+    medir lo que dice medir. Hoy acierta, pero por suerte.
+
+    Devuelve None si no aparece ninguno suyo, que es lo que pasa mientras el
+    proyecto sigue en borrador.
+    """
+    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
+
+    for candidato in re.findall(r"/projects/([a-z0-9-]+)", r.text):
+        if not candidato.isdigit() and SELLO in candidato:
+            return candidato
+
+    return None
+
+
 def elegir(forms, pista=""):
     """El formulario cuya accion contenga la pista.
 
@@ -468,6 +492,10 @@ def montar_visor(notas, idp):
             notas.append(linea)
     if r.returncode != 0:
         raise RuntimeError("el gancho del visor fallo")
+
+    # Que el fichero se pueda SERVIR no se comprueba aqui sino en el paso 10,
+    # con el proyecto ya publicado: en este momento sigue en borrador y la API
+    # lo oculta por diseño, asi que preguntar ahora solo mide eso.
     return True
 
 
@@ -526,13 +554,7 @@ def preguntar(notas, idp):
     pub = requests.Session()
     pub.auth = s.auth
 
-    # El slug no esta en el formulario (no es editable): se saca del enlace de
-    # "ver la ficha publica" que hay en la pagina, que es de donde lo cogeria
-    # una persona.
-    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
-    candidatos = [x for x in re.findall(r'/projects/([a-z0-9-]+)', r.text)
-                  if not x.isdigit()]
-    slug = candidatos[0] if candidatos else None
+    slug = slug_publico(idp)
     if not slug:
         # Sin visor el proyecto sigue en borrador y no hay ficha publica que
         # visitar. No es una rotura: es el reparto funcionando. Este tramo se
@@ -584,6 +606,87 @@ def preguntar(notas, idp):
         notas.append("PROBLEMA: la consulta se guarda pero el aviso no sale")
 
 
+@paso("10. Se da de baja y el visor deja de verse")
+def darse_de_baja(notas, idp):
+    """La otra mitad del circuito del dinero.
+
+    Hasta aqui el recorrido comprueba que se puede contratar, que montamos el
+    visor y que se publica. Faltaba lo que pasa al dejar de pagar, que es lo
+    que decide si el producto se vende o se regala: el visor se quedaba
+    sirviendo para siempre, y por dos puertas -la pagina y la API por la que
+    sale el modelo-.
+
+    Se comprueba tambien lo que NO debe perderse. Llevarse por delante la
+    pagina, las viviendas o el formulario de contacto seria cobrarle a una
+    promotora por algo que le habiamos dicho que era gratis.
+    """
+    gancho = os.environ.get("GANCHO_BAJA", "").strip()
+    if not gancho:
+        notas.append("sin GANCHO_BAJA: no se comprueba que la baja quite el visor")
+        return
+
+    pub = requests.Session()
+    pub.auth = s.auth
+
+    slug = slug_publico(idp)
+    if not slug:
+        notas.append("el proyecto no llego a publicarse: este paso no aplica")
+        return
+
+    # Primero, que hubiera algo que quitar. Sin esto, todo lo de abajo saldria
+    # en verde con un visor que nunca funciono.
+    antes = pub.get(BASE + "/projects/%s" % slug, timeout=30)
+    notas.append("pagando, el visor devuelve %s" % antes.status_code)
+    if antes.status_code != 200:
+        notas.append("PROBLEMA: el visor no se servia ni estando al corriente")
+        return
+
+    # Y el fichero, que es lo que el visor pinta. Que exista en disco no es que
+    # funcione: el gancho corria como root y dejaba el directorio con permisos
+    # que el servidor web no puede atravesar, asi que el fichero estaba, la
+    # base de datos decia upload_complete, el paso 7d decia "subido e identico
+    # al original", y el visor devolvia 404 a cualquiera que lo abriera.
+    #
+    # Ojo con el id: esta ruta se enlaza por id y sus vecinas de /api/projects
+    # por slug. Con el slug devuelve 404 siempre y la comprobacion no mide nada.
+    antes_fichero = pub.get(BASE + "/api/projects/%d/files/image_360" % idp, timeout=30)
+    notas.append("y el fondo 360 se sirve: %s" % antes_fichero.status_code)
+    if antes_fichero.status_code != 200:
+        notas.append("PROBLEMA: el fichero esta subido pero el servidor no lo puede leer")
+        return
+
+    proceso = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
+    for linea in (proceso.stdout + proceso.stderr).strip().splitlines():
+        if linea:
+            notas.append(linea)
+    if proceso.returncode != 0:
+        raise RuntimeError("el gancho de la baja fallo")
+
+    # A la ficha de informacion, no a un 404: quien mira es un comprador.
+    despues = pub.get(BASE + "/projects/%s" % slug, timeout=30, allow_redirects=False)
+    notas.append("tras la baja, el visor devuelve %s" % despues.status_code)
+    if despues.status_code != 302:
+        notas.append("PROBLEMA: el visor se sigue sirviendo despues de la baja")
+
+    # La otra puerta: el fondo y el modelo salen por la API, y con la direccion
+    # se descargan sin pasar por la pagina.
+    #
+    # Ojo con el id: esta ruta se enlaza por id, mientras sus vecinas de
+    # /api/projects lo hacen por slug. Pasandole el slug devuelve 404 siempre,
+    # asi que esta comprobacion parecia pasar y no miraba nada. Lo delato
+    # desactivando el muro a proposito: seguia dando 404.
+    fichero = pub.get(BASE + "/api/projects/%d/files/image_360" % idp, timeout=30)
+    notas.append("y el fondo 360 por la API devuelve %s" % fichero.status_code)
+    if fichero.status_code != 404:
+        notas.append("PROBLEMA: el 3D se descarga igual conociendo la direccion")
+
+    # Y lo que se queda, que es el plan gratuito entero.
+    ficha = pub.get(BASE + "/projects/%s/info" % slug, timeout=30)
+    notas.append("la ficha publica sigue devolviendo %s" % ficha.status_code)
+    if ficha.status_code != 200:
+        notas.append("PROBLEMA: la baja se ha llevado por delante el plan gratuito")
+
+
 # ------------------------------------------------------------------- ejecucion
 
 print("Recorrido de alta en %s\n" % BASE)
@@ -602,6 +705,9 @@ if idp:
     montar_visor(idp)
     publicar(idp)
     preguntar(idp)
+    # El ultimo, porque deja a la promotora sin plan: cualquier paso detras se
+    # encontraria el producto a medias y contaria un fallo que no existe.
+    darse_de_baja(idp)
 
 total = time.time() - inicio_global
 rotos = [p for p in pasos if not p[2]]
