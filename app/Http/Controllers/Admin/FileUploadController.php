@@ -23,6 +23,15 @@ class FileUploadController extends Controller
             'total_chunks' => 'required|integer|min:1',
         ]);
 
+        // Mirar la cuota tambien aqui ahorra subir trescientos megas para que
+        // al final se rechacen. La comprobacion de verdad sigue estando al
+        // completar, porque entre una y otra pueden subirse otros ficheros.
+        $agency = $project->assignedAgencies()->first();
+        if ($agency?->companyProfile
+            && ! $agency->companyProfile->hasStorageAvailable($validated['total_size'])) {
+            return response()->json(['error' => __('billing.storage_quota_exceeded')], 403);
+        }
+
         $uploadId = Str::uuid()->toString();
         $tempDir = "uploads/chunks/{$uploadId}";
         Storage::makeDirectory($tempDir);
@@ -83,6 +92,12 @@ class FileUploadController extends Controller
         if ($agency) {
             $company = $agency->companyProfile;
             if ($company && ! $company->hasStorageAvailable($upload->total_size ?? 0)) {
+                // Sin esto, cada intento rechazado se quedaba en disco para
+                // siempre: quien se pasa de cuota reintenta, y cada reintento
+                // deja el fichero entero sin que nada lo recoja.
+                Storage::deleteDirectory($upload->temp_directory);
+                $upload->update(['completed' => false, 'total_chunks' => 0]);
+
                 return response()->json(['error' => __('billing.storage_quota_exceeded')], 403);
             }
         }
@@ -99,6 +114,25 @@ class FileUploadController extends Controller
         Storage::makeDirectory($destDir);
         $destPath = "{$destDir}/{$upload->original_name}";
 
+        // El registro anterior se borra ANTES de escribir, no despues.
+        //
+        // Al reves -que es como estaba- el fichero nuevo se escribia en la ruta
+        // de destino y acto seguido se borraba el registro viejo, que apuntaba a
+        // ESA MISMA ruta cuando el nombre coincidia. Es decir: el equipo corregia
+        // un modelo, lo volvia a subir con el mismo nombre, y se quedaba sin
+        // fichero y sin registro. Lo encontro el primer test que se le escribio
+        // a este camino.
+        $anterior = ProjectFile::where('project_id', $project->id)
+            ->where('file_type', $upload->file_type)
+            ->first();
+
+        if ($anterior) {
+            if ($anterior->storage_path !== $destPath) {
+                Storage::delete($anterior->storage_path);
+            }
+            $anterior->delete();
+        }
+
         // Assemble chunks
         $destFullPath = Storage::path($destPath);
         $outFile = fopen($destFullPath, 'wb');
@@ -114,15 +148,6 @@ class FileUploadController extends Controller
             fwrite($outFile, $chunkData);
         }
         fclose($outFile);
-
-        // Delete old file record for this type if exists
-        $oldFile = ProjectFile::where('project_id', $project->id)
-            ->where('file_type', $upload->file_type)
-            ->first();
-        if ($oldFile) {
-            Storage::delete($oldFile->storage_path);
-            $oldFile->delete();
-        }
 
         // Create file record
         ProjectFile::create([
