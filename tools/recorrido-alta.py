@@ -315,6 +315,38 @@ def importar(notas, idp):
         raise RuntimeError("se importo pero no se ven las viviendas")
 
 
+@paso("7a. La promotora avisa de que esta lista")
+def pedir_visor(notas, idp):
+    """La costura entre lo que hace ella y lo que hace el equipo.
+
+    Antes de esto, una promotora terminaba de cargar sus viviendas y se quedaba
+    delante de un aviso que decia "lo hace el equipo de Real3D" sin ningun boton.
+    Que ese boton exista y funcione es parte del camino, no un extra.
+    """
+    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
+
+    f = elegir(formularios(r.text), "pedir-visor")
+    if not f:
+        notas.append("PROBLEMA: no hay forma de avisar al equipo de que falta el visor")
+        return
+
+    r = s.post(BASE + "/admin/projects/%d/pedir-visor" % idp,
+               data=dict(f["campos"]), timeout=60)
+    notas.append("avisar al equipo devuelve %s" % r.status_code)
+
+    r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
+    confirmado = "Visor pedido el" in re.sub(r"<[^>]+>", " ", r.text)
+    notas.append("la ficha confirma que esta pedido: %s" % ("si" if confirmado else "NO"))
+    if not confirmado:
+        notas.append("PROBLEMA: se pide y no queda constancia")
+
+    # La cola del equipo tiene sus proyectos: una promotora no debe verla.
+    r = s.get(BASE + "/admin/visores-pendientes", timeout=30)
+    notas.append("la cola del equipo le devuelve %s (debe ser 403)" % r.status_code)
+    if r.status_code != 403:
+        notas.append("PROBLEMA: una promotora ve los proyectos de las demas")
+
+
 @paso("7b. El equipo monta el visor")
 def montar_visor(notas, idp):
     """El unico tramo que no hace la promotora.
@@ -461,6 +493,7 @@ panel(r)
 idp = crear_proyecto(r)
 if idp:
     importar(idp)
+    pedir_visor(idp)
     montar_visor(idp)
     publicar(idp)
     preguntar(idp)

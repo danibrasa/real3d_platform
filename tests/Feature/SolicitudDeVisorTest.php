@@ -169,4 +169,17 @@ class SolicitudDeVisorTest extends TestCase
             ->assertOk()
             ->assertDontSee('Residencial Bahia');
     }
+
+    public function test_el_correo_se_puede_pintar_de_verdad(): void
+    {
+        // Mail::fake() no renderiza la plantilla, asi que los tests de arriba
+        // pasaban en verde con el correo roto: declaraba `view` cuando la
+        // plantilla usa componentes de markdown. Esto lo pinta.
+        $correo = new SolicitudDeVisor($this->proyecto, $this->promotora);
+
+        $html = $correo->render();
+
+        $this->assertStringContainsString($this->proyecto->name, $html);
+        $this->assertStringContainsString($this->promotora->name, $html);
+    }
 }

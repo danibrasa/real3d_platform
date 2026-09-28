@@ -10,15 +10,16 @@
  *
  * Uso: php comprobar-cola.php /ruta/de/la/app [segundos]
  */
+
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\DB;
+
 $ruta = rtrim($argv[1] ?? '/var/www/dev', '/');
 $espera = (int) ($argv[2] ?? 40);
 
 require $ruta.'/vendor/autoload.php';
 $app = require $ruta.'/bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-
-use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Support\Facades\DB;
 
 $fallidosAntes = DB::table('failed_jobs')->count();
 $limite = time() + $espera;
