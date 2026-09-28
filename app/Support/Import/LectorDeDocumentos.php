@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Saca las viviendas de un PDF: un folleto, un listado de precios, un plano.
+ * Saca las viviendas de un documento: un folleto en PDF, un listado de precios,
+ * una captura de pantalla o la foto de un cuadro impreso.
  *
  * Existe porque el importador de Excel, por bien que se trague un fichero sucio,
  * sigue exigiendo un Excel. Y lo que las promotoras tienen de verdad son
@@ -18,8 +19,18 @@ use RuntimeException;
  * confirmar. Lo que llega de un modelo hay que revisarlo antes de crear nada, y
  * esa pantalla ya existe y esta probada.
  */
-class LectorDePdf
+class LectorDeDocumentos
 {
+    /** Lo que se sabe leer, y como se lo llama la API. */
+    public const TIPOS = [
+        'pdf' => 'application/pdf',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        'gif' => 'image/gif',
+    ];
+
     /** Los mismos campos que entiende el importador de Excel. */
     public const CAMPOS = [
         'identifier', 'floor', 'bedrooms', 'bathrooms',
@@ -29,7 +40,8 @@ class LectorDePdf
     private const INSTRUCCIONES = <<<'TXT'
         Eres un extractor de datos para una plataforma inmobiliaria. Te dan el
         documento de un proyecto de obra nueva (folleto, listado de precios,
-        memoria de calidades o plano) y devuelves las viviendas que aparecen.
+        memoria de calidades o plano), a veces en PDF y a veces como foto o
+        captura de pantalla, y devuelves las viviendas que aparecen.
 
         Devuelve SOLO un objeto JSON, sin texto alrededor y sin markdown:
 
@@ -76,7 +88,7 @@ class LectorDePdf
     public function leer(string $ruta): array
     {
         if (! $this->disponible()) {
-            throw new RuntimeException('No hay clave de API configurada para leer PDFs.');
+            throw new RuntimeException('No hay clave de API configurada para leer documentos.');
         }
 
         $viviendas = $this->preguntar($ruta);
@@ -117,17 +129,12 @@ class LectorDePdf
             'messages' => [[
                 'role' => 'user',
                 'content' => [
-                    [
-                        'type' => 'document',
-                        'source' => [
-                            'type' => 'base64',
-                            'media_type' => 'application/pdf',
-                            'data' => base64_encode(file_get_contents($ruta)),
-                        ],
-                    ],
+                    $this->bloqueDelFichero($ruta),
                     [
                         'type' => 'text',
-                        'text' => 'Extrae las viviendas de este documento.',
+                        'text' => 'Extrae las viviendas de este documento. Si es una '
+                            .'foto o una captura, lee la tabla aunque este torcida o '
+                            .'recortada, y no inventes las filas que no se lean.',
                     ],
                 ],
             ]],
@@ -140,6 +147,35 @@ class LectorDePdf
         }
 
         return $this->interpretarRespuesta($respuesta->json('content.0.text', ''));
+    }
+
+    /**
+     * El fichero, en el formato que espera la API.
+     *
+     * Un PDF va como `document` y una imagen como `image`: son bloques
+     * distintos aunque para quien sube el fichero sea lo mismo. Se acepta la
+     * foto o la captura porque no todas las promotoras tienen el listado en un
+     * PDF; muchas lo tienen en una imagen dentro de una presentacion, o le hacen
+     * una foto al cuadro de precios impreso.
+     *
+     * @return array<string, mixed>
+     */
+    private function bloqueDelFichero(string $ruta): array
+    {
+        $tipo = self::TIPOS[strtolower(pathinfo($ruta, PATHINFO_EXTENSION))] ?? null;
+
+        if ($tipo === null) {
+            throw new RuntimeException('Formato no admitido: '.pathinfo($ruta, PATHINFO_EXTENSION));
+        }
+
+        return [
+            'type' => $tipo === 'application/pdf' ? 'document' : 'image',
+            'source' => [
+                'type' => 'base64',
+                'media_type' => $tipo,
+                'data' => base64_encode(file_get_contents($ruta)),
+            ],
+        ];
     }
 
     /** @return array<int, array<string, mixed>> */
