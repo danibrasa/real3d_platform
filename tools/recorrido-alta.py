@@ -226,14 +226,29 @@ def elegir_plan(notas, _):
         raise RuntimeError("bloqueado en la pasarela de pago")
 
 
-@paso("5. Llegar al panel")
+@paso("5. Llegar al panel y saber que hacer")
 def panel(notas, _):
+    """No basta con que cargue: tiene que decirle por donde empezar.
+
+    Antes de los primeros pasos, una promotora recien registrada entraba y veia
+    un menu y nada mas. Eso no da un error en ningun sitio: da una pantalla
+    vacia, que es de lo que nadie se queja y todo el mundo abandona.
+    """
     r = s.get(BASE + "/admin", timeout=30)
     if r.status_code != 200:
         raise RuntimeError("el panel devuelve %s (acaba en %s)"
                            % (r.status_code, r.url.replace(BASE, "")))
-    if "proyecto" not in r.text.lower() and "project" not in r.text.lower():
-        notas.append("el panel no menciona proyectos: no guia sobre que hacer ahora")
+
+    texto = re.sub(r"<[^>]+>", " ", r.text)
+
+    guia = "Primeros pasos" in texto or "First steps" in texto
+    notas.append("el panel le dice por donde empezar: %s" % ("si" if guia else "NO"))
+    if not guia:
+        notas.append("PROBLEMA: una promotora nueva entra y no sabe que hacer")
+
+    # Y que el primer paso sea el que toca: crear el proyecto.
+    if guia and "Crea tu proyecto" not in texto and "Create your project" not in texto:
+        notas.append("PROBLEMA: el primer paso no es crear el proyecto")
 
 
 @paso("6. Crear el primer proyecto")
