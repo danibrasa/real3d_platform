@@ -57,6 +57,12 @@ sudo -u www-data php artisan route:clear >/dev/null
 chown -R www-data:www-data storage bootstrap/cache
 ln -sfn "$APP/storage/app/public" "$APP/public/storage"
 
+# queue:work carga el codigo al arrancar y se lo queda en memoria, asi que sin
+# esto el worker sigue ejecutando la rama anterior. En produccion lo reinicia el
+# despliegue; aqui no lo reiniciaba nadie, y costo un rato entender por que un
+# correo recien arreglado seguia fallando.
+systemctl restart dev-queue.service 2>/dev/null && echo "worker de colas reiniciado"
+
 CODE=$(curl -sL -o /dev/null -w '%{http_code}' -u "real3d:$(cat /root/.dev-web-pass)" https://dev.real3d.io/)
 echo "dev.real3d.io responde $CODE"
 [ "$CODE" = "200" ] || { echo "ERROR: dev no responde bien"; exit 1; }

@@ -14,6 +14,12 @@
  *
  * Uso: php montar-visor-de-prueba.php /ruta/de/la/app <id del proyecto>
  */
+
+use App\Models\Project;
+use App\Models\ProjectFile;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\Storage;
+
 $ruta = rtrim($argv[1] ?? '/var/www/dev', '/');
 $idProyecto = (int) ($argv[2] ?? 0);
 
@@ -25,11 +31,6 @@ if (! $idProyecto) {
 require $ruta.'/vendor/autoload.php';
 $app = require $ruta.'/bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
-
-use App\Models\Project;
-use App\Models\ProjectFile;
-use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Support\Facades\Storage;
 
 $proyecto = Project::find($idProyecto);
 if (! $proyecto) {

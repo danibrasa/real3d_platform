@@ -29,6 +29,10 @@ class SolicitudDeVisor extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.solicitud-de-visor');
+        // markdown, no view: la plantilla usa componentes <x-mail::message>, y
+        // con `view` Laravel no registra el espacio de nombres "mail" y revienta
+        // al renderizar. No se veia en los tests porque Mail::fake() no pinta la
+        // plantilla; lo cazo el recorrido nocturno al mandar el correo de verdad.
+        return new Content(markdown: 'emails.solicitud-de-visor');
     }
 }
