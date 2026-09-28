@@ -65,6 +65,7 @@ return [
     'current' => 'Current plan',
     'trial_active' => 'Trial active',
     'trial_ends' => 'Trial ends :date',
+    'trial_waiting' => 'Your trial starts when your viewer is live',
     'features' => [
         'projects' => ':count project|:count projects',
         'storage' => ':size storage',

@@ -21,8 +21,15 @@
                         <h3 class="text-lg font-semibold text-gray-800">{{ __('billing.current_plan') }}</h3>
                         <div class="mt-1 flex items-center gap-2">
                             <x-plan-badge :tier="$currentPlan" />
-                            @if($subscription?->onTrial())
-                                <span class="text-xs text-amber-600 font-medium">{{ __('billing.trial_ends', ['date' => $subscription->trial_ends_at->format('M d, Y')]) }}</span>
+                            {{-- Dos estados distintos, y decir el segundo con la
+                                 fecha del primero seria prometer lo que no es: la
+                                 suscripcion nace con una prueba larga que solo es
+                                 el plazo que nos damos para montar el visor. Esa
+                                 fecha no es la prueba de nadie. --}}
+                            @if($subscription?->onTrial() && ! $profile->prueba_desde)
+                                <span class="text-xs text-amber-600 font-medium">{{ __('billing.trial_waiting') }}</span>
+                            @elseif($subscription?->onTrial())
+                                <span class="text-xs text-amber-600 font-medium">{{ __('billing.trial_ends', ['date' => $subscription->trial_ends_at->translatedFormat('j M Y')]) }}</span>
                             @endif
                         </div>
                     </div>
