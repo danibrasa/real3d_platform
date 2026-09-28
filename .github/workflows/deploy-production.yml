@@ -48,15 +48,36 @@ jobs:
           echo "$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA" --jq .commit.message | head -1)"
           echo
 
+          # Se espera a que el CI termine en vez de rechazar el despliegue por
+          # llegar pronto. Publicar justo despues de fusionar es lo normal, y
+          # entonces el CI lleva treinta segundos corriendo: rechazarlo obligaba
+          # a relanzarlo a mano un minuto despues, que es un freno inutil.
+          #
           # Se mira el nombre del JOB de ci.yml, no el del workflow: el endpoint
           # de check-runs lista jobs.
-          ESTADO=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" \
-            --jq '[.check_runs[] | select(.name == "Estilo, tests y compilacion")]
-                  | sort_by(.started_at) | last | .conclusion // "en curso"')
-          echo "comprobaciones: ${ESTADO:-sin ejecutar}"
+          LIMITE=$((SECONDS + 1200))
+          ESTADO=""
+          CONCL=""
 
-          if [ "$ESTADO" != "success" ]; then
-            echo "::error::Las comprobaciones no estan en verde en $SHA (${ESTADO:-sin ejecutar}). No se despliega."
+          while [ "$SECONDS" -lt "$LIMITE" ]; do
+            INFO=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" \
+              --jq '[.check_runs[] | select(.name == "Estilo, tests y compilacion")]
+                    | sort_by(.started_at) | last
+                    | if . == null then "ninguno -" else (.status + " " + (.conclusion // "-")) end')
+
+            ESTADO=${INFO%% *}
+            CONCL=${INFO##* }
+
+            [ "$ESTADO" = "completed" ] && break
+
+            echo "comprobaciones: ${ESTADO:-sin respuesta}, esperando..."
+            sleep 20
+          done
+
+          echo "comprobaciones: $ESTADO / $CONCL"
+
+          if [ "$CONCL" != "success" ]; then
+            echo "::error::Las comprobaciones no estan en verde en $SHA ($ESTADO / $CONCL). No se despliega."
             exit 1
           fi
 
