@@ -29,10 +29,15 @@
 
                         <h3 class="text-xl font-bold mb-2">{{ $plan['name'] }}</h3>
                         <div class="mb-4">
-                            <span x-show="interval === 'monthly'" class="text-4xl font-bold">${{ $plan['price_monthly'] }}</span>
-                            <span x-show="interval === 'yearly'" class="text-4xl font-bold">${{ $plan['price_yearly'] }}</span>
-                            <span x-show="interval === 'monthly'" class="text-slate-400 text-sm">{{ __('billing.per_month') }}</span>
-                            <span x-show="interval === 'yearly'" class="text-slate-400 text-sm">{{ __('billing.per_year') }}</span>
+                            @if($plan['gratis'] ?? false)
+                                <span class="text-4xl font-bold text-cyan-300">{{ __('billing.free') }}</span>
+                                <span class="text-slate-400 text-sm">{{ __('billing.no_card') }}</span>
+                            @else
+                                <span x-show="interval === 'monthly'" class="text-4xl font-bold">${{ $plan['price_monthly'] }}</span>
+                                <span x-show="interval === 'yearly'" class="text-4xl font-bold">${{ $plan['price_yearly'] }}</span>
+                                <span x-show="interval === 'monthly'" class="text-slate-400 text-sm">{{ __('billing.per_month') }}</span>
+                                <span x-show="interval === 'yearly'" class="text-slate-400 text-sm">{{ __('billing.per_year') }}</span>
+                            @endif
                         </div>
 
                         <ul class="space-y-3 mb-6 text-sm">
