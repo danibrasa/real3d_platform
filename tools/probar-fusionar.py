@@ -155,5 +155,84 @@ class LaDecisionDeFusionar(unittest.TestCase):
         self.assertFalse(self.puede(None, todas))
 
 
+class ElBucleDeVerdad(unittest.TestCase):
+    """main() conducido entero, con git y GitHub de mentira.
+
+    Porque probar puede_seguir() por separado sigue dejando fuera el cable:
+    con la condicion del bucle invertida, o pasandole las ramas donde van las
+    banderas, la funcion seguiria siendo correcta y la rama se fusionaria
+    igual. Aqui se mira lo unico que importa de verdad, que es si se llamo a
+    GitHub para fusionar.
+
+    Para comprobar que estos tests sirven, en fusionar.py:
+
+        if not puede_seguir(veredicto, ramas):     -> 1 error
+        if puede_seguir(veredicto, banderas):      -> 2 fallos y 2 errores
+
+    Las dos son las que propuso el revisor cuando dijo que probar la funcion
+    suelta no cubria el cable. Tenia razon, y quedan cazadas.
+    """
+
+    def preparar(self, veredicto, argv):
+        fus = cargar_fusionar()
+        fus.log = lambda *a: None
+        fus.git = lambda *a: "sin git"
+        fus.revisar = lambda rama: veredicto
+        fus.pr_de = lambda rama: {"number": 7, "head": {"sha": "abc1234"}}
+        fus.estado_fusion = lambda n, intentos=15: {
+            "head": {"sha": "abc1234"}, "mergeable_state": "clean"}
+        fus.esperar_ci = lambda sha: "success"     # si no, espera de verdad
+        fus.time = types.SimpleNamespace(sleep=lambda s: None)
+
+        # La rama existe en origin.
+        fus.subprocess = types.SimpleNamespace(
+            run=lambda *a, **k: Salida(0), TimeoutExpired=ErrorDeCuelgue)
+
+        self.llamadas = []
+
+        def api(ruta, metodo="GET", cuerpo=None):
+            self.llamadas.append((metodo, ruta))
+            return 200, {"sha": "fus1234"}
+
+        fus.api = api
+        fus.sys = types.SimpleNamespace(argv=["fusionar.py"] + argv, exit=sys.exit)
+
+        return fus
+
+    def fusiono(self):
+        return any("/merge" in ruta for _, ruta in self.llamadas)
+
+    def test_con_hallazgos_no_se_llama_a_github_para_fusionar(self):
+        fus = self.preparar("hallazgos", ["rama-x"])
+
+        with self.assertRaises(SystemExit) as salida:
+            fus.main()
+
+        self.assertFalse(self.fusiono(), "se fusiono una rama con hallazgos graves")
+        self.assertEqual(salida.exception.code, 1,
+                         "termino en 0: quien lo lance en un guion no se entera")
+
+    def test_sin_revision_tampoco(self):
+        fus = self.preparar("sin-revision", ["rama-x"])
+
+        with self.assertRaises(SystemExit):
+            fus.main()
+
+        self.assertFalse(self.fusiono())
+
+    def test_con_la_bandera_si_se_fusiona(self):
+        fus = self.preparar("hallazgos", ["rama-x", "--aunque-haya-hallazgos"])
+        fus.main()
+
+        self.assertTrue(self.fusiono(),
+                        "con el permiso dado a mano tampoco se fusiono")
+
+    def test_una_revision_limpia_fusiona_sin_banderas(self):
+        fus = self.preparar("limpia", ["rama-x"])
+        fus.main()
+
+        self.assertTrue(self.fusiono(), "una rama limpia no llego a fusionarse")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
