@@ -22,6 +22,19 @@
                 Todavía no se ha creado nada: revisa lo de abajo y confirma.
             </div>
 
+            {{-- Un folleto que pone "consultar" en alguna unidad es lo normal, y la
+                 columna de precio no admite nulos: sin este aviso esas viviendas se
+                 crean con un 0 que luego aparece publicado. --}}
+            @if (($sinPrecio ?? 0) > 0)
+                <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+                    {{ $sinPrecio === 1
+                        ? 'Hay 1 vivienda sin precio en el documento'
+                        : 'Hay '.number_format($sinPrecio, 0, ',', '.').' viviendas sin precio en el documento' }}
+                    (por ejemplo, las que ponen «consultar»). Se crearán con precio 0 y
+                    aparecerán así en la web hasta que lo rellenes.
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('admin.projects.units.import.confirmar', $project) }}">
                 @csrf
 

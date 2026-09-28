@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Models\UnitTypology;
+use App\Support\Import\LectorDePdf;
 use App\Support\Import\LectorDeViviendas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,21 +43,30 @@ class ImportarViviendasController extends Controller
         Gate::authorize('create-unit', $project);
         $this->autorizarProyecto($project);
 
+        $maxKb = max(10240, (int) config('importacion.max_mb', 15) * 1024);
+
         $request->validate([
-            'fichero' => ['required', 'file', 'max:10240', 'mimes:xlsx,csv,txt,ods'],
+            'fichero' => ['required', 'file', 'max:'.$maxKb, 'mimes:xlsx,csv,txt,ods,pdf'],
         ], [], ['fichero' => __('el fichero')]);
 
         $subido = $request->file('fichero');
         $nombre = Str::uuid().'.'.$subido->getClientOriginalExtension();
         $subido->storeAs(self::CARPETA, $nombre);
 
+        $esPdf = strtolower($subido->getClientOriginalExtension()) === 'pdf';
+
         try {
-            $leido = $this->lector->leer(Storage::path(self::CARPETA.'/'.$nombre));
+            $leido = $esPdf
+                ? $this->lectorPdf()->leer(Storage::path(self::CARPETA.'/'.$nombre))
+                : $this->lector->leer(Storage::path(self::CARPETA.'/'.$nombre));
         } catch (\Throwable $e) {
             Storage::delete(self::CARPETA.'/'.$nombre);
+            report($e);
 
             return back()->withErrors([
-                'fichero' => __('No se ha podido leer el fichero. Comprueba que sea un Excel o un CSV válido.'),
+                'fichero' => $esPdf
+                    ? __('No se ha podido leer el PDF. Prueba con el listado en Excel si lo tienes.')
+                    : __('No se ha podido leer el fichero. Comprueba que sea un Excel o un CSV válido.'),
             ]);
         }
 
@@ -68,16 +78,20 @@ class ImportarViviendasController extends Controller
             ]);
         }
 
+        Storage::put(self::CARPETA.'/'.$nombre.'.json', json_encode($leido));
+
         session([
             'import_viviendas' => [
                 'proyecto' => $project->id,
                 'fichero' => $nombre,
                 'original' => $subido->getClientOriginalName(),
+                'pdf' => $esPdf,
             ],
         ]);
 
         return view('admin.units.import.revisar', [
             'project' => $project,
+            'sinPrecio' => $this->cuantasSinPrecio($leido),
             'cabeceras' => $leido['cabeceras'],
             'mapeo' => $leido['mapeo'],
             'total' => $leido['total'],
@@ -120,10 +134,15 @@ class ImportarViviendasController extends Controller
             ]);
         }
 
-        $leido = $this->lector->leer($ruta);
+        // Se usa lo que se guardo al analizar, no una lectura nueva: lo que se
+        // crea tiene que ser exactamente lo que la promotora vio y aprobo.
+        $guardado = json_decode(Storage::get(self::CARPETA.'/'.$sesion['fichero'].'.json'), true);
+        $leido = is_array($guardado) ? $guardado : $this->lector->leer($ruta);
+
         $resultado = $this->crearViviendas($project, $leido['filas'], $datos['mapeo'], $datos['duplicados']);
 
         Storage::delete(self::CARPETA.'/'.$sesion['fichero']);
+        Storage::delete(self::CARPETA.'/'.$sesion['fichero'].'.json');
         session()->forget('import_viviendas');
 
         return redirect()
@@ -141,6 +160,42 @@ class ImportarViviendasController extends Controller
      * @param  list<array<int, string>>  $filas
      * @param  array<string, int|null>  $mapeo
      */
+    /**
+     * Cuantas filas se quedarian sin precio.
+     *
+     * Hace falta decirlo antes de crear nada: la columna `price` no admite
+     * nulos, asi que una vivienda sin precio se guarda como 0 y en la web sale
+     * como "0". Un folleto que pone "Consultar" en una unidad es lo normal, y
+     * quien revisa tiene que enterarse ahora y no cuando lo vea publicado.
+     */
+    private function cuantasSinPrecio(array $leido): int
+    {
+        $columna = $leido['mapeo']['price'] ?? null;
+        if ($columna === null) {
+            return $leido['total'];
+        }
+
+        $sin = 0;
+        foreach ($leido['filas'] as $fila) {
+            if ($this->lector->aDecimal($fila[$columna] ?? '') === null) {
+                $sin++;
+            }
+        }
+
+        return $sin;
+    }
+
+    private function lectorPdf(): LectorDePdf
+    {
+        $lector = new LectorDePdf(segundos: (int) config('importacion.segundos', 100));
+
+        if (! config('importacion.pdf_habilitado', true) || ! $lector->disponible()) {
+            throw new \RuntimeException('La lectura de PDFs no esta configurada.');
+        }
+
+        return $lector;
+    }
+
     private function crearViviendas(Project $project, array $filas, array $mapeo, string $duplicados): array
     {
         $existentes = $project->units()->pluck('id', 'identifier')->all();
