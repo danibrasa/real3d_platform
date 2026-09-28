@@ -7,7 +7,7 @@ use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
@@ -110,19 +110,23 @@ class ContactarLeadTest extends TestCase
     public function test_la_consulta_siempre_tiene_proyecto(): void
     {
         // El mensaje de WhatsApp de la ficha usa el nombre del proyecto sin
-        // proteger contra nulos, y eso es correcto: la clave ajena es
-        // obligatoria y con borrado en cascada, asi que una consulta huerfana
-        // no puede existir. Queda fijado por si alguien la hace opcional algun
-        // dia: entonces habria que revisar esa vista.
-        $this->assertDatabaseHas('inquiries', [
-            'id' => $this->consulta->id,
-            'project_id' => $this->consulta->project_id,
-        ]);
+        // proteger contra nulos, y hoy eso es correcto: la clave ajena es
+        // obligatoria y borra en cascada, asi que una consulta huerfana no puede
+        // existir. Queda fijado por si alguien la hace opcional algun dia:
+        // entonces hay una vista que revisar, y mas vale que salte esto a que a
+        // un comprador le llegue un "te escribo de ." en el movil.
+        //
+        // Se pregunta por el esquema con la capa de Laravel y no con
+        // SHOW COLUMNS, que es sintaxis de MySQL: el test no tiene por que
+        // saber contra que motor corre.
+        $columna = collect(Schema::getColumns('inquiries'))
+            ->firstWhere('name', 'project_id');
 
-        $columna = collect(DB::select('SHOW COLUMNS FROM inquiries'))
-            ->firstWhere('Field', 'project_id');
-
-        $this->assertSame('NO', $columna->Null, 'project_id no puede volverse opcional sin revisar la vista de la ficha');
+        $this->assertNotNull($columna, 'no existe la columna project_id');
+        $this->assertFalse(
+            $columna['nullable'],
+            'project_id no puede volverse opcional sin revisar la ficha de la consulta'
+        );
     }
 
     public function test_una_promotora_no_ve_los_leads_de_otra(): void
