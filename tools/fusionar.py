@@ -41,6 +41,7 @@ RAMAS = [
     # Ojo: este fichero vive en el repositorio a proposito. Antes andaba suelto
     # en /root y se editaba a mano en dos sitios, hasta que una copia piso a la
     # otra y se perdio la integracion del revisor sin que nada lo dijera.
+    'chore/fusionar-en-el-repo',
 ]
 
 PIE = (
@@ -142,10 +143,19 @@ def revisar(rama):
         return
 
     entorno = dict(os.environ, GH_ANTHROPIC_KEY=clave, CLON=CLON)
-    r = subprocess.run(
-        ["python3", CLON + "/tools/revisor.py", "origin/main..origin/" + rama],
-        capture_output=True, text=True, env=entorno,
-    )
+
+    # Con timeout, y no por prudencia general: sin el, un revisor colgado deja
+    # la fusion esperando para siempre y no se ejecuta ninguna de las ramas que
+    # avisan. Es decir, el caso que se decia cubierto era justo el unico que no
+    # lo estaba.
+    try:
+        r = subprocess.run(
+            ["python3", CLON + "/tools/revisor.py", "origin/main..origin/" + rama],
+            capture_output=True, text=True, env=entorno, timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        log("      | NO SE PUDO REVISAR: el revisor se colgo (mas de 5 min)")
+        return
 
     for linea in r.stdout.strip().split("\n"):
         if linea.strip():
