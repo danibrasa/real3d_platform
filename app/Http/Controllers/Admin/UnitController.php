@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Unit;
 use App\Services\WebhookService;
+use App\Support\Facturacion\PlanDelProyecto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +55,20 @@ class UnitController extends Controller
     {
         Gate::authorize('create-unit', $project);
         $this->authorizeProjectAccess($project);
+
+        // El tope del plan lo miraba la importacion y solo la importacion,
+        // asi que creandolas de una en una se pasaba cualquiera. Un limite
+        // que se salta con paciencia no es un limite.
+        //
+        // El tope sale del proyecto y no de quien hace la peticion: con el
+        // perfil de quien pide, el equipo -que no tiene ficha de empresa-
+        // podia anadirle viviendas de mas a una promotora del plan gratuito
+        // sin que se le aplicara el suyo.
+        $tope = PlanDelProyecto::limite($project, 'max_units_per_project');
+
+        if ($project->units()->count() >= $tope) {
+            return back()->with('error', __('billing.unit_limit_reached', ['tope' => $tope]));
+        }
 
         $validated = $request->validate([
             'identifier' => ['required', 'string', 'max:50', Rule::unique('units')->where('project_id', $project->id)],

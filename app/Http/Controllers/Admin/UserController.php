@@ -69,6 +69,32 @@ class UserController extends Controller
             'agency_id' => 'nullable|exists:users,id',
         ]);
 
+        // El tope de agentes del plan no lo comprobaba nadie, y el plan
+        // gratuito trae cero: se podian crear todos los que se quisiera.
+        //
+        // El tope es de la agencia a la que va el agente, no de quien lo
+        // crea. Mirando a quien lo crea, el equipo -que no tiene ficha de
+        // empresa- podia darle agentes a una promotora del plan gratuito
+        // indicando su agency_id: el mismo limite, saltado por la puerta de
+        // al lado. Es el fallo que acababa de arreglar en las viviendas y
+        // que aqui habia dejado igual.
+        if ($validated['role'] === User::ROLE_AGENTE) {
+            $agencia = $user->isInmobiliaria()
+                ? $user
+                : User::find($validated['agency_id'] ?? null);
+
+            if ($agencia) {
+                $tope = $agencia->companyProfile?->getPlanLimits()['max_agents'] ?? 0;
+                $tiene = User::where('agency_id', $agencia->id)
+                    ->where('role', User::ROLE_AGENTE)
+                    ->count();
+
+                if ($tiene >= $tope) {
+                    return back()->with('error', __('billing.agent_limit_reached', ['tope' => $tope]));
+                }
+            }
+        }
+
         // Set agency_id logic
         if ($validated['role'] === User::ROLE_AGENTE) {
             if ($user->isInmobiliaria()) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Support\Facturacion\PlanDelProyecto;
 
 class EmbedController extends Controller
 {
@@ -11,6 +12,13 @@ class EmbedController extends Controller
         $project = Project::where('slug', $slug)
             ->whereIn('status', ['public', 'unlisted'])
             ->firstOrFail();
+
+        // El widget para la web de la promotora va en los planes de pago, y
+        // no lo comprobaba nadie: cualquiera podia incrustarlo gratis. Se
+        // responde 404 y no 403 a proposito: esto se pinta dentro de un iframe
+        // en la web de un tercero, y ahi una pagina de "no tienes permiso" con
+        // nuestra marca queda peor que nada.
+        abort_unless(PlanDelProyecto::incluye($project, 'embed_widget'), 404);
 
         $project->loadCount([
             'units',

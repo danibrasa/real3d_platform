@@ -79,4 +79,6 @@ return [
         'units' => 'Hasta :count unidades/proyecto',
         'support' => 'Soporte prioritario',
     ],
+    'unit_limit_reached' => 'Tu plan permite :tope viviendas por proyecto. Para cargar mas, cambia de plan.',
+    'agent_limit_reached' => 'Tu plan permite :tope agentes. Para anadir mas, cambia de plan.',
 ];

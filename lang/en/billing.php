@@ -77,4 +77,6 @@ return [
         'units' => 'Up to :count units/project',
         'support' => 'Priority support',
     ],
+    'unit_limit_reached' => 'Your plan allows :tope units per project. To load more, change your plan.',
+    'agent_limit_reached' => 'Your plan allows :tope agents. To add more, change your plan.',
 ];
