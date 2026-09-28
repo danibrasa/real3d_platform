@@ -36,6 +36,7 @@ WORKFLOW_CI = "Comprobaciones"           # el workflow, como lo ve actions/runs
 # El orden importa: el flujo nuevo primero, y la del portal del comprador al
 # final porque es la que hay que resolver contra todo lo demas.
 RAMAS = [
+    'fix/version-sin-etiqueta',
     # Las ramas a fusionar, en orden. Se edita aqui antes de lanzarlo.
     #
     # Ojo: este fichero vive en el repositorio a proposito. Antes andaba suelto
