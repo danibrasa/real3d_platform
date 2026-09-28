@@ -30,8 +30,9 @@
                     {{ $sinPrecio === 1
                         ? 'Hay 1 vivienda sin precio en el documento'
                         : 'Hay '.number_format($sinPrecio, 0, ',', '.').' viviendas sin precio en el documento' }}
-                    (por ejemplo, las que ponen «consultar»). Se crearán con precio 0 y
-                    aparecerán así en la web hasta que lo rellenes.
+                    (por ejemplo, las que ponen «consultar»). Se crearán sin precio y
+                    en la web aparecerán como «{{ __('general.price_on_request') }}»
+                    hasta que se lo pongas.
                 </div>
             @endif
 

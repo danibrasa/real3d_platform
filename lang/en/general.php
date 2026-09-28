@@ -28,6 +28,7 @@ return [
     'sort_by' => 'Sort by',
     'newest' => 'Newest',
     'name' => 'Name',
+    'price_on_request' => 'Price on request',
     'price_asc' => 'Price: low to high',
     'price_desc' => 'Price: high to low',
     'all' => 'All',

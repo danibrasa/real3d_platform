@@ -28,6 +28,7 @@ return [
     'sort_by' => 'Ordenar por',
     'newest' => 'Mas recientes',
     'name' => 'Nombre',
+    'price_on_request' => 'Consultar precio',
     'price_asc' => 'Precio: menor a mayor',
     'price_desc' => 'Precio: mayor a menor',
     'all' => 'Todos',

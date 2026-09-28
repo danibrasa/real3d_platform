@@ -163,10 +163,10 @@ class ImportarViviendasController extends Controller
     /**
      * Cuantas filas se quedarian sin precio.
      *
-     * Hace falta decirlo antes de crear nada: la columna `price` no admite
-     * nulos, asi que una vivienda sin precio se guarda como 0 y en la web sale
-     * como "0". Un folleto que pone "Consultar" en una unidad es lo normal, y
-     * quien revisa tiene que enterarse ahora y no cuando lo vea publicado.
+     * Se dice antes de crear nada porque cambia lo que vera un comprador: esas
+     * viviendas apareceran como "consultar" en vez de con un precio. Un folleto
+     * que pone "Consultar" en una unidad es lo mas normal del mundo, pero quien
+     * revisa tiene que enterarse ahora y no cuando lo vea publicado.
      */
     private function cuantasSinPrecio(array $leido): int
     {
@@ -239,7 +239,8 @@ class ImportarViviendasController extends Controller
                     'bedrooms' => $v['bedrooms'] ?? 0,
                     'bathrooms' => $v['bathrooms'] ?? 0,
                     'area_m2' => $v['area_m2'] ?? 0,
-                    'price' => $v['price'] ?? 0,
+                    // Sin precio se guarda sin precio: en la web sale "consultar".
+                    'price' => $v['price'],
                     'status' => $v['status'],
                     'notes' => $v['notes'],
                 ];

@@ -73,7 +73,12 @@ class ChatbotService
         $typologies = $project->typologies->map(fn ($t) => "{$t->name}: {$t->bedrooms} hab, {$t->bathrooms} banos, {$t->area_m2}m2"
         )->join("\n");
 
-        $unitsSummary = $available->groupBy('bedrooms')->map(fn ($group, $beds) => "{$beds} hab: {$group->count()} disponibles, desde USD ".number_format($group->min('price'), 0, '.', ',')
+        // Si en un grupo ninguna tiene precio, min() devuelve null y
+        // number_format(null) imprimiria "0": mejor no decir un precio.
+        $unitsSummary = $available->groupBy('bedrooms')->map(fn ($group, $beds) => "{$beds} hab: {$group->count()} disponibles"
+            .($group->whereNotNull('price')->min('price') !== null
+                ? ', desde USD '.number_format($group->whereNotNull('price')->min('price'), 0, '.', ',')
+                : '')
         )->join("\n");
 
         $paymentInfo = '';
