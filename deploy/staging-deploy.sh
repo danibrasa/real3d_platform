@@ -23,13 +23,11 @@ echo "== base de datos"
 sudo -u www-data php artisan migrate --force
 
 # version.json, igual que en produccion pero marcando el entorno.
-# El numero de version que acaba publicado. La logica vive en
-# deploy/leer-version.sh para poder probarla: aqui estaba duplicada en dos
-# guiones y sin un solo test que la sujetara, y cuando se perdio -/version
-# decia "sin-tag"- no fallo nada, simplemente dejo de estar el numero.
-TAG=$(bash "$(dirname "$0")/leer-version.sh" "$APP" 2>/dev/null \
-    || bash "$APP/deploy/leer-version.sh" "$APP" 2>/dev/null \
-    || echo "sin-tag")
+# El numero de version que acaba publicado (/version, la meta del HTML y el
+# pie del panel). Se usa la copia que viene con el codigo desplegado, no la
+# instalada en /usr/local/bin: asi la version la calcula el mismo codigo que
+# se esta publicando. Tiene sus tests en tests/Feature/LeerVersionTest.php.
+TAG=$(bash "$APP/deploy/leer-version.sh" "$APP")
 SHA=$(git rev-parse HEAD)
 cat > "$APP/version.json" <<JSON
 {

@@ -54,13 +54,11 @@ ln -s "$BASE/shared/.env" "$NUEVA/.env"
 
 # 3b. version.json: que hay desplegado exactamente. Lo leen /version, la meta
 #     del HTML y el pie del panel de administracion.
-# El numero de version que acaba publicado. La logica vive en
-# deploy/leer-version.sh para poder probarla: aqui estaba duplicada en dos
-# guiones y sin un solo test que la sujetara, y cuando se perdio -/version
-# decia "sin-tag"- no fallo nada, simplemente dejo de estar el numero.
-TAG=$(bash "$(dirname "$0")/leer-version.sh" "$NUEVA" 2>/dev/null \
-    || bash "$NUEVA/deploy/leer-version.sh" "$NUEVA" 2>/dev/null \
-    || echo "sin-tag")
+# El numero de version que acaba publicado (/version, la meta del HTML y el
+# pie del panel). Se usa la copia que viene con el codigo desplegado, no la
+# instalada en /usr/local/bin: asi la version la calcula el mismo codigo que
+# se esta publicando. Tiene sus tests en tests/Feature/LeerVersionTest.php.
+TAG=$(bash "$NUEVA/deploy/leer-version.sh" "$NUEVA")
 SHA=$(git -C "$NUEVA" rev-parse HEAD)
 cat > "$NUEVA/version.json" <<JSON
 {
