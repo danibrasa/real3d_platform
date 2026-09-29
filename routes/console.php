@@ -30,6 +30,11 @@ Artisan::command('salud:latido', function () {
 
 Schedule::command('salud:latido')->everyFiveMinutes();
 
+// El segundo aviso de un lead: el que lleva un dia sin que nadie le conteste.
+Schedule::command('leads:sin-atender --horas=24')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
 // La papelera de proyectos se vacia sola: lo que lleva mas de treinta dias
 // se borra del todo, ficheros incluidos.
 Schedule::command('proyectos:vaciar-papelera --dias='.config('proyectos.dias_en_papelera'))

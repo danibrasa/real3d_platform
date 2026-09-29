@@ -15,6 +15,12 @@
                 <form method="GET" class="flex gap-4 items-end flex-wrap">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">Estado</label>
+                        <select name="estado" class="rounded-md border-gray-300 text-sm">
+                            <option value="">{{ __('inquiry.estado') }}: todos</option>
+                            @foreach (\App\Models\Inquiry::ESTADOS as $e)
+                                <option value="{{ $e }}" {{ request('estado') === $e ? 'selected' : '' }}>{{ __('inquiry.estado_'.$e) }}</option>
+                            @endforeach
+                        </select>
                         <select name="read" class="rounded-md border-gray-300 text-sm">
                             <option value="">Todas</option>
                             <option value="0" {{ request('read') === '0' ? 'selected' : '' }}>No leidas</option>
@@ -22,7 +28,7 @@
                         </select>
                     </div>
                     <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200">Filtrar</button>
-                    @if(request()->hasAny(['read', 'project_id']))
+                    @if(request()->hasAny(['read', 'project_id', 'estado']))
                         <a href="{{ route('admin.inquiries.index') }}" class="text-sm text-gray-500 hover:underline">Limpiar</a>
                     @endif
                 </form>
@@ -66,11 +72,17 @@
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->project->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $inquiry->unit?->identifier ?? '-' }}</td>
                             <td class="px-4 py-3">
-                                @if($inquiry->read)
-                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">Leida</span>
-                                @else
-                                    <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Nueva</span>
-                                @endif
+                                {{-- El estado se cambia desde aqui, sin entrar: contestar
+                                     un lead son tres clics y cada clic de mas se nota. --}}
+                                @php $colores = ['nuevo' => 'bg-blue-100 text-blue-800', 'contactado' => 'bg-amber-100 text-amber-800', 'visita' => 'bg-purple-100 text-purple-800', 'cerrado' => 'bg-emerald-100 text-emerald-800', 'descartado' => 'bg-gray-100 text-gray-500']; @endphp
+                                <form method="POST" action="{{ route('admin.inquiries.estado', $inquiry) }}">
+                                    @csrf @method('PATCH')
+                                    <select name="estado" onchange="this.form.submit()" class="text-xs rounded-full border-0 py-1 pl-2 pr-7 {{ $colores[$inquiry->estado] ?? '' }}" aria-label="{{ __('inquiry.estado') }}">
+                                        @foreach (\App\Models\Inquiry::ESTADOS as $e)
+                                            <option value="{{ $e }}" {{ $inquiry->estado === $e ? 'selected' : '' }}>{{ __('inquiry.estado_'.$e) }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex gap-2 justify-end">

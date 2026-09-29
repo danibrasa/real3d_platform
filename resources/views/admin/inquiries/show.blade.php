@@ -60,6 +60,30 @@
                     @endif
                 </dl>
 
+                {{-- El estado y la nota: lo que le importa a la promotora a la
+                     segunda semana es a quien le falta contestar y que le dijo. --}}
+                <form method="POST" action="{{ route('admin.inquiries.estado', $inquiry) }}" class="mt-6 rounded-md border border-gray-200 p-4 space-y-3">
+                    @csrf @method('PATCH')
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div>
+                            <label for="estado" class="block text-xs font-medium text-gray-500 uppercase">{{ __('inquiry.estado') }}</label>
+                            <select id="estado" name="estado" class="mt-1 rounded-md border-gray-300 text-sm">
+                                @foreach (\App\Models\Inquiry::ESTADOS as $e)
+                                    <option value="{{ $e }}" {{ $inquiry->estado === $e ? 'selected' : '' }}>{{ __('inquiry.estado_'.$e) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @if ($inquiry->atendidoPor)
+                            <p class="text-xs text-gray-500 pb-2">{{ __('inquiry.atendido_por', ['quien' => $inquiry->atendidoPor->name, 'cuando' => $inquiry->estado_en?->format('d/m/Y H:i')]) }}</p>
+                        @endif
+                    </div>
+                    <div>
+                        <label for="nota" class="block text-xs font-medium text-gray-500 uppercase">{{ __('inquiry.nota') }}</label>
+                        <textarea id="nota" name="nota" rows="3" class="mt-1 w-full rounded-md border-gray-300 text-sm" placeholder="{{ __('inquiry.nota_ayuda') }}">{{ old('nota', $inquiry->nota) }}</textarea>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-md text-sm font-semibold hover:bg-gray-900">{{ __('inquiry.guardar') }}</button>
+                </form>
+
                 <div class="mt-6 flex gap-3">
                     <a href="mailto:{{ $inquiry->email }}" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">Responder por email</a>
                     @can('delete-inquiry')
