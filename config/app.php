@@ -123,4 +123,13 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // El token de /salud, para consultarla a mano.
+    'salud_token' => env('SALUD_TOKEN'),
+
+    // Y quien puede consultarla sin token: la VM que hace la comprobacion
+    // nocturna. Una IP no es un secreto, asi que va aqui y se despliega con el
+    // codigo. Si dependiera de meter un token a mano en el .env de produccion,
+    // esta comprobacion se quedaria apagada hasta que alguien se acordara, y
+    // una vigilancia que hay que recordar encender no es una vigilancia.
+    'salud_ips' => array_filter(explode(',', (string) env('SALUD_IPS', '194.41.119.13'))),
 ];

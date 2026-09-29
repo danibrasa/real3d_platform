@@ -37,6 +37,9 @@
         <env name="DB_USERNAME" value="testing"/>
         <env name="DB_PASSWORD" value="testing"/>
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Que la comprobacion de salud no abra una conexion real con
+             el proveedor de correo en cada ejecucion de la suite. -->
+        <env name="MAIL_ALERTAS_TRANSPORT" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
