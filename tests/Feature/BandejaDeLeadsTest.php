@@ -142,6 +142,22 @@ class BandejaDeLeadsTest extends TestCase
         Mail::assertQueuedCount(1);
     }
 
+    public function test_varios_leads_de_la_misma_promotora_van_en_un_solo_correo(): void
+    {
+        // Lo que dijo el revisor: la regla central era esta y ningun test la
+        // miraba. Con el queue() dentro del bucle de leads todo seguia verde.
+        $this->lead->forceFill(['created_at' => now()->subHours(30)])->save();
+        Inquiry::create([
+            'project_id' => $this->lead->project_id, 'name' => 'Segundo Comprador',
+            'email' => 'segundo@ejemplo.invalid', 'message' => 'Hola', 'read' => false,
+        ])->forceFill(['created_at' => now()->subHours(26)])->save();
+
+        $this->artisan('leads:sin-atender')->assertSuccessful();
+
+        Mail::assertQueuedCount(1);
+        Mail::assertQueued(LeadsSinAtender::class, fn ($m) => $m->leads->count() === 2);
+    }
+
     public function test_los_atendidos_y_los_recientes_no_se_avisan(): void
     {
         $this->lead->forceFill(['created_at' => now()->subHours(30), 'estado' => 'contactado'])->save();
