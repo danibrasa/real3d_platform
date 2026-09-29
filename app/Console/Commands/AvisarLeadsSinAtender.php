@@ -36,19 +36,38 @@ class AvisarLeadsSinAtender extends Command
 
         // Un correo por promotora con todos los suyos, no uno por lead.
         $porDestinatario = [];
+        $avisados = [];
+        $sinNadie = [];
         foreach ($pendientes as $lead) {
-            foreach (AvisoDeConsulta::destinatarios($lead->project) as $correo) {
+            $destinatarios = AvisoDeConsulta::destinatarios($lead->project);
+
+            // Sin nadie a quien avisar no se da por avisado: quedaria marcado
+            // para siempre y nadie sabria que nunca salio. Se dice, y se
+            // vuelve a intentar manana.
+            if ($destinatarios->isEmpty()) {
+                $sinNadie[] = $lead;
+
+                continue;
+            }
+
+            foreach ($destinatarios as $correo) {
                 $porDestinatario[$correo][] = $lead;
             }
+            $avisados[] = $lead->id;
         }
 
         foreach ($porDestinatario as $correo => $leads) {
             Mail::to($correo)->queue(new LeadsSinAtender(collect($leads), $horas));
         }
 
-        Inquiry::whereIn('id', $pendientes->pluck('id'))->update(['avisado_sin_atender_en' => now()]);
+        Inquiry::whereIn('id', $avisados)->update(['avisado_sin_atender_en' => now()]);
 
-        $this->info(sprintf('leads sin atender: %d lead(s), %d aviso(s)', $pendientes->count(), count($porDestinatario)));
+        foreach ($sinNadie as $lead) {
+            $this->warn("sin nadie a quien avisar del lead #{$lead->id} ({$lead->project->name}): el proyecto no tiene correo de contacto ni promotora");
+        }
+
+        $this->info(sprintf('leads sin atender: %d lead(s), %d aviso(s), %d sin nadie a quien avisar',
+            $pendientes->count(), count($porDestinatario), count($sinNadie)));
 
         return self::SUCCESS;
     }
