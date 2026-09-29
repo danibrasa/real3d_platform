@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CompradorController;
 use App\Http\Controllers\Admin\ConstructionProgressController;
 use App\Http\Controllers\Admin\CurrencyController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EdicionRapidaController;
 use App\Http\Controllers\Admin\FileUploadController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\ImportarViviendasController;
@@ -133,6 +134,9 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     // Units
     Route::patch('projects/{project}/units/{unit}/status', [UnitController::class, 'updateStatus'])
         ->name('projects.units.updateStatus');
+    // Precio y estado de muchas viviendas de una vez, desde la tabla.
+    Route::patch('projects/{project}/units-lote', [EdicionRapidaController::class, 'guardar'])
+        ->name('projects.units.lote');
     Route::put('projects/{project}/units/{unit}/bbox', [UnitController::class, 'updateBbox'])
         ->name('projects.units.updateBbox');
     Route::delete('projects/{project}/units/{unit}/bbox', [UnitController::class, 'clearBbox'])
