@@ -786,6 +786,21 @@ def darse_de_baja(notas, idp):
     if ligera.status_code != 200 or len(ligera.content) > len(antes_fichero.content):
         notas.append("PROBLEMA: la version ligera no se sirve, o pesa mas que la grande")
 
+    # Antes de la baja, con el visor servido: abrirlo con un navegador de
+    # verdad. Todo lo de arriba pregunta al servidor; esto es lo unico que ve
+    # un JavaScript roto en el visor, que es lo que se vende.
+    navegador = os.environ.get("GANCHO_NAVEGADOR", "").strip()
+    if navegador:
+        r = subprocess.run(navegador.split() + [BASE + "/projects/%s" % slug],
+                           capture_output=True, text=True, timeout=300)
+        for linea in (r.stdout + r.stderr).strip().splitlines():
+            if linea:
+                notas.append("navegador: " + linea)
+        if r.returncode != 0:
+            notas.append("PROBLEMA: el visor no funciona en un navegador de verdad")
+    else:
+        notas.append("sin GANCHO_NAVEGADOR: el visor no se abre con un navegador")
+
     proceso = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
     for linea in (proceso.stdout + proceso.stderr).strip().splitlines():
         if linea:
