@@ -351,6 +351,10 @@ class LimitesDePlanTest extends TestCase
 
     public function test_el_widget_incrustable_es_de_los_planes_de_pago(): void
     {
+        // El widget queda fuera del PMV; se enciende para probar su puerta de
+        // plan, que sigue ahi para cuando vuelva.
+        config(['pmv.activo' => false]);
+
         $gratuita = $this->promotora(CompanyProfile::PLAN_STARTER);
         $suyo = $this->proyectoDe($gratuita);
 

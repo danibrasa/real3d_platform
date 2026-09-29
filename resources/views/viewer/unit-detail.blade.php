@@ -221,18 +221,22 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         {{ __('unit_detail.download_pdf') }}
                     </a>
-                    @if($project->avg_nightly_rate && $project->average_occupancy)
+                    @pmv('inversion')
+@if($project->avg_nightly_rate && $project->average_occupancy)
                     <a href="{{ route('viewer.investment.pdf', [$project->slug, $unit->id]) }}" class="inline-flex items-center px-6 py-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-semibold hover:bg-emerald-100 transition">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
                         {{ __('investment.download') }}
                     </a>
                     @endif
-                    @if($project->paymentPlans->count())
+@endpmv
+                    @pmv('pagos')
+@if($project->paymentPlans->count())
                     <a href="{{ route('viewer.payment-schedule.pdf', [$project->slug, $unit->id]) }}" class="inline-flex items-center px-6 py-3 bg-purple-50 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-100 transition">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         {{ __('unit_detail.payment_schedule_pdf') }}
                     </a>
                     @endif
+@endpmv
                     @if($project->whatsapp_number)
                     @php
                         $waNumber = preg_replace('/[^0-9]/', '', $project->whatsapp_number);
@@ -285,10 +289,14 @@
             @endif
 
             {{-- 9. Payment Plans (pre-filled with unit price) --}}
-            <x-payment-plans :project="$project" :priceMin="$unit->price" />
+            @pmv('pagos')
+<x-payment-plans :project="$project" :priceMin="$unit->price" />
+@endpmv
 
             {{-- 10. Investment Calculator (pre-filled with unit price) --}}
-            <x-investment-calculator :project="$project" :priceMin="$unit->price" />
+            @pmv('inversion')
+<x-investment-calculator :project="$project" :priceMin="$unit->price" />
+@endpmv
 
             {{-- 11. CTA Banner #2 — Strong --}}
             @if($project->whatsapp_number)

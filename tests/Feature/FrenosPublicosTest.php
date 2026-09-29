@@ -73,6 +73,10 @@ class FrenosPublicosTest extends TestCase
 
     public function test_el_servidor_mcp_tiene_tope_por_direccion(): void
     {
+        // MCP esta fuera del PMV y para el publico no existe; aqui se enciende
+        // para probar el freno, que sigue ahi para cuando vuelva.
+        config(['pmv.activo' => false]);
+
         $peticion = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'];
 
         for ($i = 0; $i < 60; $i++) {

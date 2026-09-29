@@ -32,8 +32,12 @@
                 <div class="hidden md:flex items-center gap-6">
                     <a href="{{ route('portal.home') }}" class="text-sm {{ request()->routeIs('portal.home') ? 'text-cyan-400 font-medium' : 'text-slate-400 hover:text-cyan-400' }} transition-colors">{{ __('portal.nav_home') }}</a>
                     <a href="{{ route('portal.search') }}" class="text-sm {{ request()->routeIs('portal.search') ? 'text-cyan-400 font-medium' : 'text-slate-400 hover:text-cyan-400' }} transition-colors">{{ __('portal.nav_search') }}</a>
+@pmv('directorio')
                     <a href="{{ route('directory.index') }}" class="text-sm text-slate-400 hover:text-cyan-400 transition-colors">{{ __('portal.nav_developers') }}</a>
+@endpmv
+@pmv('blog')
                     <a href="{{ route('blog.index') }}" class="text-sm {{ request()->routeIs('blog.*') ? 'text-cyan-400 font-medium' : 'text-slate-400 hover:text-cyan-400' }} transition-colors">Blog</a>
+@endpmv
                 </div>
 
                 {{-- Desktop Right --}}
@@ -66,8 +70,12 @@
             <div class="px-4 py-4 space-y-3">
                 <a @click="mobileOpen = false" href="{{ route('portal.home') }}" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">{{ __('portal.nav_home') }}</a>
                 <a @click="mobileOpen = false" href="{{ route('portal.search') }}" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">{{ __('portal.nav_search') }}</a>
+@pmv('directorio')
                 <a @click="mobileOpen = false" href="{{ route('directory.index') }}" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">{{ __('portal.nav_developers') }}</a>
+@endpmv
+@pmv('blog')
                 <a @click="mobileOpen = false" href="{{ route('blog.index') }}" class="block text-sm text-slate-400 hover:text-cyan-400 py-2">Blog</a>
+@endpmv
                 <div class="pt-3 border-t border-white/10 flex flex-col gap-2">
                     <a href="{{ route('register.business') }}" class="btn-glow px-4 py-2 rounded-lg text-sm font-medium text-white text-center">{{ __('portal.list_property') }}</a>
                 </div>
@@ -99,8 +107,12 @@
                     <ul class="space-y-2">
                         <li><a href="{{ route('portal.home') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">{{ __('portal.nav_home') }}</a></li>
                         <li><a href="{{ route('portal.search') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">{{ __('portal.nav_search') }}</a></li>
+@pmv('directorio')
                         <li><a href="{{ route('directory.index') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">{{ __('portal.nav_developers') }}</a></li>
+@endpmv
+@pmv('blog')
                         <li><a href="{{ route('blog.index') }}" class="text-sm text-slate-500 hover:text-cyan-400 transition-colors">Blog</a></li>
+@endpmv
                     </ul>
                 </div>
                 <div>

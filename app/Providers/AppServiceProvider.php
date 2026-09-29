@@ -6,8 +6,10 @@ use App\Models\ApiToken;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Pmv;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -23,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // @pmv('zona') ... @endpmv: la misma regla que el middleware, para
+        // que un enlace no lleve a un 404 ni una pagina viva se quede sin enlace.
+        Blade::if('pmv', fn (string $zona) => Pmv::activa($zona));
+
         Sanctum::usePersonalAccessTokenModel(ApiToken::class);
 
         $this->defineGates();

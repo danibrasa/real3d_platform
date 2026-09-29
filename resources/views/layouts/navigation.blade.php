@@ -46,37 +46,47 @@
                             @endcan
 
                             {{-- Blog --}}
-                            @can('manage-blog')
+                            @pmv('blog')
+@can('manage-blog')
                                 <x-nav-link :href="route('admin.blog.posts.index')" :active="request()->routeIs('admin.blog.*')">
                                     Blog
                                 </x-nav-link>
                             @endcan
+@endpmv
 
                             {{-- Integrations --}}
-                            @can('manage-api-tokens')
+                            @pmv('api')
+@can('manage-api-tokens')
                                 <x-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
                                     API
                                 </x-nav-link>
                             @endcan
-                            @can('use-webhooks')
+@endpmv
+                            @pmv('webhooks')
+@can('use-webhooks')
                                 @if(auth()->user()->isSuperadmin() || auth()->user()->isInmobiliaria())
                                     <x-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
                                         Webhooks
                                     </x-nav-link>
                                 @endif
                             @endcan
+@endpmv
 
                             {{-- Platform admin --}}
-                            @can('manage-currencies')
+                            @pmv('monedas')
+@can('manage-currencies')
                                 <x-nav-link :href="route('admin.currencies.index')" :active="request()->routeIs('admin.currencies.*')">
                                     {{ __('general.currencies') }}
                                 </x-nav-link>
                             @endcan
-                            @can('create-project')
+@endpmv
+                            @pmv('analisis')
+@can('create-project')
                                 <x-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
                                     {{ __('general.strategy') }}
                                 </x-nav-link>
                             @endcan
+@endpmv
                             @can('view-audit-logs')
                                 <x-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
                                     Audit Log
@@ -244,30 +254,38 @@
                     @endcan
 
                     {{-- Integrations --}}
-                    @can('manage-api-tokens')
+                    @pmv('api')
+@can('manage-api-tokens')
                         <x-responsive-nav-link :href="route('admin.api-tokens.index')" :active="request()->routeIs('admin.api-tokens.*')">
                             API Tokens
                         </x-responsive-nav-link>
                     @endcan
-                    @can('use-webhooks')
+@endpmv
+                    @pmv('webhooks')
+@can('use-webhooks')
                         @if(auth()->user()->isSuperadmin() || auth()->user()->isInmobiliaria())
                             <x-responsive-nav-link :href="route('admin.webhooks.index')" :active="request()->routeIs('admin.webhooks.*')">
                                 Webhooks
                             </x-responsive-nav-link>
                         @endif
                     @endcan
+@endpmv
 
                     {{-- Platform admin --}}
-                    @can('manage-currencies')
+                    @pmv('monedas')
+@can('manage-currencies')
                         <x-responsive-nav-link :href="route('admin.currencies.index')" :active="request()->routeIs('admin.currencies.*')">
                             {{ __('general.currencies') }}
                         </x-responsive-nav-link>
                     @endcan
-                    @can('create-project')
+@endpmv
+                    @pmv('analisis')
+@can('create-project')
                         <x-responsive-nav-link :href="route('admin.strategic-analysis.index')" :active="request()->routeIs('admin.strategic-analysis.*')">
                             {{ __('general.strategy') }}
                         </x-responsive-nav-link>
                     @endcan
+@endpmv
                     @can('view-audit-logs')
                         <x-responsive-nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
                             Audit Log

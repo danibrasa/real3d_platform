@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureOnboardingComplete;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureStorageQuota;
 use App\Http\Middleware\EnsureTokenProjectAccess;
+use App\Http\Middleware\FueraDelPmv;
 use App\Http\Middleware\SetCurrency;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -37,6 +38,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'storage.quota' => EnsureStorageQuota::class,
             'onboarding' => EnsureOnboardingComplete::class,
         ]);
+        // Lo que no es del PMV no existe para quien no es del equipo. En los
+        // dos grupos: la API publica (api/v1) tambien esta fuera del PMV. Detras
+        // de la sesion, que sin ella no se sabe quien mira y el equipo veria 404.
+        $middleware->web(append: [FueraDelPmv::class]);
+        $middleware->api(append: [FueraDelPmv::class]);
         $middleware->web(append: [
             SetLocale::class,
             SetCurrency::class,

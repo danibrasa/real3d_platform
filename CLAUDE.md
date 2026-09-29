@@ -4,6 +4,22 @@ SaaS en Laravel para promotoras inmobiliarias: cada proyecto se ve en un visor 3
 sobre vídeo o imagen 360), con fichas de vivienda, planes de pago, chatbot, API pública y portal
 con blog.
 
+## El PMV (desde el 29-sep-2026)
+
+**Una promotora de República Dominicana se registra, contrata (o empieza la prueba), nos entrega
+el material de su proyecto, recibe en menos de una semana un visor 3D publicado con sus viviendas,
+precios y contacto, y los compradores le llegan a su bandeja y a su WhatsApp. Nosotros montamos el
+visor.** Es parte del producto, no una excepción: la herramienta interna cuenta tanto como la suya.
+
+Tres personas: la **promotora** (contrata, entrega material, atiende compradores), el **comprador**
+(mira el visor desde el móvil, pregunta) y **nosotros** (montamos el visor, revisamos, publicamos).
+Mercado y moneda del PMV: República Dominicana, USD. Panel en español; visor y ficha en es/en.
+
+Todo lo que no está en esa frase se aparta hasta después del PMV. No se borra: se esconde tras
+`config/pmv.php` (blog, API pública, webhooks, MCP, monedas, análisis estratégico, informe de
+inversión, seguimiento de obra, pagos de compradores, directorio, widget). El equipo lo sigue
+viendo; la promotora recibe 404. Antes de construir algo, medirlo contra la frase.
+
 ## Stack
 - Laravel 12 + Blade + Tailwind (Breeze), PHP 8.2-fpm, Nginx
 - Three.js v0.162.0 por importmap desde CDN

@@ -57,7 +57,8 @@
     </url>
     @endforeach
 
-    {{-- Blog index --}}
+    @pmv('blog')
+{{-- Blog index --}}
     <url>
         <loc>{{ route('blog.index') }}</loc>
         <lastmod>{{ $blogPosts->first()?->published_at?->toW3cString() ?? now()->toW3cString() }}</lastmod>
@@ -83,4 +84,5 @@
         <priority>0.7</priority>
     </url>
     @endforeach
+@endpmv
 </urlset>

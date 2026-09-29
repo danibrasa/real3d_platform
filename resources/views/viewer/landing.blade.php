@@ -179,7 +179,9 @@
             @endif
 
             <!-- Construction Progress -->
-            <x-construction-progress :project="$project" />
+            @pmv('obra')
+<x-construction-progress :project="$project" />
+@endpmv
 
             <!-- Gallery -->
             @if($project->galleryImages->count())
@@ -477,10 +479,14 @@
             @endif
 
             <!-- Payment Plans -->
-            <x-payment-plans :project="$project" :priceMin="$priceMin" />
+            @pmv('pagos')
+<x-payment-plans :project="$project" :priceMin="$priceMin" />
+@endpmv
 
             <!-- Investment Calculator -->
-            <x-investment-calculator :project="$project" :priceMin="$priceMin" />
+            @pmv('inversion')
+<x-investment-calculator :project="$project" :priceMin="$priceMin" />
+@endpmv
 
             <!-- Location Map -->
             <x-project-location-map :project="$project" />
