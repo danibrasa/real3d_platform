@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { casar, fraccionDeCaja, unionDeCajas } from './visor-mapeo.js';
 
 // =============================================================
 //  State
@@ -183,6 +184,21 @@ function loadModel(url) {
 
         // Compute bounds
         updateModelBounds();
+
+        // Las mallas con nombre y su caja en el mundo, para mapear por nombre.
+        model.updateMatrixWorld(true);
+        state.mallas = [];
+        model.traverse((child) => {
+            if (child.isMesh && child.name) {
+                const b = new THREE.Box3().setFromObject(child);
+                state.mallas.push({ nombre: child.name, caja: { min: { x: b.min.x, y: b.min.y, z: b.min.z }, max: { x: b.max.x, y: b.max.y, z: b.max.z } } });
+            }
+        });
+        const btnAuto = document.getElementById('btn-auto');
+        if (btnAuto) {
+            btnAuto.disabled = false;
+            btnAuto.addEventListener('click', mapearPorNombre);
+        }
 
         // Build existing unit boxes
         buildAllUnitBoxes();
@@ -502,13 +518,10 @@ function selectUnit(unitId) {
 // =============================================================
 //  Save / Clear
 // =============================================================
-function saveBbox() {
-    if (!state.selectedUnitId) return;
-    const bbox = getCurrentBbox();
-    const statusEl = document.getElementById('save-status');
-    statusEl.textContent = 'Guardando...';
-
-    fetch(`/admin/projects/${config.projectId}/units/${state.selectedUnitId}/bbox`, {
+// Guarda la caja de una vivienda y actualiza su fila. Lo usan el boton de
+// guardar y el mapeo por nombre.
+function guardarBbox(unitId, bbox) {
+    return fetch(`/admin/projects/${config.projectId}/units/${unitId}/bbox`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -525,22 +538,69 @@ function saveBbox() {
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            statusEl.textContent = 'Guardado!';
-            // Update data attribute
-            const item = document.querySelector(`.unit-list-item[data-unit-id="${state.selectedUnitId}"]`);
-            if (item) {
-                item.dataset.unitBbox = JSON.stringify(bbox);
-                // Update dot indicator
-                const dot = document.getElementById('dot-' + state.selectedUnitId);
-                if (dot) { dot.className = 'w-3 h-3 rounded-full flex-shrink-0 bg-green-500'; }
-            }
-            setTimeout(() => { statusEl.textContent = ''; }, 2000);
-        } else {
-            statusEl.textContent = 'Error al guardar.';
+        if (!data.success) throw new Error('no se guardo');
+        const item = document.querySelector(`.unit-list-item[data-unit-id="${unitId}"]`);
+        if (item) {
+            item.dataset.unitBbox = JSON.stringify(bbox);
+            const dot = document.getElementById('dot-' + unitId);
+            if (dot) { dot.className = 'w-3 h-3 rounded-full flex-shrink-0 bg-green-500'; }
         }
-    })
-    .catch(() => { statusEl.textContent = 'Error de red.'; });
+        actualizarProgreso();
+        return data;
+    });
+}
+
+function saveBbox() {
+    if (!state.selectedUnitId) return;
+    const bbox = getCurrentBbox();
+    const statusEl = document.getElementById('save-status');
+    statusEl.textContent = 'Guardando...';
+
+    guardarBbox(state.selectedUnitId, bbox)
+        .then(() => {
+            statusEl.textContent = 'Guardado!';
+            setTimeout(() => { statusEl.textContent = ''; }, 2000);
+        })
+        .catch(() => { statusEl.textContent = 'Error al guardar.'; });
+}
+
+// Cuantas van. Y el filtro de "solo sin mapear", que con sesenta viviendas
+// es la unica forma de ver cuales faltan.
+function actualizarProgreso() {
+    const items = [...document.querySelectorAll('.unit-list-item')];
+    const hechas = items.filter(i => i.dataset.unitBbox).length;
+    const el = document.getElementById('mapeadas');
+    if (el) el.textContent = `${hechas}/${items.length}`;
+    const soloSinMapear = document.getElementById('solo-sin-mapear')?.checked;
+    items.forEach(i => { i.style.display = (soloSinMapear && i.dataset.unitBbox) ? 'none' : ''; });
+}
+
+// Situar de golpe las viviendas cuyas mallas llevan su nombre. Solo las que
+// aun no tienen caja: lo situado a mano no se pisa.
+async function mapearPorNombre() {
+    const info = document.getElementById('auto-info');
+    const pendientes = [...document.querySelectorAll('.unit-list-item')]
+        .filter(i => !i.dataset.unitBbox)
+        .map(i => ({ id: parseInt(i.dataset.unitId, 10), identifier: i.dataset.unitIdentifier }));
+
+    const casadas = casar(state.mallas.map(m => m.nombre), pendientes);
+    if (!casadas.size) {
+        info.textContent = `Ninguna de las ${pendientes.length} viviendas sin situar tiene una malla con su nombre.`;
+        return;
+    }
+
+    let hechas = 0, fallos = 0;
+    for (const [unitId, nombres] of casadas) {
+        const cajas = state.mallas.filter(m => nombres.includes(m.nombre)).map(m => m.caja);
+        const bbox = fraccionDeCaja(unionDeCajas(cajas), state.modelBounds);
+        try { await guardarBbox(unitId, bbox); hechas++; } catch (e) { fallos++; }
+        info.textContent = `Situando por nombre: ${hechas} de ${casadas.size}...`;
+    }
+
+    buildAllUnitBoxes();
+    info.textContent = `${hechas} viviendas situadas por el nombre de su malla` +
+        (fallos ? `, ${fallos} no se pudieron guardar` : '') +
+        `; ${pendientes.length - hechas} siguen sin situar.`;
 }
 
 function clearBbox() {
@@ -609,6 +669,9 @@ function animate() {
 //  Boot
 // =============================================================
 function boot() {
+    document.getElementById('solo-sin-mapear')?.addEventListener('change', actualizarProgreso);
+    actualizarProgreso();
+
     const dataEl = document.getElementById('mapper-data');
     if (!dataEl) return;
     config = JSON.parse(dataEl.textContent);

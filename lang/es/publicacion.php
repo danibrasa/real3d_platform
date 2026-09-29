@@ -19,4 +19,5 @@ return [
     'sin_contacto' => 'Sin correo de contacto, las consultas irán solo a quien tenga acceso al proyecto.',
     'sin_portada' => 'Sin imagen de portada, la tarjeta del listado se verá sosa.',
     'visor_apagado' => 'Tu visor 3D esta montado pero no se esta mostrando, porque tu plan actual no lo incluye. La pagina, las viviendas y los contactos siguen funcionando: solo falta el recorrido en 3D.',
+    'viviendas_sin_situar' => 'Hay viviendas sin situar en el 3D: al tocarlas en el modelo no se abrirá su ficha.',
 ];

@@ -19,4 +19,5 @@ return [
     'sin_contacto' => 'Without a contact email, enquiries will only reach people with access to the project.',
     'sin_portada' => 'Without a cover image, the listing card will look plain.',
     'visor_apagado' => 'Your 3D viewer is built but is not being shown, because your current plan does not include it. The page, the units and the leads keep working: only the 3D tour is missing.',
+    'viviendas_sin_situar' => 'Some units are not placed in the 3D model: tapping them will not open their sheet.',
 ];
