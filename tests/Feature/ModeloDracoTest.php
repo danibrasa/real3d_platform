@@ -152,6 +152,26 @@ class ModeloDracoTest extends TestCase
         $this->get($this->proyecto->urlDeFichero('model_3d'))->assertOk();
     }
 
+    public function test_si_la_herramienta_muere_escribiendo_no_queda_un_comprimido_a_medias(): void
+    {
+        // Una herramienta de mentira que escribe algo en el destino y falla:
+        // como gltf-pipeline muriendo por tiempo o memoria a mitad.
+        $falsa = sys_get_temp_dir().'/gltf-pipeline-que-muere-'.uniqid();
+        file_put_contents($falsa, "#!/bin/sh\nprintf basura > \"\$4\"\nexit 1\n");
+        chmod($falsa, 0755);
+        config(['ficheros.gltf_pipeline' => $falsa]);
+
+        try {
+            $this->subir($this->glb())->assertOk();
+        } finally {
+            unlink($falsa);
+        }
+
+        $modelo = $this->proyecto->getFileByType('model_3d');
+        $this->assertNull($modelo->variantes, 'se guardo como comprimido algo que la herramienta no termino');
+        $this->assertCount(1, Storage::allFiles("projects/{$this->proyecto->id}/model"), 'quedo el fichero a medias en el disco');
+    }
+
     public function test_un_glb_roto_no_deja_nada_a_medias(): void
     {
         $this->subir('glTF esto no es un glb de verdad')->assertOk();

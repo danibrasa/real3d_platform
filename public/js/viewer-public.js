@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { conectarToques } from './visor-eleccion.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 // =============================================================
@@ -91,6 +92,19 @@ function init() {
     state.camera.position.set(30, 20, 30);
 
     state.controls = new OrbitControls(state.camera, state.renderer.domElement);
+
+    // Tocar una vivienda en el modelo abre su ficha. El enganche entero --
+    // eventos, toque frente a arrastre, rayo, mano con raton -- vive en
+    // visor-eleccion.js y se prueba con node; aqui solo se le dan el lienzo,
+    // la camara, las cajas (state.unitBoxes, un Map de id a malla) y que
+    // hacer con la elegida.
+    conectarToques(
+        state.renderer.domElement,
+        () => state.camera,
+        () => state.unitBoxes,
+        (unitId) => { if (window.viewerUnitsAPI?.select) window.viewerUnitsAPI.select(unitId); },
+        { conRaton: !isMobile },
+    );
     state.controls.enableDamping = true;
     state.controls.dampingFactor = 0.08;
     state.controls.maxPolarAngle = Math.PI * 0.45;

@@ -86,6 +86,8 @@
             color: #4fc3f7; text-decoration: none; font-size: 14px;
         }
         #viewer-back:hover { background: rgba(79,195,247,0.2); }
+        @media (pointer: coarse) { .solo-raton { display: none; } }
+        @media not (pointer: coarse) { .solo-tactil { display: none; } }
         #loading-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
@@ -238,8 +240,10 @@
             <p>{{ $project->location }}</p>
         </div>
 
+        {{-- Las instrucciones eran de raton tambien en un telefono. --}}
         <div id="viewer-instructions">
-            Click izq + arrastrar = rotar | Scroll = zoom | Click der + arrastrar = mover
+            <span class="solo-raton">Arrastra para girar · rueda para acercar · botón derecho para mover · <b>haz clic en una vivienda</b> para ver su ficha</span>
+            <span class="solo-tactil">Arrastra para girar · pellizca para acercar · <b>toca una vivienda</b> para ver su ficha</span>
         </div>
 
         <div id="quality-note" style="display:none; position: absolute; top: 60px; right: 20px; z-index: 20; background: rgba(0,0,0,0.7); color: #fbbf24; padding: 6px 12px; border-radius: 6px; font-size: 11px;">
