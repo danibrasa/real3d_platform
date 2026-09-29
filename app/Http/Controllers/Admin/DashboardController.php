@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\Visor\ResumenDeTreintaDias;
 
 class DashboardController extends Controller
 {
@@ -45,6 +46,10 @@ class DashboardController extends Controller
                 ->latest()->take(5)->get();
         }
 
-        return view('admin.dashboard', compact('stats', 'recent_projects', 'recent_inquiries'));
+        // Los tres numeros de los ultimos treinta dias, para quien tiene
+        // compradores que atender.
+        $resumen = $user->can('view-inquiries') ? ResumenDeTreintaDias::de($projectIds) : null;
+
+        return view('admin.dashboard', compact('stats', 'recent_projects', 'recent_inquiries', 'resumen'));
     }
 }

@@ -9,12 +9,31 @@
     <title>{{ $project->name }} - Visor 3D | Real3D.io</title>
     <meta name="description" content="Visor 3D interactivo de {{ $project->name }}{{ $project->location ? ' en ' . $project->location : '' }}. Explora el modelo 3D, selecciona unidades y consulta disponibilidad en tiempo real.">
     <link rel="canonical" href="{{ route('viewer.show', $project->slug) }}">
+    {{-- Sin WebGL no hay nada que pintar: a la ficha, que vende igual, y
+         antes de bajar un solo mega. Con un motivo, para que la ficha lo diga. --}}
+    <script>
+    (function () {
+        var puede = false;
+        try { var c = document.createElement('canvas'); puede = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) {}
+        if (!puede) location.replace(@json(route('viewer.landing', $project->slug).'?sin3d=1'));
+    })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- OG Meta Tags -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $project->name }} - Visor 3D">
-    <meta property="og:description" content="{{ $project->tagline ?? Str::limit($project->description, 160) ?? 'Visor 3D interactivo' }}">
+    @php
+        // Un enlace compartido a una vivienda (?unit=) se presenta como esa
+        // vivienda al pegarlo en WhatsApp, no como el proyecto en general.
+        // Solo si es de este proyecto: el numero se puede cambiar a mano.
+        $viviendaCompartida = request('unit') ? $project->units()->find((int) request('unit')) : null;
+        $ogTitulo = $viviendaCompartida ? $viviendaCompartida->identifier.' · '.$project->name : $project->name.' - Visor 3D';
+        $ogTexto = $viviendaCompartida
+            ? trim(($viviendaCompartida->bedrooms ? $viviendaCompartida->bedrooms.' hab · ' : '').($viviendaCompartida->area_m2 ? $viviendaCompartida->area_m2.' m² · ' : '').($viviendaCompartida->formatted_price ?? ($viviendaCompartida->price ? 'USD '.number_format((float) $viviendaCompartida->price) : '')), ' ·')
+            : ($project->tagline ?? Str::limit($project->description, 160) ?? 'Visor 3D interactivo');
+    @endphp
+    <meta property="og:title" content="{{ $ogTitulo }}">
+    <meta property="og:description" content="{{ $ogTexto }}">
     <meta property="og:url" content="{{ route('viewer.show', $project->slug) }}">
     @if($project->thumbnail_path)
     <meta property="og:image" content="{{ url('/storage/' . $project->thumbnail_path) }}">
@@ -23,8 +42,8 @@
     @endif
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $project->name }} - Visor 3D">
-    <meta name="twitter:description" content="{{ $project->tagline ?? Str::limit($project->description, 160) ?? 'Visor 3D interactivo' }}">
+    <meta name="twitter:title" content="{{ $ogTitulo }}">
+    <meta name="twitter:description" content="{{ $ogTexto }}">
     @if($project->thumbnail_path)
     <meta name="twitter:image" content="{{ url('/storage/' . $project->thumbnail_path) }}">
     @endif

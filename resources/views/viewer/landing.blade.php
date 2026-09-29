@@ -114,6 +114,15 @@
         </div>
     </x-slot>
 
+    @if (request('sin3d'))
+        {{-- Ha llegado del visor porque su navegador no tiene WebGL. --}}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            <div class="rounded-lg border border-amber-200 bg-amber-50 text-amber-900 p-4 text-sm">
+                <b>{{ __('visor.sin3d_titulo') }}.</b> {{ __('visor.sin3d_texto') }}
+            </div>
+        </div>
+    @endif
+
     <div>
         <!-- Hero -->
         <div class="bg-gradient-to-br from-blue-600 to-indigo-800 text-white">

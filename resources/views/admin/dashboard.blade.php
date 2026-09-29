@@ -47,6 +47,10 @@
                 @endif
             </div>
 
+            @if (! empty($resumen))
+                <x-resumen-treinta-dias :resumen="$resumen" />
+            @endif
+
             <!-- Actions -->
             @can('create-project')
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
