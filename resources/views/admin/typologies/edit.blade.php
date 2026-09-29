@@ -1,8 +1,8 @@
 <x-app-layout>
-    <x-slot name="title">Editar Tipologia: {{ $typology->name }}</x-slot>
+    <x-slot name="title">Editar Tipología: {{ $typology->name }}</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar Tipologia: {{ $typology->name }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar Tipología: {{ $typology->name }}</h2>
             <a href="{{ route('admin.projects.typologies.index', $project) }}" class="text-sm text-gray-600 hover:underline">&larr; Volver</a>
         </div>
     </x-slot>
@@ -26,19 +26,19 @@
                             @error('bedrooms') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Banos *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Baños *</label>
                             <input type="number" name="bathrooms" value="{{ old('bathrooms', $typology->bathrooms) }}" min="0" max="10" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             @error('bathrooms') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Area m2 *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Área (m²) *</label>
                             <input type="number" name="area_m2" value="{{ old('area_m2', $typology->area_m2) }}" min="1" max="9999" step="0.01" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             @error('area_m2') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea name="description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ old('description', $typology->description) }}</textarea>
                     </div>
 

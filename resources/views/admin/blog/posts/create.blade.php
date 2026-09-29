@@ -1,8 +1,8 @@
 <x-app-layout>
-    <x-slot name="title">Nuevo Articulo</x-slot>
+    <x-slot name="title">Nuevo Artículo</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Nuevo Articulo</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Nuevo Artículo</h2>
             <a href="{{ route('admin.blog.posts.index') }}" class="text-sm text-gray-600 hover:underline">&larr; Volver al listado</a>
         </div>
     </x-slot>
@@ -28,12 +28,12 @@
                     {{-- Title ES --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Titulo (ES) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Título (ES) *</label>
                             <input type="text" name="title" value="{{ old('title') }}" required
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Titulo (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Título (EN)</label>
                             <input type="text" name="title_en" value="{{ old('title_en') }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
@@ -41,7 +41,7 @@
 
                     {{-- Slug --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Slug (se genera automaticamente si esta vacio)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Slug (se genera automaticamente si esta vacío)</label>
                         <input type="text" name="slug" value="{{ old('slug') }}"
                                class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
@@ -107,9 +107,9 @@
                     {{-- Category + Status --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                             <select name="category_id" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Sin categoria</option>
+                                <option value="">Sin categoría</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                 @endforeach
@@ -133,7 +133,7 @@
                     {{-- Tags --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tags (separados por coma)</label>
-                        <input type="text" name="tags" value="{{ old('tags') }}" placeholder="inversion, punta cana, guia"
+                        <input type="text" name="tags" value="{{ old('tags') }}" placeholder="inversión, punta cana, guia"
                                class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
 
@@ -143,7 +143,7 @@
                             <input type="hidden" name="is_featured" value="0">
                             <input type="checkbox" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700">Articulo destacado</span>
+                            <span class="text-sm text-gray-700">Artículo destacado</span>
                         </label>
                     </div>
                 </div>
@@ -153,12 +153,12 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta titulo (ES)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta título (ES)</label>
                             <input type="text" name="meta_title" value="{{ old('meta_title') }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta titulo (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta título (EN)</label>
                             <input type="text" name="meta_title_en" value="{{ old('meta_title_en') }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
@@ -166,11 +166,11 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripcion (ES)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripción (ES)</label>
                             <textarea name="meta_description" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('meta_description') }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripcion (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripción (EN)</label>
                             <textarea name="meta_description_en" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('meta_description_en') }}</textarea>
                         </div>
                     </div>
@@ -184,7 +184,7 @@
 
                 <div class="flex justify-end gap-3">
                     <a href="{{ route('admin.blog.posts.index') }}" class="px-6 py-2 bg-gray-200 rounded-md text-sm font-semibold hover:bg-gray-300">Cancelar</a>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700">Crear Articulo</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700">Crear Artículo</button>
                 </div>
             </form>
         </div>

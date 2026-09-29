@@ -19,7 +19,7 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea name="description" rows="2"
                                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500"
                                       placeholder="Para que se usara este token...">{{ old('description') }}</textarea>

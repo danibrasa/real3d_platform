@@ -5,7 +5,7 @@ return [
     'total_conversations' => 'Conversaciones',
     'total_messages' => 'Mensajes',
     'leads_captured' => 'Leads capturados',
-    'conversion_rate' => 'Tasa de conversion',
+    'conversion_rate' => 'Tasa de conversión',
     'by_project' => 'Por proyecto',
     'project' => 'Proyecto',
     'conversations' => 'Conversaciones',
@@ -21,8 +21,8 @@ return [
     'date_to' => 'Hasta',
     'visitor' => 'Visitante',
     'visitor_name' => 'Nombre',
-    'visitor_info' => 'Informacion del visitante',
-    'phone' => 'Telefono',
+    'visitor_info' => 'Información del visitante',
+    'phone' => 'Teléfono',
     'lead' => 'Lead',
     'lead_captured_yes' => 'Lead capturado',
     'locale' => 'Idioma',
@@ -43,9 +43,9 @@ return [
     'clear' => 'Limpiar',
 
     // Project settings
-    'project_settings_title' => 'Configuracion Chatbot',
+    'project_settings_title' => 'Configuración Chatbot',
     'enable_for_project' => 'Habilitar chatbot para este proyecto',
-    'enable_help' => 'Si se desactiva, el widget de chatbot no aparecera en la pagina publica de este proyecto.',
+    'enable_help' => 'Si se desactiva, el chat no aparecerá en la página pública de este proyecto.',
     'welcome_es' => 'Mensaje de bienvenida (ES)',
     'welcome_en' => 'Mensaje de bienvenida (EN)',
     'welcome_placeholder_es' => 'Hola! Soy el asistente virtual...',
@@ -53,5 +53,5 @@ return [
     'custom_instructions' => 'Instrucciones adicionales',
     'instructions_placeholder' => 'Ej: Enfatizar las amenidades del rooftop. Mencionar que hay financiamiento directo disponible.',
     'instructions_help' => 'Instrucciones adicionales para personalizar el comportamiento del chatbot en este proyecto.',
-    'save_settings' => 'Guardar configuracion',
+    'save_settings' => 'Guardar configuración',
 ];

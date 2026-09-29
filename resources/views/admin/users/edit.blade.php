@@ -31,13 +31,13 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contrasena <span class="text-gray-400 font-normal">(dejar vacio para no cambiar)</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña <span class="text-gray-400 font-normal">(dejar vacío para no cambiar)</span></label>
                         <input type="password" name="password" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         @error('password') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contrasena</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
                         <input type="password" name="password_confirmation" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
 
@@ -46,7 +46,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
                         <select name="role" x-model="role" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             <option value="superadmin" {{ $editUser->role === 'superadmin' ? 'selected' : '' }}>Superadmin</option>
-                            <option value="gestor" {{ $editUser->role === 'gestor' ? 'selected' : '' }}>Gestor (tecnico 3D)</option>
+                            <option value="gestor" {{ $editUser->role === 'gestor' ? 'selected' : '' }}>Gestor (técnico 3D)</option>
                             <option value="inmobiliaria" {{ $editUser->role === 'inmobiliaria' ? 'selected' : '' }}>Inmobiliaria</option>
                             <option value="agente" {{ $editUser->role === 'agente' ? 'selected' : '' }}>Agente</option>
                         </select>

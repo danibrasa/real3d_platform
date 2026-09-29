@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Dashboard Admin</x-slot>
+    <x-slot name="title">Inicio</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Dashboard Admin</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Inicio</h2>
     </x-slot>
 
     <div class="py-6">
@@ -19,7 +19,7 @@
                 </div>
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <div class="text-3xl font-bold text-green-600">{{ $stats['published'] }}</div>
-                    <div class="text-sm text-gray-500 mt-1">Publicos</div>
+                    <div class="text-sm text-gray-500 mt-1">Públicos</div>
                 </div>
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <div class="text-3xl font-bold text-yellow-600">{{ $stats['drafts'] }}</div>
@@ -82,7 +82,7 @@
                                     <td class="px-4 py-3">
                                         @php
                                             $statusColors = ['public' => 'bg-green-100 text-green-800', 'draft' => 'bg-yellow-100 text-yellow-800', 'private' => 'bg-blue-100 text-blue-800', 'unlisted' => 'bg-gray-100 text-gray-800'];
-                                            $statusLabels = ['public' => 'Publico', 'draft' => 'Borrador', 'private' => 'Privado', 'unlisted' => 'Oculto'];
+                                            $statusLabels = ['public' => 'Público', 'draft' => 'Borrador', 'private' => 'Privado', 'unlisted' => 'Oculto'];
                                         @endphp
                                         <span class="px-2 py-1 text-xs rounded-full {{ $statusColors[$project->status] ?? 'bg-gray-100 text-gray-800' }}">
                                             {{ $statusLabels[$project->status] ?? $project->status }}

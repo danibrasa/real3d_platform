@@ -12,8 +12,8 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <p class="text-sm text-gray-500 mb-6">
-                        Los precios se almacenan en USD. Las tasas de cambio se usan para mostrar precios convertidos en la vista publica.
-                        Actualiza las tasas manualmente segun el mercado.
+                        Los precios se almacenan en USD. Las tasas de cambio se usan para mostrar precios convertidos en la vista pública.
+                        Actualiza las tasas manualmente según el mercado.
                     </p>
 
                     <form method="POST" action="{{ route('admin.currencies.update') }}">
@@ -75,7 +75,7 @@
                                 Guardar tasas
                             </button>
                             <span class="text-xs text-gray-400">
-                                Ultima actualizacion: {{ $currencies->max('updated_at')?->diffForHumans() ?? 'nunca' }}
+                                Última actualizacion: {{ $currencies->max('updated_at')?->diffForHumans() ?? 'nunca' }}
                             </span>
                         </div>
                     </form>

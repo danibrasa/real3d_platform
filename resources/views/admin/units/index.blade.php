@@ -159,10 +159,10 @@
                             @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Piso</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipologia</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipología</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dorm.</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Banos</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Area</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Baños</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Área</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">3D</th>
@@ -205,9 +205,9 @@
                             </td>
                             <td class="px-4 py-3 text-center">
                                 @if($unit->has_bbox)
-                                    <span class="inline-block w-3 h-3 rounded-full bg-green-500" title="Bbox configurado"></span>
+                                    <span class="inline-block w-3 h-3 rounded-full bg-green-500" title="Situada en el 3D"></span>
                                 @else
-                                    <span class="inline-block w-3 h-3 rounded-full bg-gray-300" title="Sin bbox"></span>
+                                    <span class="inline-block w-3 h-3 rounded-full bg-gray-300" title="Sin situar en el 3D"></span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">

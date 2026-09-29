@@ -29,11 +29,11 @@
                     </div>
                     <div class="p-5">
                         <h3 class="font-semibold text-lg mb-1">{{ $project->name }}</h3>
-                        <p class="text-sm text-gray-500 mb-2">{{ $project->location ?? 'Sin ubicacion' }}</p>
+                        <p class="text-sm text-gray-500 mb-2">{{ $project->location ?? 'Sin ubicación' }}</p>
                         <div class="flex items-center justify-between">
                             @php
                                 $badgeColors = ['public' => 'bg-green-100 text-green-800', 'draft' => 'bg-yellow-100 text-yellow-800', 'private' => 'bg-blue-100 text-blue-800', 'unlisted' => 'bg-gray-100 text-gray-800'];
-                                $badgeLabels = ['public' => 'Publico', 'draft' => 'Borrador', 'private' => 'Privado', 'unlisted' => 'Oculto'];
+                                $badgeLabels = ['public' => 'Público', 'draft' => 'Borrador', 'private' => 'Privado', 'unlisted' => 'Oculto'];
                             @endphp
                             <span class="px-2 py-1 text-xs rounded-full {{ $badgeColors[$project->status] ?? 'bg-gray-100 text-gray-800' }}">
                                 {{ $badgeLabels[$project->status] ?? $project->status }}
@@ -55,7 +55,7 @@
             <div class="mt-6">{{ $projects->links() }}</div>
             @else
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-12 text-center">
-                <p class="text-gray-500 mb-4">No hay proyectos todavia.</p>
+                <p class="text-gray-500 mb-4">No hay proyectos todavía.</p>
                 @can('create-project')
                 <a href="{{ route('admin.projects.create') }}" class="text-blue-600 hover:underline">Crear el primer proyecto</a>
                 @endcan

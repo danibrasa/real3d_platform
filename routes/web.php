@@ -97,7 +97,7 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     Route::post('projects/{project}/restaurar', [ProjectController::class, 'restaurar'])
         ->withTrashed()
         ->name('projects.restaurar');
-    Route::resource('projects', ProjectController::class);
+    Route::resource('projects', ProjectController::class)->except('show');
     // El material con el que se monta el visor: la promotora lo entrega aqui
     // y el equipo lo recoge de aqui, en vez de por correo.
     Route::get('projects/{project}/material', [MaterialController::class, 'index'])->name('projects.material.index');
@@ -166,7 +166,7 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     Route::delete('projects/{project}/units/{unit}/comprador/pagos/{payment}', [CompradorController::class, 'borrarPago'])
         ->name('projects.units.comprador.pago.borrar');
 
-    Route::resource('projects.units', UnitController::class);
+    Route::resource('projects.units', UnitController::class)->except('show');
 
     // Inquiries
     Route::get('inquiries', [AdminInquiryController::class, 'index'])->name('inquiries.index');

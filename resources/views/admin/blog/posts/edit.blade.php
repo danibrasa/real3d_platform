@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">Editar Articulo</x-slot>
+    <x-slot name="title">Editar Artículo</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar: {{ Str::limit($post->title, 40) }}</h2>
@@ -28,12 +28,12 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Titulo (ES) *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Título (ES) *</label>
                             <input type="text" name="title" value="{{ old('title', $post->title) }}" required
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Titulo (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Título (EN)</label>
                             <input type="text" name="title_en" value="{{ old('title_en', $post->title_en) }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
@@ -106,9 +106,9 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                             <select name="category_id" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Sin categoria</option>
+                                <option value="">Sin categoría</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}" {{ old('category_id', $post->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                 @endforeach
@@ -131,7 +131,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tags (separados por coma)</label>
-                        <input type="text" name="tags" value="{{ old('tags', $post->tags->pluck('name')->implode(', ')) }}" placeholder="inversion, punta cana, guia"
+                        <input type="text" name="tags" value="{{ old('tags', $post->tags->pluck('name')->implode(', ')) }}" placeholder="inversión, punta cana, guia"
                                class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
 
@@ -140,7 +140,7 @@
                             <input type="hidden" name="is_featured" value="0">
                             <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $post->is_featured) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm text-gray-700">Articulo destacado</span>
+                            <span class="text-sm text-gray-700">Artículo destacado</span>
                         </label>
                     </div>
                 </div>
@@ -150,12 +150,12 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta titulo (ES)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta título (ES)</label>
                             <input type="text" name="meta_title" value="{{ old('meta_title', $post->meta_title) }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta titulo (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta título (EN)</label>
                             <input type="text" name="meta_title_en" value="{{ old('meta_title_en', $post->meta_title_en) }}"
                                    class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
@@ -163,11 +163,11 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripcion (ES)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripción (ES)</label>
                             <textarea name="meta_description" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('meta_description', $post->meta_description) }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripcion (EN)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Meta descripción (EN)</label>
                             <textarea name="meta_description_en" rows="2" class="w-full rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">{{ old('meta_description_en', $post->meta_description_en) }}</textarea>
                         </div>
                     </div>

@@ -19,7 +19,7 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea name="description" rows="2"
                                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">{{ old('description', $apiToken->description) }}</textarea>
                         </div>
@@ -65,9 +65,9 @@
 
                         <div class="mb-6 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 space-y-1">
                             <p>Creado: {{ $apiToken->created_at->format('d/m/Y H:i') }}</p>
-                            <p>Ultimo uso: {{ $apiToken->last_used_at ? $apiToken->last_used_at->format('d/m/Y H:i') : 'Nunca' }}</p>
+                            <p>Último uso: {{ $apiToken->last_used_at ? $apiToken->last_used_at->format('d/m/Y H:i') : 'Nunca' }}</p>
                             @if($apiToken->last_used_ip)
-                                <p>Ultima IP: {{ $apiToken->last_used_ip }}</p>
+                                <p>Última IP: {{ $apiToken->last_used_ip }}</p>
                             @endif
                         </div>
 

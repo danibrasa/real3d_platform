@@ -17,7 +17,7 @@
     </div>
 
     @if ($errors->userDeletion->has('suscripcion'))
-        <p class="text-sm text-red-600">{{ $errors->userDeletion->first('suscripcion') }}</p>
+        <p class="text-sm text-red-600">{{ $errors->userDeletion->first('suscripción') }}</p>
     @endif
 
     <x-danger-button

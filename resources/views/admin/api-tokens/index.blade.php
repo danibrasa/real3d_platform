@@ -47,11 +47,11 @@
                                 <thead>
                                     <tr class="border-b text-left">
                                         <th class="py-3 px-2">Nombre</th>
-                                        <th class="py-3 px-2">Descripcion</th>
+                                        <th class="py-3 px-2">Descripción</th>
                                         <th class="py-3 px-2">Proyectos</th>
                                         <th class="py-3 px-2 text-center">Rate Limit</th>
                                         <th class="py-3 px-2 text-center">Estado</th>
-                                        <th class="py-3 px-2">Ultimo uso</th>
+                                        <th class="py-3 px-2">Último uso</th>
                                         <th class="py-3 px-2 text-right">Acciones</th>
                                     </tr>
                                 </thead>

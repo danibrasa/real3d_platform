@@ -49,20 +49,20 @@
                                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Web</label>
                             <input type="url" name="website" value="{{ old('website', $profile->website) }}" placeholder="https://"
                                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('billing.country') }}</label>
                             <select name="country" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-                                <option value="DO" {{ old('country', $profile->country) === 'DO' ? 'selected' : '' }}>Republica Dominicana</option>
-                                <option value="MX" {{ old('country', $profile->country) === 'MX' ? 'selected' : '' }}>Mexico</option>
+                                <option value="DO" {{ old('country', $profile->country) === 'DO' ? 'selected' : '' }}>República Dominicana</option>
+                                <option value="MX" {{ old('country', $profile->country) === 'MX' ? 'selected' : '' }}>México</option>
                                 <option value="CO" {{ old('country', $profile->country) === 'CO' ? 'selected' : '' }}>Colombia</option>
-                                <option value="PA" {{ old('country', $profile->country) === 'PA' ? 'selected' : '' }}>Panama</option>
+                                <option value="PA" {{ old('country', $profile->country) === 'PA' ? 'selected' : '' }}>Panamá</option>
                                 <option value="CR" {{ old('country', $profile->country) === 'CR' ? 'selected' : '' }}>Costa Rica</option>
-                                <option value="US" {{ old('country', $profile->country) === 'US' ? 'selected' : '' }}>United States</option>
-                                <option value="ES" {{ old('country', $profile->country) === 'ES' ? 'selected' : '' }}>Espana</option>
+                                <option value="US" {{ old('country', $profile->country) === 'US' ? 'selected' : '' }}>Estados Unidos</option>
+                                <option value="ES" {{ old('country', $profile->country) === 'ES' ? 'selected' : '' }}>España</option>
                             </select>
                         </div>
                         <div>

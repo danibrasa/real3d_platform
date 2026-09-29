@@ -7,18 +7,18 @@ return [
     'floors' => 'Pisos',
     'estimated_delivery' => 'Entrega estimada',
     'about_project' => 'Sobre el proyecto',
-    'gallery' => 'Galeria',
+    'gallery' => 'Galería',
     'available_units' => 'Unidades disponibles',
     'contact' => 'Consultar',
     'contact_via_whatsapp' => 'Contactar por WhatsApp',
     'view_in_3d' => 'Ver proyecto en 3D',
     'payment_plans' => 'Planes de pago',
-    'investment_calculator' => 'Calculadora de inversion',
+    'investment_calculator' => 'Calculadora de inversión',
 
     // Filters
     'bedrooms' => 'Dormitorios',
     'max_price' => 'Precio max.',
-    'min_area' => 'Area min. (m2)',
+    'min_area' => 'Área min. (m2)',
     'status' => 'Estado',
     'units_label' => 'unidades',
 
@@ -26,8 +26,8 @@ return [
     'unit' => 'Unidad',
     'type' => 'Tipo',
     'beds' => 'Dorm.',
-    'baths' => 'Banos',
-    'area' => 'Area',
+    'baths' => 'Baños',
+    'area' => 'Área',
     'price' => 'Precio',
     'ground_floor' => 'Planta Baja',
     'floor' => 'Piso',
@@ -44,8 +44,8 @@ return [
     // Contact form
     'your_name' => 'Nombre',
     'email' => 'Email',
-    'phone' => 'Telefono',
-    'unit_of_interest' => 'Unidad de interes',
+    'phone' => 'Teléfono',
+    'unit_of_interest' => 'Unidad de interés',
     'general' => 'General',
     'message' => 'Mensaje',
     'message_placeholder' => 'Escriba su consulta...',
@@ -74,8 +74,8 @@ return [
     // Filters extra
     'showing' => 'Mostrando',
     'of' => 'de',
-    'no_limit' => 'Sin limite',
-    'no_minimum' => 'Sin minimo',
+    'no_limit' => 'Sin límite',
+    'no_minimum' => 'Sin mínimo',
     'floor_number' => 'Piso :n',
 
     // Currency
@@ -84,11 +84,11 @@ return [
     // Construction progress
     'construction_progress' => 'Progreso de obra',
     'overall_progress' => 'Progreso general',
-    'last_update' => 'Ultima actualizacion',
+    'last_update' => 'Última actualizacion',
     'phase_completed' => 'Completada',
     'phase_in_progress' => 'En curso',
     'phase_pending' => 'Pendiente',
-    'no_updates_yet' => 'Sin actualizaciones aun.',
+    'no_updates_yet' => 'Sin actualizaciones aún.',
 
     // WhatsApp
     'whatsapp_default_message' => 'Hola, me interesa el proyecto :project',
@@ -128,12 +128,12 @@ return [
     'cta_contact_btn' => 'Contactar un asesor',
 
     // Location map
-    'location_title' => 'Ubicacion',
+    'location_title' => 'Ubicación',
     'map_view' => 'Mapa',
     'satellite_view' => 'Satelite',
 
     // Points of interest
-    'nearby_places' => 'Puntos de interes cercanos',
+    'nearby_places' => 'Puntos de interés cercanos',
     'poi_beach' => 'Playa',
     'poi_airport' => 'Aeropuerto',
     'poi_hospital' => 'Hospital',

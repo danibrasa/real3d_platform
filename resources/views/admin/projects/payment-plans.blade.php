@@ -126,7 +126,7 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Descripcion</label>
+                                        <label class="block text-xs text-gray-500 mb-1">Descripción</label>
                                         <input type="text" :name="'milestones['+idx+'][description]'" x-model="ms.description" placeholder="Detalle opcional" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
                                     <div class="flex items-end gap-2">
