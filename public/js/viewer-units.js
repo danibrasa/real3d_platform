@@ -203,6 +203,14 @@
         }
     }
 
+    // Para el visor: elegir desde el modelo. Sin el "toggle" de la lista,
+    // que tocar dos veces la misma vivienda no la cierre.
+    window.viewerUnitsAPI = {
+        select(unitId) {
+            if (selectedUnitId !== unitId) selectUnit(unitId);
+        },
+    };
+
     // Expose globally for inline onclick and filter selects
     window.backToList = function() {
         deselectUnit();

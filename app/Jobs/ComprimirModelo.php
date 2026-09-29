@@ -63,6 +63,11 @@ class ComprimirModelo implements ShouldQueue
         $proceso->run();
 
         if (! $proceso->isSuccessful() || ! is_file($destinoAbs)) {
+            // Si murio escribiendo (tiempo, memoria, señal), lo que dejo no
+            // vale y no debe quedar ahi con nombre de comprimido.
+            if (is_file($destinoAbs)) {
+                unlink($destinoAbs);
+            }
             report(new \RuntimeException("gltf-pipeline fallo con el modelo #{$fichero->id}: ".substr($proceso->getErrorOutput(), 0, 300)));
 
             return;
