@@ -3,7 +3,7 @@
 // por CDN) desde tools/probar-visor.py, que va con php artisan test.
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { esUnToque, ndcDesde, viviendaBajoElPuntero } from '../public/js/visor-eleccion.js';
+import { conectarToques, esUnToque, ndcDesde, viviendaBajoElPuntero } from '../public/js/visor-eleccion.js';
 
 function caja(id, x, y, z, tam = 2) {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(tam, tam, tam), new THREE.MeshBasicMaterial());
@@ -48,4 +48,49 @@ assert.deepEqual(ndcDesde(110, 70, rect), { x: 0, y: 0 });
 assert.deepEqual(ndcDesde(10, 20, rect), { x: -1, y: 1 });
 assert.deepEqual(ndcDesde(210, 120, rect), { x: 1, y: -1 });
 
-console.log('visor-eleccion: 11 comprobaciones bien');
+// --- El enganche entero: eventos de puntero sobre un lienzo -> elegir(id) ---
+//
+// Un lienzo de mentira: un EventTarget con tamaño, como el canvas del visor.
+class Lienzo extends EventTarget {
+    constructor() { super(); this.style = {}; }
+    getBoundingClientRect() { return { left: 0, top: 0, width: 400, height: 400 }; }
+}
+function evento(tipo, x, y) {
+    const ev = new Event(tipo);
+    ev.clientX = x; ev.clientY = y;
+    return ev;
+}
+
+const lienzo = new Lienzo();
+const elegidas = [];
+let reloj = 0;
+const desconectar = conectarToques(lienzo, () => camera, () => cajas, (id) => elegidas.push(id), { ahora: () => reloj });
+
+// Un toque en el centro del lienzo: la vivienda de delante.
+lienzo.dispatchEvent(evento('pointerdown', 200, 200)); reloj = 100;
+lienzo.dispatchEvent(evento('pointerup', 202, 201));
+assert.deepEqual(elegidas, [101], 'un toque en el centro tenia que elegir la 101');
+
+// Un arrastre que acaba encima de una vivienda: girar, no elegir.
+lienzo.dispatchEvent(evento('pointerdown', 50, 200)); reloj = 250;
+lienzo.dispatchEvent(evento('pointerup', 200, 200));
+assert.deepEqual(elegidas, [101], 'un arrastre no debe elegir nada');
+
+// Un toque en el cielo: nada.
+lienzo.dispatchEvent(evento('pointerdown', 200, 10)); reloj = 300;
+lienzo.dispatchEvent(evento('pointerup', 200, 12));
+assert.deepEqual(elegidas, [101], 'un toque donde no hay vivienda no elige nada');
+
+// Con raton: la mano encima de una vivienda, y no fuera.
+reloj = 1000; lienzo.dispatchEvent(evento('pointermove', 200, 200));
+assert.equal(lienzo.style.cursor, 'pointer');
+reloj = 2000; lienzo.dispatchEvent(evento('pointermove', 200, 10));
+assert.equal(lienzo.style.cursor, '');
+
+// Desenganchado, no elige.
+desconectar();
+lienzo.dispatchEvent(evento('pointerdown', 200, 200)); reloj = 2100;
+lienzo.dispatchEvent(evento('pointerup', 200, 200));
+assert.deepEqual(elegidas, [101], 'desenganchado seguia eligiendo');
+
+console.log('visor-eleccion: 17 comprobaciones bien');

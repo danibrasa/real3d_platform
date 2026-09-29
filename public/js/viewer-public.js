@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { esUnToque, ndcDesde, viviendaBajoElPuntero } from './visor-eleccion.js';
+import { conectarToques } from './visor-eleccion.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 // =============================================================
@@ -93,31 +93,18 @@ function init() {
 
     state.controls = new OrbitControls(state.camera, state.renderer.domElement);
 
-    // Tocar una vivienda en el modelo abre su ficha. Un toque, no un arrastre:
-    // arrastrar es girar, y girar no debe elegir nada.
-    const lienzo = state.renderer.domElement;
-    let toqueInicio = null;
-    lienzo.addEventListener('pointerdown', (ev) => {
-        toqueInicio = { x: ev.clientX, y: ev.clientY, t: performance.now() };
-    });
-    lienzo.addEventListener('pointerup', (ev) => {
-        const fin = { x: ev.clientX, y: ev.clientY, t: performance.now() };
-        if (!esUnToque(toqueInicio, fin)) { toqueInicio = null; return; }
-        toqueInicio = null;
-        const unitId = viviendaBajoElPuntero(state.camera, state.unitBoxes, ndcDesde(ev.clientX, ev.clientY, lienzo.getBoundingClientRect()));
-        if (unitId !== null && window.viewerUnitsAPI?.select) window.viewerUnitsAPI.select(unitId);
-    });
-    // Con raton, la mano encima de una vivienda: se puede tocar.
-    if (!isMobile) {
-        let ultimoMove = 0;
-        lienzo.addEventListener('pointermove', (ev) => {
-            const ahora = performance.now();
-            if (ahora - ultimoMove < 80) return;
-            ultimoMove = ahora;
-            const unitId = viviendaBajoElPuntero(state.camera, state.unitBoxes, ndcDesde(ev.clientX, ev.clientY, lienzo.getBoundingClientRect()));
-            lienzo.style.cursor = unitId !== null ? 'pointer' : '';
-        });
-    }
+    // Tocar una vivienda en el modelo abre su ficha. El enganche entero --
+    // eventos, toque frente a arrastre, rayo, mano con raton -- vive en
+    // visor-eleccion.js y se prueba con node; aqui solo se le dan el lienzo,
+    // la camara, las cajas (state.unitBoxes, un Map de id a malla) y que
+    // hacer con la elegida.
+    conectarToques(
+        state.renderer.domElement,
+        () => state.camera,
+        () => state.unitBoxes,
+        (unitId) => { if (window.viewerUnitsAPI?.select) window.viewerUnitsAPI.select(unitId); },
+        { conRaton: !isMobile },
+    );
     state.controls.enableDamping = true;
     state.controls.dampingFactor = 0.08;
     state.controls.maxPolarAngle = Math.PI * 0.45;
