@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\ViewerEvent;
 use App\Support\Visor\ResumenDeTreintaDias;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -104,6 +105,16 @@ class FlecosDelVisorTest extends TestCase
         ]);
     }
 
+    public function test_quien_no_atiende_compradores_no_ve_los_numeros(): void
+    {
+        $this->evento('session_start', 's1');
+        Gate::define('view-inquiries', fn () => false);
+
+        $this->actingAs($this->promotora)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertDontSee(__('visor.resumen_titulo'));
+    }
+
     public function test_los_tres_numeros_cuadran_con_lo_que_hay(): void
     {
         $otra = Unit::create([
@@ -146,10 +157,14 @@ class FlecosDelVisorTest extends TestCase
             ViewerEvent::create(['project_id' => $ajeno->id, 'session_id' => "a{$i}", 'event_type' => 'session_start', 'created_at' => now()]);
         }
 
+        // El numero exacto dentro de su casilla, no un '1' suelto por la
+        // pagina: lo dijo el revisor, y tenia razon.
         $this->actingAs($this->promotora)->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee(__('visor.resumen_titulo'))
-            ->assertSeeInOrder(['1', __('visor.resumen_visitas')])
+            ->assertSee('tabular-nums">1</div>', false)
+            ->assertDontSee('tabular-nums">7</div>', false)
+            ->assertDontSee('tabular-nums">8</div>', false)
             ->assertSee('A-102');
 
         $this->assertSame(7, ResumenDeTreintaDias::de(collect([$ajeno->id]))['visitas']);
