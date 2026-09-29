@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyProfile;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Agentes\Invitacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +33,10 @@ class UserController extends Controller
                 ->paginate(20);
         }
 
-        return view('admin.users.index', compact('users'));
+        // El cupo del plan, a la vista antes de chocar con el.
+        $cupo = $user->isInmobiliaria() ? Invitacion::cupo($user) : null;
+
+        return view('admin.users.index', compact('users', 'cupo'));
     }
 
     public function create()
@@ -43,6 +48,8 @@ class UserController extends Controller
 
         if ($user->isSuperadmin()) {
             $agencies = User::where('role', User::ROLE_INMOBILIARIA)->orderBy('name')->get();
+        } elseif ($sinCupo = $this->sinCupo($user)) {
+            return redirect()->route('admin.users.index')->with('error', $sinCupo);
         }
 
         return view('admin.users.create', compact('agencies'));
@@ -61,10 +68,13 @@ class UserController extends Controller
             $allowedRoles = [User::ROLE_AGENTE];
         }
 
+        // La promotora no teclea contraseñas: invita, y el agente elige la
+        // suya por el enlace del correo. El equipo sigue creando cuentas de
+        // cualquier rol con contraseña.
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => [$user->isSuperadmin() ? 'required' : 'nullable', 'confirmed', Password::min(8)],
             'role' => ['required', Rule::in($allowedRoles)],
             'agency_id' => 'nullable|exists:users,id',
         ]);
@@ -90,16 +100,20 @@ class UserController extends Controller
                     ->count();
 
                 if ($tiene >= $tope) {
-                    return back()->with('error', __('billing.agent_limit_reached', ['tope' => $tope]));
+                    return back()->with('error', $this->sinCupo($agencia) ?? __('billing.agent_limit_reached', ['tope' => $tope]));
                 }
             }
         }
 
+        if ($user->isInmobiliaria()) {
+            Invitacion::invitar($user, $validated['name'], $validated['email']);
+
+            return redirect()->route('admin.users.index')
+                ->with('success', __('agentes.invitacion_enviada', ['correo' => $validated['email'], 'dias' => Invitacion::DIAS_DE_VIDA]));
+        }
+
         // Set agency_id logic
         if ($validated['role'] === User::ROLE_AGENTE) {
-            if ($user->isInmobiliaria()) {
-                $validated['agency_id'] = $user->id;
-            }
             // superadmin provides agency_id from form
         } else {
             $validated['agency_id'] = null;
@@ -111,6 +125,36 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuario creado.');
+    }
+
+    /** Un enlace nuevo para un agente que aun no acepto el suyo. */
+    public function reenviarInvitacion(User $editUser)
+    {
+        Gate::authorize('manage-agents');
+        $this->authorizeUserAccess($editUser);
+
+        if (! Invitacion::pendiente($editUser)) {
+            return back()->with('error', __('agentes.ya_acepto', ['nombre' => $editUser->name]));
+        }
+
+        Invitacion::reenviar($editUser);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', __('agentes.invitacion_reenviada', ['correo' => $editUser->email]));
+    }
+
+    /** Por que no puede invitar, dicho como se lo diria una promotora a otra; null si puede. */
+    private function sinCupo(User $promotora): ?string
+    {
+        $cupo = Invitacion::cupo($promotora);
+        if ($cupo['tope'] === 0) {
+            return __('agentes.sin_agentes', ['profesional' => CompanyProfile::PLAN_LIMITS[CompanyProfile::PLAN_PROFESSIONAL]['max_agents']]);
+        }
+        if ($cupo['quedan'] === 0) {
+            return __('agentes.cupo_lleno', ['tope' => $cupo['tope']]);
+        }
+
+        return null;
     }
 
     public function edit(User $editUser)

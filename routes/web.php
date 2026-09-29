@@ -38,6 +38,7 @@ use App\Http\Controllers\DatosPersonalesController;
 use App\Http\Controllers\DeveloperDirectoryController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\InvitacionController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\McpServerController;
@@ -203,6 +204,7 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     // Users
     Route::resource('users', UserController::class)->except('show')->parameters(['users' => 'editUser']);
     Route::post('users/{user}/assign-projects', [UserController::class, 'assignProjects'])->name('users.assignProjects');
+    Route::post('users/{editUser}/reenviar-invitacion', [UserController::class, 'reenviarInvitacion'])->name('users.reenviarInvitacion');
 
     // Notifications
     Route::get('notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
@@ -357,3 +359,11 @@ require __DIR__.'/auth.php';
 
 // Como va la maquina por dentro. Detras de token; sin token, no existe.
 Route::get('/salud', SaludController::class)->name('salud');
+
+// La invitacion de un agente: el enlace del correo, para elegir contraseña y
+// entrar. Sin cuenta previa, asi que fuera de auth y con el freno del acceso.
+Route::middleware('guest')->group(function () {
+    Route::get('invitacion/{token}', [InvitacionController::class, 'mostrar'])->name('invitacion.mostrar');
+    Route::post('invitacion/{token}', [InvitacionController::class, 'aceptar'])
+        ->middleware('throttle:acceso')->name('invitacion.aceptar');
+});

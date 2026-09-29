@@ -1,9 +1,9 @@
 <x-app-layout>
-    <x-slot name="title">{{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : 'Nuevo Agente' }}</x-slot>
+    <x-slot name="title">{{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : __('agentes.invitar') }}</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : 'Nuevo Agente' }}
+                {{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : __('agentes.invitar') }}
             </h2>
             <a href="{{ route('admin.users.index') }}" class="text-sm text-gray-600 hover:underline">&larr; Volver</a>
         </div>
@@ -12,6 +12,11 @@
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                @unless (auth()->user()->isSuperadmin())
+                    {{-- La promotora no teclea contraseñas: el agente elige la
+                         suya por el enlace del correo. --}}
+                    <p class="mb-4 text-sm text-gray-600">{{ __('agentes.como_funciona', ['dias' => \App\Support\Agentes\Invitacion::DIAS_DE_VIDA]) }}</p>
+                @endunless
                 <form method="POST" action="{{ route('admin.users.store') }}">
                     @csrf
 
@@ -27,6 +32,7 @@
                         @error('email') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
 
+                    @if(auth()->user()->isSuperadmin())
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
                         <input type="password" name="password" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
@@ -37,6 +43,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contrasena</label>
                         <input type="password" name="password_confirmation" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
+                    @endif
 
                     @if(auth()->user()->isSuperadmin())
                     <div class="mb-4" x-data="{ role: '{{ old('role', '') }}' }">
@@ -64,11 +71,10 @@
                     @else
                     {{-- Inmobiliaria creating agent: role is forced --}}
                     <input type="hidden" name="role" value="agente">
-                    <p class="mb-4 text-sm text-gray-500">Rol: <span class="font-medium text-gray-700">Agente</span> (asociado a tu inmobiliaria)</p>
                     @endif
 
                     <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">
-                        Crear {{ auth()->user()->isSuperadmin() ? 'usuario' : 'agente' }}
+                        {{ auth()->user()->isSuperadmin() ? 'Crear usuario' : __('agentes.enviar') }}
                     </button>
                 </form>
             </div>
