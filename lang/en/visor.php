@@ -51,6 +51,7 @@ return [
     'pedir_cambios' => 'Request changes',
     'comentario_ayuda' => 'If you request changes, say which. If you approve, anything you want to add.',
     'aprobado_gracias' => 'Thanks. The team will mark it as built and let you know when you can publish.',
+    'no_esta_para_revisar' => 'This viewer is no longer under review: the team has moved it on. If something is off, write to us.',
     'cambios_pedidos' => 'Noted. The team is on it and will let you know when it is ready.',
     'aprobado_el' => 'Viewer approved on :fecha. The team will mark it as built shortly.',
     'aprobado_por' => 'Approved by :quien',

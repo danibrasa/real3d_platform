@@ -182,6 +182,11 @@ class SolicitudDeVisorController extends Controller
         if ($validated['estado'] !== $project->visor_estado) {
             $cambios['visor_estado'] = $validated['estado'];
             $cambios['visor_estado_en'] = now();
+            // Otra vuelta de revision empieza limpia: la peticion de cambios
+            // anterior no es una peticion vigente.
+            if ($validated['estado'] === 'para_revisar') {
+                $cambios += ['visor_comentario' => null, 'visor_aprobado_en' => null, 'visor_aprobado_por' => null];
+            }
         }
 
         $antes = $project->only(['visor_estado', 'visor_asignado_a', 'visor_objetivo', 'visor_horas']);
@@ -201,7 +206,16 @@ class SolicitudDeVisorController extends Controller
     public function revisado(Request $request, Project $project)
     {
         $user = $request->user();
-        abort_unless($user->canAccessProject($project), 403);
+        // El visto bueno lo da la promotora, no el equipo que lo monta: un
+        // gestor aprobandose a si mismo vacia la comprobacion.
+        abort_unless($user->isInmobiliaria() && $user->canAccessProject($project), 403);
+
+        // Y solo mientras esta para revisar: con la ficha abierta mientras el
+        // equipo lo daba por montado, un "cambios" tardio devolvia a
+        // preparacion un visor ya montado, con la prueba gratuita en marcha.
+        if ($project->visor_estado !== 'para_revisar') {
+            return back()->with('error', __('visor.no_esta_para_revisar'));
+        }
 
         $validated = $request->validate([
             'veredicto' => ['required', Rule::in(['aprobado', 'cambios'])],

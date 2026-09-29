@@ -14,6 +14,8 @@ return [
     'bienvenida' => 'Ya estás dentro. Aquí tienes los proyectos y las consultas de tu empresa.',
     'ya_no_vale' => 'Esta invitación ya no vale',
     'pide_reenvio' => 'Las invitaciones valen :dias días y se usan una sola vez. Pide a quien te invitó que te la reenvíe desde su panel.',
+    'pendiente_sin_clave' => 'Esta cuenta está pendiente de aceptar su invitación: entra por el enlace del correo de invitación (te lo acabamos de reenviar).',
+    'sin_clave_hasta_aceptar' => ':nombre aún no ha aceptado la invitación, así que no se le puede poner contraseña: la elige al aceptar. Si no le llegó, reenvíasela.',
     'ya_tengo_cuenta' => 'Ya tengo cuenta: entrar',
 
     'cupo' => ':usados de :tope agentes de tu plan',

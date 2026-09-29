@@ -21,9 +21,11 @@ class EdicionRapida
 {
     public const ESTADOS = ['available', 'reserved', 'sold'];
 
-    private int $guardadas = 0;
+    /** @var array<int, true> ids: una vivienda editada en su fila y en el lote cuenta una vez */
+    private array $guardadas = [];
 
-    private int $sinCambios = 0;
+    /** @var array<int, true> */
+    private array $sinCambios = [];
 
     /** @var array<int, array{vivienda: string, motivo: string}> */
     private array $errores = [];
@@ -98,14 +100,14 @@ class EdicionRapida
         }
 
         if (! $cambios) {
-            $this->sinCambios++;
+            $this->sinCambios[$vivienda->id] = true;
 
             return;
         }
 
         $estadoAnterior = $vivienda->status;
         $vivienda->update($cambios);
-        $this->guardadas++;
+        $this->guardadas[$vivienda->id] = true;
 
         if (isset($cambios['status'])) {
             WebhookService::dispatch('unit_status_changed', [
@@ -167,6 +169,10 @@ class EdicionRapida
     /** @return array{guardadas: int, sin_cambios: int, errores: array} */
     public function resumen(): array
     {
-        return ['guardadas' => $this->guardadas, 'sin_cambios' => $this->sinCambios, 'errores' => $this->errores];
+        return [
+            'guardadas' => count($this->guardadas),
+            'sin_cambios' => count(array_diff_key($this->sinCambios, $this->guardadas)),
+            'errores' => $this->errores,
+        ];
     }
 }

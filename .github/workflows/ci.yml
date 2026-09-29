@@ -64,6 +64,11 @@ jobs:
       - name: Dependencias de Node
         run: npm ci
 
+      # Los tests de JavaScript del visor (elegir vivienda tocando, mapear
+      # por nombre) corren con node; sin este paso solo corrian a mano.
+      - name: Tests del visor (node)
+        run: python3 tools/probar-visor.py
+
       # Antes de los tests: varias vistas piden el manifiesto de Vite y sin el
       # devuelven 500.
       - name: Compilar assets

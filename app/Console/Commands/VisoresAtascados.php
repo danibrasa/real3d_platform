@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Project;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -16,13 +17,29 @@ use Illuminate\Support\Facades\Schema;
 class VisoresAtascados extends Command
 {
     protected $signature = 'visores:atascados
-                            {--dias=5 : Dias sin cambiar de estado a partir de los que se avisa}';
+                            {--dias=5 : Dias sin cambiar de estado a partir de los que se avisa}
+                            {--base= : Base de datos a mirar (la copia restaurada de produccion)}';
 
     protected $description = 'Lista los visores pedidos que llevan demasiado sin moverse';
 
     public function handle(): int
     {
         $dias = (int) $this->option('dias');
+
+        // Por opcion y no por DB_DATABASE en el entorno: con la configuracion
+        // cacheada la variable se ignora y se miraria la base de dev creyendo
+        // mirar la copia. Se dice que base se miro, para que quien lo lanza
+        // pueda comprobarlo.
+        $conexion = config('database.default');
+        if ($base = $this->option('base')) {
+            config(["database.connections.{$conexion}.database" => $base]);
+            DB::purge($conexion);
+        }
+        // La base que responde, no la que se pidio: en MySQL se le pregunta.
+        $enUso = DB::connection($conexion)->getDriverName() === 'mysql'
+            ? DB::connection($conexion)->selectOne('select database() as b')->b
+            : config("database.connections.{$conexion}.database");
+        $this->line('base: '.$enUso);
 
         // La nocturna lo lanza contra la copia de produccion, que lleva el
         // esquema de produccion: hasta que se despliegue la cola, no hay
@@ -37,9 +54,12 @@ class VisoresAtascados extends Command
             // NULL != 'montado' no es verdadero en SQL: un pedido sin estado
             // (dato viejo o inconsistente) se quedaria fuera del aviso.
             ->where(fn ($q) => $q->whereNull('visor_estado')->orWhere('visor_estado', '!=', Project::VISOR_MONTADO))
-            ->where(fn ($q) => $q->whereNull('visor_estado_en')->orWhere('visor_estado_en', '<=', now()->subDays($dias)))
+            // El reloj es el ultimo cambio de estado o, sin el, el pedido:
+            // sin esto un pedido de ayer sin estado contaba como atascado
+            // desde el minuto cero. Lo dijo el revisor.
+            ->whereRaw('COALESCE(visor_estado_en, viewer_requested_at) <= ?', [now()->subDays($dias)])
             ->with('montador')
-            ->orderBy('visor_estado_en')
+            ->orderByRaw('COALESCE(visor_estado_en, viewer_requested_at)')
             ->get();
 
         foreach ($atascados as $p) {

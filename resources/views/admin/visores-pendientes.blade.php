@@ -79,7 +79,7 @@
                                             <select name="asignado_a" class="text-xs rounded border-gray-300 py-1" aria-label="{{ __('visor.cola_quien') }}">
                                                 <option value="">{{ __('visor.cola_nadie') }}</option>
                                                 @foreach ($equipo as $u)
-                                                    <option value="{{ $u->id }}" {{ $p->visor_asignado_a === $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                                                    <option value="{{ $u->id }}" {{ (int) $p->visor_asignado_a === $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                                                 @endforeach
                                             </select>
                                             <input type="date" name="objetivo" value="{{ $p->visor_objetivo?->toDateString() }}" class="text-xs rounded border-gray-300 py-1" aria-label="{{ __('visor.cola_objetivo') }}">
@@ -91,8 +91,11 @@
                                         @endif
                                         @if ($p->visor_aprobado_en)
                                             <div class="text-xs text-emerald-700 mt-1">✓ {{ __('visor.aprobado_por', ['quien' => $p->aprobadorDelVisor?->name ?? '?']) }}</div>
-                                        @elseif ($p->visor_comentario)
-                                            <div class="text-xs text-amber-800 mt-1">“{{ $p->visor_comentario }}”</div>
+                                        @endif
+                                        {{-- Se enseña siempre que lo haya: al aprobar con
+                                             comentario tambien hay algo que leer. --}}
+                                        @if ($p->visor_comentario)
+                                            <div class="text-xs {{ $p->visor_aprobado_en ? 'text-gray-600' : 'text-amber-800' }} mt-1">“{{ $p->visor_comentario }}”</div>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3">

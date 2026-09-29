@@ -36,6 +36,7 @@ class BandejaMovilTest extends TestCase
             'project_id' => $proyecto->id, 'name' => 'Comprador Interesado', 'email' => 'comprador@ejemplo.invalid',
             'phone' => '+1 809 555 0100', 'message' => 'Me interesa la A-102.', 'read' => false,
         ]);
+        Inquiry::create(['project_id' => $proyecto->id, 'name' => 'Ya Leido', 'email' => 'leido@ejemplo.invalid', 'read' => true]);
     }
 
     public function test_la_bandeja_lleva_tarjetas_para_el_telefono_con_whatsapp_estado_y_ver(): void
@@ -51,7 +52,10 @@ class BandejaMovilTest extends TestCase
         $this->assertStringContainsString('href="tel:+1 809 555 0100"', $tarjetas);
         $this->assertStringContainsString(route('admin.inquiries.estado', $this->lead), $tarjetas, 'el estado se cambia desde la tarjeta');
         $this->assertStringContainsString(route('admin.inquiries.show', $this->lead), $tarjetas);
-        $this->assertStringContainsString('border-blue-500', $tarjetas, 'la no leida se distingue');
+        // Una leida y una sin leer: el borde azul solo en la segunda. Con una
+        // sola no se distingue "distingue" de "siempre".
+        $this->assertSame(1, substr_count($tarjetas, 'border-blue-500'), 'el borde azul es solo de la no leida');
+        $this->assertStringContainsString('Ya Leido', $tarjetas);
 
         // Y la tabla sigue para el escritorio, pero ya no recorta lo que no
         // cabe: se desplaza.
@@ -63,6 +67,6 @@ class BandejaMovilTest extends TestCase
         $this->actingAs($this->ana)->get(route('admin.inquiries.show', $this->lead))
             ->assertOk()
             ->assertSee('href="https://wa.me/18095550100?text=', false)
-            ->assertSee('py-2.5 rounded-md bg-emerald-600', false);
+            ->assertSee('py-3 rounded-md bg-emerald-600', false);
     }
 }

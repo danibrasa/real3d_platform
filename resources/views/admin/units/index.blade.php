@@ -173,7 +173,7 @@
                         @foreach($units as $unit)
                         <tr>
                             @if ($editaComercial)
-                            <td class="px-3 py-3"><input type="checkbox" name="sel[]" value="{{ $unit->id }}" class="rounded border-gray-300" aria-label="Marcar {{ $unit->identifier }}" @change="contar()"></td>
+                            <td class="px-3 py-3"><input type="checkbox" name="sel[]" value="{{ $unit->id }}" class="rounded border-gray-300" aria-label="Marcar {{ $unit->identifier }}" @change="contar()" {{ in_array($unit->id, old('sel', [])) ? 'checked' : '' }}></td>
                             @endif
                             <td class="px-4 py-3 font-medium text-sm">{{ $unit->identifier }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $unit->floor }}</td>
@@ -183,7 +183,7 @@
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $unit->area_m2 }} m2</td>
                             <td class="px-4 py-3 text-sm font-medium">
                                 @if ($editaComercial && ! $agente)
-                                    <input type="number" name="v[{{ $unit->id }}][price]" value="{{ $unit->price }}" step="0.01" min="0" placeholder="consultar"
+                                    <input type="number" name="v[{{ $unit->id }}][price]" value="{{ old('v.'.$unit->id.'.price', $unit->price) }}" step="0.01" min="0" placeholder="consultar"
                                            class="w-32 rounded-md border-gray-300 text-sm py-1" aria-label="Precio de {{ $unit->identifier }}">
                                 @else
                                     {{ $unit->formatted_price }}
@@ -195,7 +195,7 @@
                                         @foreach ($nombresDeEstado as $valor => $nombre)
                                             {{-- El agente solo reserva: su lista lleva lo que hay y "Reservado". --}}
                                             @if (! $agente || $valor === 'reserved' || $valor === $unit->status)
-                                                <option value="{{ $valor }}" {{ $unit->status === $valor ? 'selected' : '' }}>{{ $nombre }}</option>
+                                                <option value="{{ $valor }}" {{ old('v.'.$unit->id.'.status', $unit->status) === $valor ? 'selected' : '' }}>{{ $nombre }}</option>
                                             @endif
                                         @endforeach
                                     </select>
@@ -244,14 +244,14 @@
                      planta 3 a vendido" o "un 5% mas" no es cosa de ir fila a fila. --}}
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-gray-600">Con las <b x-text="marcadas"></b> marcadas:</span>
-                    <select name="lote_accion" class="rounded-md border-gray-300 text-sm py-1" x-data="{ accion: '' }" x-model="accion" x-ref="accion" aria-label="Cambio en lote">
+                    <select name="lote_accion" class="rounded-md border-gray-300 text-sm py-1" x-data="{ accion: '{{ old('lote_accion') }}' }" x-model="accion" x-ref="accion" aria-label="Cambio en lote">
                         <option value="">elige un cambio</option>
                         <option value="estado">poner estado</option>
                         <option value="porcentaje">cambiar el precio un %</option>
                     </select>
                     <select name="lote_estado" class="rounded-md border-gray-300 text-sm py-1" aria-label="Estado para el lote">
                         @foreach ($nombresDeEstado as $valor => $nombre)
-                            <option value="{{ $valor }}">{{ $nombre }}</option>
+                            <option value="{{ $valor }}" {{ old('lote_estado') === $valor ? 'selected' : '' }}>{{ $nombre }}</option>
                         @endforeach
                     </select>
                     <input type="number" name="lote_porcentaje" step="0.1" min="-90" max="300" placeholder="+5 o -10" value="{{ old('lote_porcentaje') }}"

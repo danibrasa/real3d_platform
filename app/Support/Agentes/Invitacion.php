@@ -51,10 +51,26 @@ class Invitacion
         return $agente;
     }
 
-    /** Un enlace nuevo; el anterior deja de valer. */
+    /** Un enlace nuevo; el anterior deja de valer. Lo pide la promotora desde su panel. */
     public static function reenviar(User $agente): void
     {
         self::enviar($agente, $agente->agency);
+    }
+
+    /**
+     * Le vuelve a mandar el enlace que ya tiene, si sigue valiendo; si caduco,
+     * uno nuevo. Para lo que puede pedir cualquiera sin sesion ("olvide mi
+     * contraseña"): desde ahi no se le rota el enlace a nadie.
+     */
+    public static function recordar(User $agente): void
+    {
+        if (! self::porToken($agente->invitacion_token)) {
+            self::reenviar($agente);
+
+            return;
+        }
+
+        Mail::to($agente->email)->locale(app()->getLocale())->queue(new InvitacionDeAgente($agente, $agente->agency));
     }
 
     private static function enviar(User $agente, User $promotora): void
@@ -65,7 +81,9 @@ class Invitacion
             'invitacion_aceptada_en' => null,
         ])->save();
 
-        Mail::to($agente->email)->queue(new InvitacionDeAgente($agente, $promotora));
+        // En el idioma en que esta trabajando quien invita: el agente aun no
+        // tiene cuenta ni preferencia, y por la cola saldria en el del servidor.
+        Mail::to($agente->email)->locale(app()->getLocale())->queue(new InvitacionDeAgente($agente, $promotora));
     }
 
     public static function pendiente(User $agente): bool

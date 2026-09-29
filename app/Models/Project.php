@@ -65,6 +65,9 @@ class Project extends Model
         'viewer_requested_at' => 'datetime',
         'visor_estado_en' => 'datetime',
         'visor_objetivo' => 'date',
+        // Sin el cast, en MySQL llega como texto y `=== $u->id` nunca casa: el
+        // select de la cola no marcaba al asignado y cada "Guardar" lo borraba.
+        'visor_asignado_a' => 'integer',
         'visor_aprobado_en' => 'datetime',
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
