@@ -243,6 +243,18 @@ class ElBucleDeVerdad(unittest.TestCase):
         self.assertTrue(self.fusiono(),
                         "con el permiso dado a mano tampoco se fusiono")
 
+    def test_revisada_en_sesion_fusiona_sin_llamar_al_revisor(self):
+        # La revision la hizo un subagente en la sesion: aqui no se llama a
+        # la API (no hay credito) y se fusiona. Si se llamara, con "hallazgos"
+        # se pararia; que se fusione demuestra que no se llamo.
+        fus = self.preparar("hallazgos", ["rama-x", "--revisada-en-sesion"])
+        llamadas = []
+        fus.revisar = lambda rama: llamadas.append(rama) or "hallazgos"
+        fus.main()
+
+        self.assertTrue(self.fusiono(), "revisada en sesion y no se fusiono")
+        self.assertEqual(llamadas, [], "se llamo al revisor de la API aunque ya estaba revisada")
+
     def test_una_revision_limpia_fusiona_sin_banderas(self):
         fus = self.preparar("limpia", ["rama-x"])
         fus.main()

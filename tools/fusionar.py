@@ -144,6 +144,10 @@ def revisar(rama):
     Sigue decidiendo una persona, pero tiene que decirlo:
       --aunque-haya-hallazgos   fusiona con hallazgos graves
       --sin-revisor             fusiona cuando la revision no se pudo hacer
+      --revisada-en-sesion      la revision la hizo un subagente en la sesion
+                                de Claude Code con el encargo de revisor.py;
+                                aqui no se llama a la API (desde el 29-sep-2026
+                                no hay credito de API para esto)
 
     Devuelve "limpia", "hallazgos" o "sin-revision".
     """
@@ -435,7 +439,15 @@ def main():
 
         # Antes de esperar al CI: si hay algo gordo, mejor verlo ya, y sobre
         # todo antes de fusionarlo.
-        veredicto = revisar(rama)
+        if "--revisada-en-sesion" in sys.argv:
+            # Sin credito de API, la revision la hace un subagente en la sesion
+            # de Claude Code con el mismo encargo (INSTRUCCIONES de revisor.py)
+            # y sus hallazgos se arreglan antes de llegar aqui. No se llama a
+            # nadie: se deja constancia y se sigue.
+            log("      | revisada en sesion (subagente con el encargo de revisor.py): no se llama a la API")
+            veredicto = "limpia"
+        else:
+            veredicto = revisar(rama)
 
         if not puede_seguir(veredicto, banderas):
             detenidas.append("%s (%s)" % (rama, veredicto))
