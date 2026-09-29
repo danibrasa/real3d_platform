@@ -23,6 +23,16 @@ class FileUploadController extends Controller
             'total_chunks' => 'required|integer|min:1',
         ]);
 
+        // Lo que no cabe, no entra: un video 360 de 315 MB son cinco minutos
+        // de 4G para un comprador, y en produccion habia cuatro copias del
+        // mismo. Se dice cuanto es el tope, que la salida es recomprimir.
+        $maximoMb = config('ficheros.maximos_mb')[$validated['file_type']] ?? null;
+        if ($maximoMb && $validated['total_size'] > $maximoMb * 1048576) {
+            return response()->json([
+                'error' => __('ficheros.demasiado_grande', ['tipo' => $validated['file_type'], 'mb' => $maximoMb]),
+            ], 422);
+        }
+
         // Mirar la cuota tambien aqui ahorra subir trescientos megas para que
         // al final se rechacen. La comprobacion de verdad sigue estando al
         // completar, porque entre una y otra pueden subirse otros ficheros.

@@ -217,6 +217,29 @@ class Project extends Model
         return $this->files()->where('file_type', $type)->where('upload_complete', true)->first();
     }
 
+    /**
+     * La direccion publica de un fichero del visor, con su version.
+     *
+     * Estaba escrita a mano en cinco sitios, sin version: cada visita
+     * volvia a pedir el modelo a la hora. Con ?v= la respuesta puede ser
+     * inmutable un ano, y al reemplazar el fichero cambia la direccion.
+     */
+    public function urlDeFichero(string $tipo): ?string
+    {
+        $fichero = $this->getFileByType($tipo);
+        if (! $fichero) {
+            return null;
+        }
+
+        $parametros = ['v' => $fichero->version()];
+        if ($tipo === 'model_3d') {
+            // El cargador escoge GLB o FBX por la extension del nombre.
+            $parametros['f'] = $fichero->original_name;
+        }
+
+        return "/api/projects/{$this->slug}/files/{$tipo}?".http_build_query($parametros);
+    }
+
     protected function availableUnitsCount(): Attribute
     {
         return Attribute::make(
