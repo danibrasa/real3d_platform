@@ -140,6 +140,22 @@ def preguntar(texto):
     return ""
 
 
+def desde_la_base(rango, base_comun):
+    """El rango que se le da a git log y a git diff, con la misma base.
+
+    'main...rama' significa para git diff "desde donde la rama salio de main",
+    que es lo que hay que revisar; pero para git log significa "lo que tiene
+    uno y no el otro", en los dos sentidos, y el revisor leyo como afirmaciones
+    de la rama los commits que main habia ganado por su cuenta. Se resuelve la
+    base una vez y se usa 'base..rama' para las dos cosas.
+    """
+    if "..." not in rango:
+        return rango
+
+    a, b = rango.split("...", 1)
+    return "%s..%s" % (base_comun(a, b), b)
+
+
 def main():
     if not CLAVE:
         print("NO SE PUDO REVISAR: falta GH_ANTHROPIC_KEY")
@@ -150,8 +166,9 @@ def main():
     # con hallazgos graves". Es la misma confusion que se acaba de arreglar en
     # la otra punta del guion, y la encontro el propio revisor.
     try:
-        mensajes = git("log", "--format=%B%n---", RANGO).strip()
-        diff = git("diff", RANGO)
+        rango = desde_la_base(RANGO, lambda a, b: git("merge-base", a, b).strip())
+        mensajes = git("log", "--format=%B%n---", rango).strip()
+        diff = git("diff", rango)
     except subprocess.CalledProcessError as e:
         print("NO SE PUDO REVISAR: git fallo en %s\n%s" % (RANGO, e.stderr.strip()[:300]))
         return 2
