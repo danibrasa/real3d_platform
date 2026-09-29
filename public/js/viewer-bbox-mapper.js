@@ -640,6 +640,8 @@ function clearBbox() {
                 const dot = document.getElementById('dot-' + state.selectedUnitId);
                 if (dot) { dot.className = 'w-3 h-3 rounded-full flex-shrink-0 bg-gray-300'; }
             }
+            // El contador y el filtro "solo sin situar" tambien al limpiar.
+            actualizarProgreso();
             loadBboxToSliders(null);
             setTimeout(() => { statusEl.textContent = ''; }, 2000);
         } else {

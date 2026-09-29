@@ -129,12 +129,15 @@ def preguntar(texto):
         # Lo que dice el proveedor, no solo el codigo: un 400 puede ser "sin
         # credito", que es cosa de quien paga, o un cuerpo mal hecho, que es
         # cosa de este guion. Se distinguen leyendo el cuerpo.
-        cuerpo = e.read().decode(errors="replace")[:300]
+        cuerpo = e.read().decode(errors="replace")
         try:
-            cuerpo = json.loads(cuerpo).get("error", {}).get("message", cuerpo)
+            datos = json.loads(cuerpo)
+            error = datos.get("error") if isinstance(datos, dict) else None
+            if isinstance(error, dict) and error.get("message"):
+                cuerpo = error["message"]
         except ValueError:
             pass
-        raise RuntimeError("el proveedor devolvio %d: %s" % (e.code, cuerpo))
+        raise RuntimeError("el proveedor devolvio %d: %s" % (e.code, cuerpo[:300]))
 
     # No siempre viene el texto en el primer bloque: el modelo razona antes, y
     # ese razonamiento llega como un bloque aparte.

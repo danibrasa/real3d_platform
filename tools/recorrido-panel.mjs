@@ -72,12 +72,13 @@ try {
 
         const medidas = await pagina.evaluate(() => {
             const d = document.documentElement;
-            // Los controles que un dedo tiene que acertar: menos de 32 px de
-            // alto es un enlace de raton.
-            const pequenos = [...document.querySelectorAll('a, button, select, input[type=checkbox]')]
+            // Los controles que un dedo tiene que acertar: un boton, un select
+            // o una casilla de menos de 36 px de alto es cosa de raton. Los
+            // enlaces de texto no se cuentan: en una tabla los hay a docenas.
+            const pequenos = [...document.querySelectorAll('button, select, input:not([type=hidden])')]
                 .filter((e) => e.offsetParent !== null)
-                .map((e) => ({ r: e.getBoundingClientRect(), t: (e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 30) }))
-                .filter(({ r }) => r.width > 0 && r.height > 0 && r.height < 24)
+                .map((e) => ({ r: e.getBoundingClientRect(), t: (e.textContent || e.getAttribute('aria-label') || e.name || '').trim().slice(0, 30) }))
+                .filter(({ r }) => r.width > 0 && r.height > 0 && r.height < 36)
                 .map(({ t }) => t);
             return { scrollWidth: d.scrollWidth, ancho: window.innerWidth, pequenos: pequenos.slice(0, 8), total: pequenos.length };
         });
@@ -86,7 +87,11 @@ try {
         } else {
             notas.push(`${nombre}: cabe en ${medidas.ancho} px`);
         }
-        if (medidas.total) notas.push(`${nombre}: ${medidas.total} controles de menos de 24 px de alto (${medidas.pequenos.join(' | ')})`);
+        if (medidas.total && telefono) {
+            problemas.push(`${nombre}: ${medidas.total} controles de menos de 36 px de alto, que un dedo no acierta (${medidas.pequenos.join(' | ')})`);
+        } else if (medidas.total) {
+            notas.push(`${nombre}: ${medidas.total} controles de menos de 36 px de alto (${medidas.pequenos.join(' | ')})`);
+        }
 
         if (comprobar) await comprobar(nombre);
 
@@ -95,11 +100,22 @@ try {
         }
     }
 
+    // Visible de verdad: con caja, dentro de la pantalla y sin nada encima.
+    // isVisible() da por visible lo recortado por un overflow, que era justo
+    // el fallo de la bandeja.
     async function visible(nombre, selector, que) {
         const el = await pagina.$(selector);
-        const ok = el && await el.isVisible();
-        if (!ok) problemas.push(`${nombre}: no se ve ${que}`);
-        return ok;
+        if (!el) { problemas.push(`${nombre}: no esta ${que}`); return false; }
+        const estado = await el.evaluate((e) => {
+            const r = e.getBoundingClientRect();
+            if (!r.width || !r.height) return 'sin caja';
+            if (r.left < 0 || r.right > window.innerWidth + 1) return `recortado (${Math.round(r.left)}..${Math.round(r.right)} px en ${window.innerWidth})`;
+            const centro = document.elementFromPoint(r.left + r.width / 2, Math.min(r.top + r.height / 2, window.innerHeight - 1));
+            if (r.top < window.innerHeight && centro && !e.contains(centro) && !centro.contains(e)) return 'tapado por ' + centro.tagName.toLowerCase();
+            return 'ok';
+        });
+        if (estado !== 'ok') problemas.push(`${nombre}: ${que} ${estado}`);
+        return estado === 'ok';
     }
 
     if (rutas.length) {
@@ -111,14 +127,17 @@ try {
             // El filtro de arriba tambien se llama "estado": el del lead es
             // el que va en su formulario.
             await visible(n, 'form[action*="/estado"] select[name="estado"]', 'el estado del lead');
-            await visible(n, 'a[href^="https://wa.me/"], a[href^="mailto:"]', 'como contactar');
+            // Con telefono, el WhatsApp tiene que estar: el correo solo no vale.
+            const hayTelefono = await pagina.$('a[href^="tel:"]');
+            await visible(n, hayTelefono ? 'a[href^="https://wa.me/"]' : 'a[href^="mailto:"]', hayTelefono ? 'el WhatsApp' : 'el correo');
         });
         const enlace = await pagina.$('a[href*="/admin/inquiries/"]');
         const destino = enlace ? await enlace.getAttribute('href') : null;
         if (destino) {
             await mirar(destino.replace(base, ''), 'lead', async (n) => {
-                await visible(n, 'form[action*="/estado"] select, select[name="estado"]', 'el cambio de estado');
-                await visible(n, 'a[href^="https://wa.me/"], a[href^="mailto:"]', 'como contactar');
+                await visible(n, 'form[action*="/estado"] select[name="estado"]', 'el cambio de estado');
+                const hayTelefono = await pagina.$('a[href^="tel:"]');
+                await visible(n, hayTelefono ? 'a[href^="https://wa.me/"]' : 'a[href^="mailto:"]', hayTelefono ? 'el WhatsApp' : 'el correo');
             });
         }
     }

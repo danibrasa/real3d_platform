@@ -16,13 +16,15 @@ export function normalizar(texto) {
 /**
  * Que mallas corresponden a que vivienda.
  *
- * Casa cuando el nombre normalizado de la malla contiene el identificador
- * sin que lo toque otro digito por ningun lado: Unidad_A-101, A101_suelo y
- * Bloque_B_A101_muros son A-101; Unidad_A-1011 no. Varias mallas de la
- * misma vivienda (muros, suelo) se juntan. El identificador tiene que tener
- * al menos tres caracteres: con "1" o "2" casaria con todo. Si dos viviendas
- * pudieran reclamar la misma malla, gana la mas larga (la mas concreta); si
- * empatan, la malla no se asigna: mejor sin mapear que mal.
+ * Casa cuando el identificador es un trozo del nombre entre separadores
+ * (Torre1_A101 son "torre1" y "a101"), o varios trozos seguidos
+ * (Unidad_A-1011 son "unidad", "a" y "1011"; A-1011 es "a"+"1011"). Sin
+ * separadores (UnidadA101) vale que este dentro sin otro digito pegado, si
+ * tiene al menos tres caracteres. Con dos caracteres (1A, 2B, muy comunes)
+ * solo casa como trozo entero; con uno, con nada. Varias mallas de la misma
+ * vivienda (muros, suelo) se juntan. Si dos viviendas pudieran reclamar la
+ * misma malla, gana la mas larga (la mas concreta); si empatan, la malla no
+ * se asigna: mejor sin mapear que mal.
  *
  * @param {string[]} nombresDeMallas
  * @param {{id: number, identifier: string}[]} unidades
@@ -31,14 +33,26 @@ export function normalizar(texto) {
 export function casar(nombresDeMallas, unidades) {
     const candidatas = unidades
         .map((u) => ({ id: u.id, clave: normalizar(u.identifier) }))
-        .filter((u) => u.clave.length >= 3);
+        .filter((u) => u.clave.length >= 2);
 
     const resultado = new Map();
     for (const nombre of nombresDeMallas) {
         const n = normalizar(nombre);
         if (!n) continue;
 
+        const trozos = String(nombre).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+        const seguidos = new Set();
+        for (let i = 0; i < trozos.length; i++) {
+            let acumulado = '';
+            for (let j = i; j < trozos.length; j++) {
+                acumulado += trozos[j];
+                seguidos.add(acumulado);
+            }
+        }
+
         const casan = candidatas.filter((u) => {
+            if (seguidos.has(u.clave)) return true;
+            if (u.clave.length < 3) return false;
             const i = n.indexOf(u.clave);
             if (i < 0) return false;
             const antes = i > 0 ? n[i - 1] : '';

@@ -172,9 +172,8 @@
                                 </div>
                                 <p class="text-xs text-gray-400 mt-2">Parámetros de la calculadora de inversión de la página pública. Vacíos, se usan los valores por defecto.</p>
                             </div>
-                            @endcan
-
                             @endpmv
+                            @endcan
 
                             {{-- Chatbot Configuration --}}
                             @can('use-chatbot')
@@ -339,7 +338,7 @@
                             <h3 class="font-semibold">Configuración del visor</h3>
                             <div class="flex gap-2">
                                 <button id="btn-save-settings" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition">
-                                    Guardar settings
+                                    Guardar ajustes del visor
                                 </button>
                             </div>
                         </div>

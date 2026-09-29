@@ -36,14 +36,16 @@ class EdicionRapidaController extends Controller
             'lote_porcentaje.max' => 'Subir más de un 300% parece un error; revisa el porcentaje.',
         ]);
 
-        $edicion = new EdicionRapida($project, $usuario);
-        $edicion->filas($datos['v'] ?? []);
-
         $accion = $datos['lote_accion'] ?? null;
         $marcadas = $datos['sel'] ?? [];
+        // Antes de guardar nada: si el lote no vale se vuelve con lo editado
+        // en el formulario, no con la mitad ya en la base de datos.
         if ($accion && ! $marcadas) {
             return back()->withInput()->withErrors(['sel' => 'Marca las viviendas a las que aplicar el cambio.']);
         }
+
+        $edicion = new EdicionRapida($project, $usuario);
+        $edicion->filas($datos['v'] ?? []);
         if ($accion === 'estado') {
             $edicion->estadoEnLote($marcadas, $datos['lote_estado']);
         } elseif ($accion === 'porcentaje') {

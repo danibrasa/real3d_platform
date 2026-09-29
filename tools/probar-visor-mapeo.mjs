@@ -27,6 +27,16 @@ assert.equal([...r.values()].flat().includes('Torre1'), false, '"1" es demasiado
 // Dos viviendas que podrian reclamar la misma malla: gana la mas concreta.
 const r2 = casar(['Unidad_A-1011'], [{ id: 1, identifier: 'A-101' }, { id: 9, identifier: 'A-1011' }]);
 assert.deepEqual([...r2.entries()], [[9, ['Unidad_A-1011']]]);
+// Aqui las dos casan (PA101 contiene a101 sin digito pegado) y gana la larga.
+const r2b = casar(['PA101'], [{ id: 1, identifier: 'A-101' }, { id: 2, identifier: 'PA-101' }]);
+assert.deepEqual([...r2b.entries()], [[2, ['PA101']]], 'gana la mas larga, no la primera');
+
+// Los nombres con separadores: el identificador es un trozo entero, aunque
+// lleve un digito pegado en el trozo de al lado.
+const r4 = casar(['Torre1_A101', 'Planta_1A', 'Bloque3.A101', 'Torre1'], [{ id: 1, identifier: 'A-101' }, { id: 2, identifier: '1A' }]);
+assert.deepEqual(r4.get(1), ['Torre1_A101', 'Bloque3.A101'], 'Torre1_A101 es la A-101');
+assert.deepEqual(r4.get(2), ['Planta_1A'], 'un identificador de dos caracteres casa como trozo entero');
+assert.equal([...r4.values()].flat().includes('Torre1'), false);
 
 // Empate exacto: la malla no se asigna.
 const r3 = casar(['A101'], [{ id: 1, identifier: 'A-101' }, { id: 2, identifier: 'a.101' }]);
@@ -48,4 +58,4 @@ const g = fraccionDeCaja({ min: { x: -30, y: 2, z: 0 }, max: { x: -25, y: 2, z: 
 assert.equal(g.cx, 0);
 assert.equal(g.sy, 0.001);
 
-console.log('visor-mapeo: 14 comprobaciones bien');
+console.log('visor-mapeo: 19 comprobaciones bien');

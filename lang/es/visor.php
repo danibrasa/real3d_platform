@@ -51,6 +51,7 @@ return [
     'pedir_cambios' => 'Pedir cambios',
     'comentario_ayuda' => 'Si pides cambios, di cuáles. Si lo apruebas, lo que quieras añadir.',
     'aprobado_gracias' => 'Gracias. El equipo lo dará por montado y te avisará cuando puedas publicar.',
+    'no_esta_para_revisar' => 'Este visor ya no está en revisión: el equipo lo ha movido. Si algo no cuadra, escríbenos.',
     'cambios_pedidos' => 'Anotado. El equipo vuelve a por ello y te avisará cuando esté.',
     'aprobado_el' => 'Visor aprobado el :fecha. El equipo lo dará por montado en breve.',
     'aprobado_por' => 'Aprobado por :quien',

@@ -60,11 +60,16 @@ class PanelSinJergaTest extends TestCase
         ];
     }
 
-    /** El texto que lee una persona: sin etiquetas, sin scripts, sin estilos. */
+    /**
+     * El texto que lee una persona: sin etiquetas, sin scripts, sin estilos.
+     * Los placeholders, titles y aria-labels tambien se leen (o se oyen), asi
+     * que cuentan: lo dijo el revisor, que el test los ignoraba.
+     */
     private function textoVisible(string $html): string
     {
         $html = preg_replace('/<script\b.*?<\/script>|<style\b.*?<\/style>|<!--.*?-->/s', ' ', $html);
-        $html = preg_replace('/<[^>]+>/', "\n", $html);
+        preg_match_all('/\s(?:placeholder|title|aria-label|alt)="([^"]*)"/', $html, $atributos);
+        $html = preg_replace('/<[^>]+>/', "\n", $html)."\n".implode("\n", $atributos[1]);
 
         // "Google Analytics" es el nombre del producto, no jerga nuestra.
         return str_replace('Google Analytics', 'GA', html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -100,5 +105,15 @@ class PanelSinJergaTest extends TestCase
             ->assertDontSee('bbox_center_x');
         $this->actingAs($this->ana)->get(route('admin.projects.edit', $p))->assertOk()
             ->assertDontSee('avg_nightly_rate');
+
+        // Y quien si tiene que verlo, lo ve: sin esto el test pasaria igual
+        // con la puerta cerrada para todos.
+        $gestora = User::factory()->create(['role' => User::ROLE_GESTOR]);
+        $this->actingAs($gestora)->get(route('admin.projects.units.create', $p))->assertOk()
+            ->assertSee('bbox_center_x');
+
+        config(['pmv.activo' => false]);
+        $this->actingAs($this->ana)->get(route('admin.projects.edit', $p))->assertOk()
+            ->assertSee('avg_nightly_rate');
     }
 }

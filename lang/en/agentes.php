@@ -14,6 +14,7 @@ return [
     'bienvenida' => 'You are in. Here are your company\'s projects and enquiries.',
     'ya_no_vale' => 'This invitation is no longer valid',
     'pide_reenvio' => 'Invitations are valid for :dias days and can be used once. Ask whoever invited you to send it again from their panel.',
+    'pendiente_sin_clave' => 'This account has a pending invitation: use the link in the invitation email (we have just sent it again).',
     'ya_tengo_cuenta' => 'I already have an account: sign in',
 
     'cupo' => ':usados of :tope agents in your plan',

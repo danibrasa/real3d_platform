@@ -190,7 +190,7 @@
 
                 {{-- Updates timeline --}}
                 @if($project->constructionUpdates->isEmpty())
-                    <p class="text-gray-400 text-sm">No hay actualizaciones. Crea fases primero y luego pública actualizaciones con fotos.</p>
+                    <p class="text-gray-400 text-sm">No hay actualizaciones. Crea fases primero y luego publica actualizaciones con fotos.</p>
                 @else
                 <div class="space-y-6">
                     @foreach($project->constructionUpdates as $update)

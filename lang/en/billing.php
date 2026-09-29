@@ -66,6 +66,7 @@ return [
     'trial_active' => 'Trial active',
     'trial_ends' => 'Trial ends :date',
     'trial_waiting' => 'Your trial starts when your viewer is live',
+    'proyectos_ilimitados' => 'Unlimited projects',
     'ilimitados' => 'Unlimited',
     'features' => [
         'projects' => ':count project|:count projects',

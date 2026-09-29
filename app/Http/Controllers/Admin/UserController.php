@@ -200,7 +200,9 @@ class UserController extends Controller
             'agency_id' => 'nullable|exists:users,id',
         ]);
 
-        if (empty($validated['password'])) {
+        // A un agente con la invitacion pendiente no se le pone contraseña
+        // desde aqui: entra por su enlace, aceptando las condiciones.
+        if (empty($validated['password']) || Invitacion::pendiente($editUser)) {
             unset($validated['password']);
         } else {
             $validated['password'] = Hash::make($validated['password']);

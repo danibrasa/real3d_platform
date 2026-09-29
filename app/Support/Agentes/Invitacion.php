@@ -65,7 +65,9 @@ class Invitacion
             'invitacion_aceptada_en' => null,
         ])->save();
 
-        Mail::to($agente->email)->queue(new InvitacionDeAgente($agente, $promotora));
+        // En el idioma en que esta trabajando quien invita: el agente aun no
+        // tiene cuenta ni preferencia, y por la cola saldria en el del servidor.
+        Mail::to($agente->email)->locale(app()->getLocale())->queue(new InvitacionDeAgente($agente, $promotora));
     }
 
     public static function pendiente(User $agente): bool

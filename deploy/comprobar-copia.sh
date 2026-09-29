@@ -90,11 +90,27 @@ TABLAS=$(mysql -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table
 # de pruebas: se le da lectura, y con eso corre el comando.
 APP_DEV=/var/www/dev
 USUARIO_APP=$(grep '^DB_USERNAME=' "$APP_DEV/.env" | cut -d= -f2- | tr -d '"')
-if [ -n "$USUARIO_APP" ]; then
-    mysql -e "GRANT SELECT ON \`$BASE\`.* TO '$USUARIO_APP'@'localhost'" 2>/dev/null
-    echo
-    echo "--- visores atascados (cola del equipo, en produccion)"
-    if ! DB_DATABASE="$BASE" php "$APP_DEV/artisan" visores:atascados --dias=5; then
+echo
+echo "--- visores atascados (cola del equipo, en produccion)"
+# Cada camino por el que la cola no se mira lo dice y cuenta como fallo: el
+# revisor vio que sin DB_USERNAME, o con el GRANT fallando, esto callaba y
+# la noche salia limpia sin haber mirado nada.
+if [ -z "$USUARIO_APP" ]; then
+    echo "PROBLEMA: no se pudo leer DB_USERNAME de $APP_DEV/.env: la cola no se ha mirado"
+    FALLOS=$((FALLOS + 1))
+elif ! mysql -e "GRANT SELECT ON \`$BASE\`.* TO '$USUARIO_APP'@'localhost'"; then
+    echo "PROBLEMA: no se pudo dar lectura sobre $BASE a $USUARIO_APP: la cola no se ha mirado"
+    FALLOS=$((FALLOS + 1))
+else
+    # --base y no DB_DATABASE en el entorno: con la configuracion cacheada
+    # la variable se ignora y se miraria la base de dev creyendo mirar la
+    # copia. El comando dice que base miro, y aqui se comprueba.
+    SALIDA_COLA=$(php "$APP_DEV/artisan" visores:atascados --dias=5 --base="$BASE" 2>&1); CODIGO=$?
+    echo "$SALIDA_COLA"
+    if ! echo "$SALIDA_COLA" | grep -q "^base: $BASE"; then
+        echo "PROBLEMA: el comando no confirma que miro la base $BASE"
+        FALLOS=$((FALLOS + 1))
+    elif [ "$CODIGO" -ne 0 ]; then
         FALLOS=$((FALLOS + 1))
     fi
 fi

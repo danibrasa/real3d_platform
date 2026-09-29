@@ -76,7 +76,11 @@ class ColaDelEquipoTest extends TestCase
     {
         $this->proyecto->forceFill(['visor_estado_en' => now()->subDays(3)])->save();
 
-        $this->actingAs($this->gestora)->patch(route('admin.projects.visor.actualizar', $this->proyecto), ['estado' => 'pedido', 'horas' => 1]);
+        $this->actingAs($this->gestora)->patch(route('admin.projects.visor.actualizar', $this->proyecto), ['estado' => 'pedido', 'horas' => 1])
+            ->assertSessionHasNoErrors();
+        // Que se proceso de verdad: un reloj quieto porque la peticion se
+        // rechazo daria el mismo resultado.
+        $this->assertSame(1.0, (float) $this->proyecto->fresh()->visor_horas);
         $this->assertEqualsWithDelta(3, $this->proyecto->fresh()->visor_estado_en->diffInDays(now()), 0.01, 'sin cambiar de estado no debia moverse el reloj');
 
         $this->actingAs($this->gestora)->patch(route('admin.projects.visor.actualizar', $this->proyecto), ['estado' => 'para_revisar']);

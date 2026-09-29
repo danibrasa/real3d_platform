@@ -61,10 +61,15 @@ class ViviendasSinSituarTest extends TestCase
             'storage_path' => 'x/m.glb', 'mime_type' => 'model/gltf-binary', 'file_size' => 5, 'upload_complete' => true,
         ]);
 
+        // Una situada y otra no: el contador del servidor tiene que contar,
+        // no salir siempre a cero.
+        Unit::create(['project_id' => $this->proyecto->id, 'identifier' => 'A-102', 'floor' => 1, 'bedrooms' => 2, 'bathrooms' => 1, 'area_m2' => 70, 'price' => 100000, 'status' => 'available', 'sort_order' => 2,
+            'bbox_center_x' => 0.5, 'bbox_center_y' => 0.5, 'bbox_center_z' => 0.5, 'bbox_size_x' => 0.1, 'bbox_size_y' => 0.1, 'bbox_size_z' => 0.1]);
+
         $this->actingAs(User::first())->get(route('admin.projects.unit-mapping', $this->proyecto))
             ->assertOk()
             ->assertSee('id="mapeadas"', false)
-            ->assertSee('0/1', false)
+            ->assertSee('1/2', false)
             ->assertSee('id="btn-auto"', false);
 
         $this->assertFileExists(public_path('js/visor-mapeo.js'));

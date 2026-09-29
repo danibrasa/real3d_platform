@@ -10,7 +10,7 @@ return [
     'nav_home' => 'Inicio',
     'nav_search' => 'Buscar',
     'nav_developers' => 'Promotores',
-    'list_property' => 'Pública tu proyecto',
+    'list_property' => 'Publica tu proyecto',
 
     // Hero
     'hero_title_1' => 'Encuentra tu propiedad ideal ',
@@ -58,7 +58,7 @@ return [
 
     // CTA
     'cta_title' => 'Eres promotor inmobiliario?',
-    'cta_subtitle' => 'Pública tus proyectos con tecnologia 3D y llega a miles de compradores potenciales.',
+    'cta_subtitle' => 'Publica tus proyectos con tecnologia 3D y llega a miles de compradores potenciales.',
 
     // Footer
     'footer_tagline' => 'La plataforma inmobiliaria con tecnologia 3D.',
