@@ -105,7 +105,11 @@ else
     # --base y no DB_DATABASE en el entorno: con la configuracion cacheada
     # la variable se ignora y se miraria la base de dev creyendo mirar la
     # copia. El comando dice que base miro, y aqui se comprueba.
-    SALIDA_COLA=$(php "$APP_DEV/artisan" visores:atascados --dias=5 --base="$BASE" 2>&1); CODIGO=$?
+    # "|| CODIGO=$?" y no "; CODIGO=$?": con set -e, una salida distinta de
+    # cero dentro de la asignacion abortaria el guion justo cuando hay
+    # visores atascados que contar.
+    CODIGO=0
+    SALIDA_COLA=$(php "$APP_DEV/artisan" visores:atascados --dias=5 --base="$BASE" 2>&1) || CODIGO=$?
     echo "$SALIDA_COLA"
     if ! echo "$SALIDA_COLA" | grep -q "^base: $BASE"; then
         echo "PROBLEMA: el comando no confirma que miro la base $BASE"

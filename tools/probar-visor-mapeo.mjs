@@ -58,4 +58,4 @@ const g = fraccionDeCaja({ min: { x: -30, y: 2, z: 0 }, max: { x: -25, y: 2, z: 
 assert.equal(g.cx, 0);
 assert.equal(g.sy, 0.001);
 
-console.log('visor-mapeo: 19 comprobaciones bien');
+console.log('visor-mapeo: 18 comprobaciones bien');

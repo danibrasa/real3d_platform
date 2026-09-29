@@ -41,7 +41,7 @@ class PasswordResetLinkController extends Controller
         // formulario no debe decir quien tiene cuenta.
         $pendiente = User::where('email', $request->email)->first();
         if ($pendiente && Invitacion::pendiente($pendiente)) {
-            Invitacion::reenviar($pendiente);
+            Invitacion::recordar($pendiente);
 
             return back()->with('status', __(Password::RESET_LINK_SENT));
         }

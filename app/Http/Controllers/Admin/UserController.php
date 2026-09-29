@@ -201,8 +201,12 @@ class UserController extends Controller
         ]);
 
         // A un agente con la invitacion pendiente no se le pone contraseña
-        // desde aqui: entra por su enlace, aceptando las condiciones.
-        if (empty($validated['password']) || Invitacion::pendiente($editUser)) {
+        // desde aqui: entra por su enlace, aceptando las condiciones. Y se
+        // dice, no se descarta en silencio.
+        if (! empty($validated['password']) && Invitacion::pendiente($editUser)) {
+            return back()->withInput()->with('error', __('agentes.sin_clave_hasta_aceptar', ['nombre' => $editUser->name]));
+        }
+        if (empty($validated['password'])) {
             unset($validated['password']);
         } else {
             $validated['password'] = Hash::make($validated['password']);

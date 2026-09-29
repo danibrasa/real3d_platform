@@ -60,7 +60,9 @@ class HallazgosDeRevisionTest extends TestCase
     {
         $this->proyecto->forceFill(['visor_estado' => null, 'visor_estado_en' => null, 'viewer_requested_at' => now()->subDay()])->save();
 
-        $this->artisan('visores:atascados', ['--dias' => 5])->assertSuccessful();
+        $this->artisan('visores:atascados', ['--dias' => 5])
+            ->doesntExpectOutputToContain('Residencial Bahia')
+            ->assertSuccessful();
     }
 
     public function test_el_comando_dice_que_base_mira(): void
@@ -71,6 +73,10 @@ class HallazgosDeRevisionTest extends TestCase
 
     public function test_la_cola_marca_al_asignado_en_el_select(): void
     {
+        // El fallo era de MySQL (llega como texto y === no casa) y la suite va
+        // en SQLite: lo que se ata es el cast, que es lo que lo arregla en
+        // cualquier base, ademas de que el select lo marque.
+        $this->assertSame('integer', (new Project)->getCasts()['visor_asignado_a'] ?? null);
         $this->proyecto->forceFill(['visor_asignado_a' => $this->gestora->id])->save();
 
         $this->actingAs($this->gestora)->get(route('admin.visores.pendientes'))->assertOk()
@@ -200,7 +206,10 @@ class HallazgosDeRevisionTest extends TestCase
         $this->post(route('password.email'), ['email' => 'luis@ejemplo.invalid'])->assertSessionHas('status');
         Notification::assertNothingSent();
         Mail::assertQueued(InvitacionDeAgente::class, 2);
-        $this->assertNotSame($token, $agente->fresh()->invitacion_token, 'se le reenvia la invitacion, con enlace nuevo');
+        // Se le recuerda la invitacion, con el mismo enlace: si cualquiera
+        // pudiera rotarlo desde este formulario, invalidaria el correo que el
+        // agente tiene en su bandeja.
+        $this->assertSame($token, $agente->fresh()->invitacion_token, 'el enlace vigente no debe cambiar');
 
         // Y con un token de reset legitimo, tampoco.
         $reset = Password::createToken($agente);
@@ -217,7 +226,7 @@ class HallazgosDeRevisionTest extends TestCase
         $this->actingAs($this->ana)->put(route('admin.users.update', $agente), [
             'name' => 'Luis', 'email' => 'luis@ejemplo.invalid', 'role' => 'agente',
             'password' => 'UnaClaveLarga2026!', 'password_confirmation' => 'UnaClaveLarga2026!',
-        ])->assertRedirect(route('admin.users.index'));
+        ])->assertRedirect()->assertSessionHas('error', __('agentes.sin_clave_hasta_aceptar', ['nombre' => 'Luis']));
 
         $this->assertFalse(Hash::check('UnaClaveLarga2026!', $agente->fresh()->password));
         $this->assertTrue(Invitacion::pendiente($agente->fresh()));
@@ -242,7 +251,7 @@ class HallazgosDeRevisionTest extends TestCase
             ->assertRedirect('/profile')->assertSessionHasErrorsIn('userDeletion', ['suscripcion']);
 
         $html = $this->actingAs($this->ana)->get('/profile')->assertOk()->getContent();
-        $this->assertMatchesRegularExpression('/text-red-600">\s*\S/', $html, 'el parrafo del aviso salia vacio');
+        $this->assertMatchesRegularExpression('/text-red-600">\s*[^<\s]/', $html, 'el parrafo del aviso salia vacio');
         $this->assertNotNull(User::find($this->ana->id));
     }
 

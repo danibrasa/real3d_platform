@@ -35,7 +35,11 @@ class VisoresAtascados extends Command
             config(["database.connections.{$conexion}.database" => $base]);
             DB::purge($conexion);
         }
-        $this->line('base: '.config("database.connections.{$conexion}.database"));
+        // La base que responde, no la que se pidio: en MySQL se le pregunta.
+        $enUso = DB::connection($conexion)->getDriverName() === 'mysql'
+            ? DB::connection($conexion)->selectOne('select database() as b')->b
+            : config("database.connections.{$conexion}.database");
+        $this->line('base: '.$enUso);
 
         // La nocturna lo lanza contra la copia de produccion, que lleva el
         // esquema de produccion: hasta que se despliegue la cola, no hay
