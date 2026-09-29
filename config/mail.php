@@ -60,7 +60,11 @@ return [
         // Sin variables propias cae en las de siempre, asi que en produccion
         // funciona sin configurar nada.
         'alertas' => [
-            'transport' => 'smtp',
+            // El transporte es configurable para poder neutralizarlo en los
+            // tests. Sin esto, la comprobacion de salud abria una conexion de
+            // verdad con el proveedor en cada ejecucion de la suite, tambien
+            // desde el CI: lento, y marcando a un servicio de pago para nada.
+            'transport' => env('MAIL_ALERTAS_TRANSPORT', 'smtp'),
             'scheme' => env('MAIL_ALERTAS_SCHEME', env('MAIL_SCHEME')),
             'host' => env('MAIL_ALERTAS_HOST', env('MAIL_HOST', '127.0.0.1')),
             'port' => env('MAIL_ALERTAS_PORT', env('MAIL_PORT', 2525)),

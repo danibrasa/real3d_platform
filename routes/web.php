@@ -40,6 +40,7 @@ use App\Http\Controllers\McpServerController;
 use App\Http\Controllers\MiInversionController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SaludController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UnitPdfController;
@@ -316,3 +317,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Como va la maquina por dentro. Detras de token; sin token, no existe.
+Route::get('/salud', SaludController::class)->name('salud');

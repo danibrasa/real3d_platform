@@ -100,11 +100,24 @@ php "$APP/tools/limpiar-recorrido.php" "$APP" >> "$SALIDA" 2>&1
 bash "$APP/deploy/comprobar-copia.sh" >> "$SALIDA" 2>&1
 COPIA=$?
 
+# Como va produccion por dentro: si la cola avanza y si el correo contesta.
+#
+# Desde aqui no se ve, asi que produccion se examina y publica el resultado y
+# esta maquina lo lee. Con el correo hay ademas una pescadilla -- si esta roto,
+# el aviso no puede ir por correo -- que es justo por lo que hace falta.
+{
+    echo
+    echo "--- produccion por dentro"
+} >> "$SALIDA"
+
+bash "$APP/deploy/salud-de-produccion.sh" >> "$SALIDA" 2>&1
+SALUD=$?
+
 cat "$SALIDA"
 
 # Cualquiera de las dos cosas mal es motivo de aviso: un recorrido roto y
 # una copia que no restaura son igual de urgentes.
-[ "$RESULTADO" -eq 0 ] && [ "$COPIA" -eq 0 ] && exit 0
+[ "$RESULTADO" -eq 0 ] && [ "$COPIA" -eq 0 ] && [ "$SALUD" -eq 0 ] && exit 0
 
 # Solo se avisa cuando algo va mal. Un correo cada noche diciendo que todo bien
 # se deja de leer a la semana, y entonces tampoco se lee el que importa.
