@@ -122,8 +122,19 @@ def preguntar(texto):
         },
     )
 
-    with urllib.request.urlopen(peticion, timeout=300) as r:
-        respuesta = json.loads(r.read().decode())
+    try:
+        with urllib.request.urlopen(peticion, timeout=300) as r:
+            respuesta = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        # Lo que dice el proveedor, no solo el codigo: un 400 puede ser "sin
+        # credito", que es cosa de quien paga, o un cuerpo mal hecho, que es
+        # cosa de este guion. Se distinguen leyendo el cuerpo.
+        cuerpo = e.read().decode(errors="replace")[:300]
+        try:
+            cuerpo = json.loads(cuerpo).get("error", {}).get("message", cuerpo)
+        except ValueError:
+            pass
+        raise RuntimeError("el proveedor devolvio %d: %s" % (e.code, cuerpo))
 
     # No siempre viene el texto en el primer bloque: el modelo razona antes, y
     # ese razonamiento llega como un bloque aparte.
