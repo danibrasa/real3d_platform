@@ -53,8 +53,15 @@ class AppServiceProvider extends ServiceProvider
             return $user->isInmobiliaria();
         });
 
-        Gate::define('delete-project', function (User $user) {
-            return $user->isSuperadmin();
+        // Borrar era solo del equipo, y una promotora del plan gratuito (un
+        // proyecto) no podia quitar el suyo para crear otro. Lo suyo, y con
+        // papelera: un clic de mas no puede costar un visor que tardo dias.
+        Gate::define('delete-project', function (User $user, ?Project $project = null) {
+            if ($user->isSuperadmin()) {
+                return true;
+            }
+
+            return $project !== null && $user->isInmobiliaria() && $user->canAccessProject($project);
         });
 
         Gate::define('edit-project-technical', function (User $user, ?Project $project = null) {

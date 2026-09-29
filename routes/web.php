@@ -89,6 +89,11 @@ Route::get('/dashboard', function () {
 // Admin routes
 Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    // La papelera, antes del resource: si no, "papelera" encaja en {project}.
+    Route::get('projects/papelera', [ProjectController::class, 'papelera'])->name('projects.papelera');
+    Route::post('projects/{project}/restaurar', [ProjectController::class, 'restaurar'])
+        ->withTrashed()
+        ->name('projects.restaurar');
     Route::resource('projects', ProjectController::class);
     // La costura del reparto: la promotora avisa de que ha terminado lo suyo.
     Route::post('projects/{project}/pedir-visor', [SolicitudDeVisorController::class, 'pedir'])

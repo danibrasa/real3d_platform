@@ -20,7 +20,9 @@ class ProjectController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('admin.projects.index', compact('projects'));
+        $enPapelera = auth()->user()->accessibleProjects()->onlyTrashed()->count();
+
+        return view('admin.projects.index', compact('projects', 'enPapelera'));
     }
 
     public function create()
@@ -199,24 +201,53 @@ class ProjectController extends Controller
             ->with('success', 'Proyecto actualizado.');
     }
 
+    /**
+     * A la papelera, no al olvido.
+     *
+     * Los ficheros se quedan en el disco hasta que caduque (ver
+     * proyectos:vaciar-papelera y Project::forceDeleting): si se arrepiente,
+     * vuelve todo. La cuota si se libera ya, que es para lo que borra.
+     */
     public function destroy(Project $project)
     {
-        Gate::authorize('delete-project');
+        Gate::authorize('delete-project', $project);
 
-        // Las promotoras, antes de borrar: al irse el proyecto se van sus
-        // asignaciones y no habria a quien devolverle el sitio.
         $promotoras = $project->assignedAgencies()->get();
-
-        Storage::deleteDirectory("projects/{$project->id}");
         $project->delete();
 
-        // La cuota contaba lo que hubo, no lo que hay: subia con cada subida
-        // y no bajaba con esto. Cobrar sitio por ficheros que ya no existen.
         foreach ($promotoras as $promotora) {
             $promotora->companyProfile?->recalculateStorage();
         }
 
         return redirect()->route('admin.projects.index')
-            ->with('success', 'Proyecto eliminado.');
+            ->with('success', 'Proyecto enviado a la papelera. Tienes '.config('proyectos.dias_en_papelera').' días para recuperarlo.');
+    }
+
+    public function papelera()
+    {
+        $projects = auth()->user()->accessibleProjects()
+            ->onlyTrashed()
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return view('admin.projects.papelera', [
+            'projects' => $projects,
+            'dias' => config('proyectos.dias_en_papelera'),
+        ]);
+    }
+
+    public function restaurar(Project $project)
+    {
+        // Quien puede borrarlo puede recuperarlo: es la misma pregunta.
+        Gate::authorize('delete-project', $project);
+
+        $project->restore();
+
+        foreach ($project->assignedAgencies()->get() as $promotora) {
+            $promotora->companyProfile?->recalculateStorage();
+        }
+
+        return redirect()->route('admin.projects.edit', $project)
+            ->with('success', 'Proyecto recuperado.');
     }
 }

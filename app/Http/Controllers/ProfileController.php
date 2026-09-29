@@ -52,7 +52,14 @@ class ProfileController extends Controller
         // de nuestra base no borra nada en Stripe, y el cobro seguiria cada
         // mes a una cuenta que ya no existe. Primero se cancela desde
         // facturacion, y entonces si.
-        if ($user->subscribed()) {
+        // Cualquier suscripcion que Stripe no haya cerrado, no solo la que
+        // Cashier llama activa: una en reintento de cobro (past_due) sigue
+        // cobrando, y subscribed() la da por inactiva.
+        $viva = $user->subscriptions()
+            ->whereNotIn('stripe_status', ['canceled', 'incomplete_expired'])
+            ->exists();
+
+        if ($viva) {
             return back()->withErrors([
                 'suscripcion' => __('legal.baja_con_suscripcion'),
             ], 'userDeletion');

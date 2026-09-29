@@ -29,3 +29,9 @@ Artisan::command('salud:latido', function () {
 })->purpose('Deja constancia de que el planificador corre, para /salud');
 
 Schedule::command('salud:latido')->everyFiveMinutes();
+
+// La papelera de proyectos se vacia sola: lo que lleva mas de treinta dias
+// se borra del todo, ficheros incluidos.
+Schedule::command('proyectos:vaciar-papelera --dias='.config('proyectos.dias_en_papelera'))
+    ->dailyAt('04:30')
+    ->withoutOverlapping();
