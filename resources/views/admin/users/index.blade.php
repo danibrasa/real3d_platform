@@ -5,9 +5,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ auth()->user()->isSuperadmin() ? 'Usuarios' : 'Mis Agentes' }}
             </h2>
+            @if ($cupo === null || $cupo['quedan'] > 0)
             <a href="{{ route('admin.users.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
-                + {{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : 'Nuevo Agente' }}
+                + {{ auth()->user()->isSuperadmin() ? 'Nuevo Usuario' : __('agentes.invitar') }}
             </a>
+            @endif
         </div>
     </x-slot>
 
@@ -18,6 +20,23 @@
             @endif
             @if(session('error'))
                 <div class="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">{{ session('error') }}</div>
+            @endif
+
+            @if ($cupo !== null)
+                {{-- El tope del plan antes de chocar con el: cuantos hay, cuantos
+                     caben, y si no caben mas, por que y que hacer. --}}
+                <div class="mb-4 p-4 rounded-lg border text-sm {{ $cupo['quedan'] > 0 ? 'bg-white border-gray-200 text-gray-700' : 'bg-amber-50 border-amber-200 text-amber-900' }}">
+                    <p class="font-semibold">{{ __('agentes.cupo', ['usados' => $cupo['usados'], 'tope' => $cupo['tope']]) }}</p>
+                    @if ($cupo['tope'] === 0)
+                        <p class="mt-1">{{ __('agentes.sin_agentes', ['profesional' => \App\Models\CompanyProfile::PLAN_LIMITS[\App\Models\CompanyProfile::PLAN_PROFESSIONAL]['max_agents']]) }}
+                            <a href="{{ route('admin.subscription.index') }}" class="underline">{{ __('billing.change_plan') }}</a></p>
+                    @elseif ($cupo['quedan'] === 0)
+                        <p class="mt-1">{{ __('agentes.cupo_lleno', ['tope' => $cupo['tope']]) }}
+                            <a href="{{ route('admin.subscription.index') }}" class="underline">{{ __('billing.change_plan') }}</a></p>
+                    @else
+                        <p class="mt-1 text-gray-500">{{ __('agentes.quedan', ['quedan' => $cupo['quedan']]) }}</p>
+                    @endif
+                </div>
             @endif
 
             @if($users->count())
@@ -62,9 +81,20 @@
                             @if(auth()->user()->isSuperadmin())
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $u->agency?->name ?? '-' }}</td>
                             @endif
-                            <td class="px-4 py-3 text-sm text-gray-500">{{ $u->created_at->format('d/m/Y') }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-500">
+                                {{ $u->created_at->format('d/m/Y') }}
+                                @if (\App\Support\Agentes\Invitacion::pendiente($u))
+                                    <span class="block text-xs text-amber-700">{{ __('agentes.pendiente_desde', ['fecha' => $u->invitado_en->format('d/m/Y')]) }}</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex gap-2 justify-end">
+                                    @if (\App\Support\Agentes\Invitacion::pendiente($u))
+                                    <form method="POST" action="{{ route('admin.users.reenviarInvitacion', $u) }}">
+                                        @csrf
+                                        <button class="text-sm text-amber-700 hover:underline">{{ __('agentes.reenviar') }}</button>
+                                    </form>
+                                    @endif
                                     <a href="{{ route('admin.users.edit', $u) }}" class="text-sm text-blue-600 hover:underline">Editar</a>
                                     @if($u->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $u) }}" onsubmit="return confirm('Eliminar usuario {{ $u->name }}?')">

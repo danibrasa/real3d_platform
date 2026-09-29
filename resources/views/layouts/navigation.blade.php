@@ -9,7 +9,11 @@
                 </div>
 
                 {{-- Desktop Navigation --}}
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                {{-- space-x-6 y no 8: con Dashboard, Proyectos, Consultas,
+                     Analytics, Chatbot, Mis agentes, Mi empresa, Suscripcion y
+                     Ver proyectos, la barra de una promotora desbordaba a
+                     1280 px, que es un portatil normal. --}}
+                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
                     @auth
                         @if(auth()->user()->hasAdminAccess())
                             {{-- Core --}}
@@ -111,9 +115,13 @@
                             @endif
                         @endif
                     @endauth
+                    {{-- El portal es del comprador: a una promotora o un agente no
+                         les dice nada y les quita sitio en la barra. --}}
+                    @if (! auth()->check() || ! auth()->user()->hasAdminAccess() || auth()->user()->isSuperadmin())
                     <x-nav-link :href="route('portal.home')" :active="request()->routeIs('portal.*')">
                         Portal
                     </x-nav-link>
+                    @endif
                     <x-nav-link :href="route('viewer.index')" :active="request()->routeIs('viewer.*')">
                         {{ __('general.view_projects') }}
                     </x-nav-link>
