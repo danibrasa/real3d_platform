@@ -23,6 +23,10 @@ class InformeInversionTest extends TestCase
     {
         parent::setUp();
 
+        // Esto queda fuera del PMV y para la promotora no existe; aqui se
+        // enciende para probar la funcion, que sigue ahi para cuando vuelva.
+        config(['pmv.activo' => false]);
+
         $autor = User::factory()->create(['role' => 'superadmin']);
 
         $this->proyecto = Project::create([

@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Str;
 
-class BlogCategoryController extends Controller
+class BlogCategoryController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    /**
+     * Antes era $this->middleware() en el constructor, que el Controller base
+     * de Laravel 11 ya no tiene: el blog del panel devolvia 500 a todo el
+     * mundo, tambien al equipo, y nadie lo dijo porque nadie entraba. Lo
+     * destapo el test del PMV, que exige que el equipo siga viendo lo que se
+     * esconde a la promotora.
+     */
+    public static function middleware(): array
     {
-        $this->middleware(function ($request, $next) {
-            Gate::authorize('manage-blog');
-
-            return $next($request);
-        });
+        return ['can:manage-blog'];
     }
 
     public function index()

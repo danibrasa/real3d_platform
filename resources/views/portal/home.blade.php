@@ -118,7 +118,8 @@
     @endif
 
     {{-- Latest Articles --}}
-    @if(isset($latestPosts) && $latestPosts->count())
+    @pmv('blog')
+@if(isset($latestPosts) && $latestPosts->count())
     <section class="py-16 lg:py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-8">
@@ -136,6 +137,7 @@
         </div>
     </section>
     @endif
+@endpmv
 
     {{-- CTA --}}
     <section class="py-16 lg:py-20 bg-gradient-to-r from-[#0a0a1e] to-[#0f172a]">

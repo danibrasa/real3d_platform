@@ -27,12 +27,16 @@
                     <a href="{{ route('admin.projects.units.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium hover:bg-emerald-100 transition">
                         Unidades ({{ $project->units_count ?? 0 }})
                     </a>
-                    <a href="{{ route('admin.projects.payment-plans.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-purple-50 text-purple-700 rounded-md text-sm font-medium hover:bg-purple-100 transition">
+                    @pmv('pagos')
+<a href="{{ route('admin.projects.payment-plans.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-purple-50 text-purple-700 rounded-md text-sm font-medium hover:bg-purple-100 transition">
                         Planes de pago ({{ $project->payment_plans_count ?? 0 }})
                     </a>
-                    <a href="{{ route('admin.projects.construction.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-orange-50 text-orange-700 rounded-md text-sm font-medium hover:bg-orange-100 transition">
+@endpmv
+                    @pmv('obra')
+<a href="{{ route('admin.projects.construction.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-orange-50 text-orange-700 rounded-md text-sm font-medium hover:bg-orange-100 transition">
                         Progreso de obra
                     </a>
+@endpmv
                     <a href="{{ route('admin.projects.location.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-teal-50 text-teal-700 rounded-md text-sm font-medium hover:bg-teal-100 transition">
                         Ubicacion y POIs
                     </a>
