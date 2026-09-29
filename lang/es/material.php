@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'titulo' => 'Material para el visor',
+    'entradilla' => 'Con esto monta el equipo tu visor 3D. Los planos y los renders son imprescindibles; la foto o el vídeo 360 y el modelo, si los tienes, ahorran días. Lo que no quepa por aquí, déjalo como enlace (Drive, WeTransfer…).',
+    'subir' => 'Entregar una pieza',
+    'subir_ayuda' => 'Un fichero de hasta :mb MB, o un enlace para lo que pese más.',
+    'que_es' => 'Qué es',
+    'fichero' => 'Fichero',
+    'o_enlace' => 'O un enlace',
+    'entregar' => 'Entregar',
+    'entregado' => 'Entregado (:n)',
+    'nada_todavia' => 'Todavía no has entregado nada.',
+    'recibido' => 'Recibido. El equipo lo verá en cuanto pidas el visor.',
+    'quitado' => 'Quitado.',
+    'quitar' => 'Quitar',
+    'quitar_confirmar' => '¿Quitar esta pieza del material?',
+    'imprescindible' => 'imprescindible',
+    'hace_falta_fichero_o_enlace' => 'Sube un fichero o pon un enlace.',
+    'demasiado_grande' => 'Por el formulario caben hasta :mb MB. Para más, deja un enlace.',
+    'tipo_planos' => 'Planos',
+    'tipo_renders' => 'Renders o fotos',
+    'tipo_imagen_360' => 'Foto 360',
+    'tipo_video_360' => 'Vídeo 360',
+    'tipo_modelo' => 'Modelo 3D',
+    'tipo_otro' => 'Otro',
+    'en_cola' => 'Material',
+];

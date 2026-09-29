@@ -19,6 +19,7 @@
                                 <th class="text-left px-4 py-3 font-medium">Proyecto</th>
                                 <th class="text-left px-4 py-3 font-medium">Promotora</th>
                                 <th class="text-right px-4 py-3 font-medium">Viviendas</th>
+                                <th class="text-left px-4 py-3 font-medium">{{ __('material.en_cola') }}</th>
                                 <th class="text-left px-4 py-3 font-medium">{{ __('visor.esperando_desde') }}</th>
                                 <th class="text-left px-4 py-3 font-medium">Falta</th>
                             </tr>
@@ -44,6 +45,13 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right tabular-nums">{{ $p->units_count }}</td>
+                                    <td class="px-4 py-3">
+                                        {{-- Lo que hay para montar, y donde cogerlo. Sin esto el
+                                             equipo lo pedia por correo. --}}
+                                        <a href="{{ route('admin.projects.material.index', $p) }}" class="text-blue-600 hover:underline">
+                                            {{ $p->material_count }} {{ $p->material_count === 1 ? 'pieza' : 'piezas' }}
+                                        </a>
+                                    </td>
                                     <td class="px-4 py-3">
                                         {{-- Que se vea de un golpe a quien se esta haciendo esperar. --}}
                                         <span class="{{ $dias >= 7 ? 'text-amber-700 font-medium' : 'text-gray-600' }}">
