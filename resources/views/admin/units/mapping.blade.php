@@ -30,8 +30,15 @@
                 <!-- Left panel: unit list -->
                 <div class="w-80 flex-shrink-0 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col">
                     <div class="p-3 bg-gray-50 border-b">
-                        <h3 class="text-sm font-semibold text-gray-700">Unidades ({{ $units->count() }})</h3>
+                        <h3 class="text-sm font-semibold text-gray-700">Unidades · <span id="mapeadas">{{ $units->filter->has_bbox->count() }}/{{ $units->count() }}</span> situadas</h3>
                         <p class="text-xs text-gray-500 mt-1">Click para seleccionar, luego click en modelo para posicionar</p>
+                        {{-- Situar de golpe las que llevan su nombre en el modelo: sesenta
+                             viviendas a mano son una tarde; con nombres, un minuto. --}}
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <button id="btn-auto" type="button" disabled class="px-2.5 py-1 bg-emerald-600 text-white rounded text-xs font-semibold hover:bg-emerald-700 disabled:opacity-40">Situar por nombre de malla</button>
+                            <label class="text-xs text-gray-600 flex items-center gap-1"><input type="checkbox" id="solo-sin-mapear" class="rounded border-gray-300"> solo sin situar</label>
+                        </div>
+                        <p id="auto-info" class="text-xs text-gray-600 mt-1"></p>
                     </div>
                     <div class="overflow-y-auto flex-1" id="unit-list">
                         @foreach($units as $unit)

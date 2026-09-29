@@ -19,17 +19,23 @@ RAIZ = os.path.dirname(AQUI)
 
 
 class ElVisorConNode(unittest.TestCase):
-    def test_elegir_una_vivienda_tocando_el_modelo(self):
+    def correr(self, guion):
         # three viene con npm ci; sin el no se puede probar, y eso es un fallo
         # y no un salto: un test que se salta solo no protege de nada.
         self.assertTrue(os.path.isdir(os.path.join(RAIZ, "node_modules", "three")),
                         "falta three en node_modules: npm ci")
 
-        r = subprocess.run(["node", os.path.join(AQUI, "probar-visor-eleccion.mjs")],
+        r = subprocess.run(["node", os.path.join(AQUI, guion)],
                            capture_output=True, text=True, cwd=RAIZ, timeout=60)
 
         self.assertEqual(r.returncode, 0, r.stderr.strip()[-600:] or r.stdout)
         self.assertIn("comprobaciones bien", r.stdout)
+
+    def test_elegir_una_vivienda_tocando_el_modelo(self):
+        self.correr("probar-visor-eleccion.mjs")
+
+    def test_mapear_viviendas_por_el_nombre_de_su_malla(self):
+        self.correr("probar-visor-mapeo.mjs")
 
 
 if __name__ == "__main__":

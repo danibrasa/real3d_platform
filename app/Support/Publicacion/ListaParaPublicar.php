@@ -106,6 +106,12 @@ class ListaParaPublicar
             $fuera[] = ['clave' => 'sin_portada', 'de' => self::EQUIPO];
         }
 
+        // Con modelo y viviendas sin caja, tocar el 3D no abre nada: parece
+        // roto. Es del equipo: se situan en el mapeador.
+        if ($this->tieneModelo() && $this->proyecto->units()->whereNull('bbox_center_x')->exists()) {
+            $fuera[] = ['clave' => 'viviendas_sin_situar', 'de' => self::EQUIPO];
+        }
+
         return $fuera;
     }
 

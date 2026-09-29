@@ -149,10 +149,13 @@ class ListaParaPublicarTest extends TestCase
             'longitude' => -68.40,
             'contact_email' => 'ventas@promotora.com',
         ]);
+        // Situada en el 3D: una vivienda sin caja es un aviso (tocarla no abre nada).
         Unit::create([
             'project_id' => $this->proyecto->id, 'identifier' => 'A-101',
             'floor' => 1, 'bedrooms' => 2, 'bathrooms' => 2, 'area_m2' => 85,
             'price' => 185000, 'status' => 'available', 'sort_order' => 1,
+            'bbox_center_x' => 0.5, 'bbox_center_y' => 0.5, 'bbox_center_z' => 0.5,
+            'bbox_size_x' => 0.1, 'bbox_size_y' => 0.1, 'bbox_size_z' => 0.1,
         ]);
 
         $lista = ListaParaPublicar::de($this->proyecto->fresh());
