@@ -203,8 +203,18 @@ class ProjectController extends Controller
     {
         Gate::authorize('delete-project');
 
+        // Las promotoras, antes de borrar: al irse el proyecto se van sus
+        // asignaciones y no habria a quien devolverle el sitio.
+        $promotoras = $project->assignedAgencies()->get();
+
         Storage::deleteDirectory("projects/{$project->id}");
         $project->delete();
+
+        // La cuota contaba lo que hubo, no lo que hay: subia con cada subida
+        // y no bajaba con esto. Cobrar sitio por ficheros que ya no existen.
+        foreach ($promotoras as $promotora) {
+            $promotora->companyProfile?->recalculateStorage();
+        }
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Proyecto eliminado.');
