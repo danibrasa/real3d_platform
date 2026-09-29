@@ -70,6 +70,9 @@ class InquiryController extends Controller
             'estado' => $validated['estado'],
             'nota' => $validated['nota'] ?? $inquiry->nota,
             'estado_en' => now(),
+            // La primera vez que alguien lo atiende: estado_en se mueve con
+            // cada cambio, y "contestado en el dia" mide la primera respuesta.
+            'contestado_en' => $inquiry->contestado_en ?? ($validated['estado'] !== 'nuevo' ? now() : null),
             'atendido_por' => $request->user()->id,
             'read' => true,
         ])->save();

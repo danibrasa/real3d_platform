@@ -77,7 +77,7 @@ class PilotosTest extends TestCase
 
         $this->assertSame(5, $e['dias_alta_a_pedido'], 'alta hace 20, pedido hace 15');
         $this->assertSame(7, $e['dias_pedido_a_publicado'], 'pedido hace 15, publicado hace 8');
-        $this->assertFalse($e['publicado_aproximado']);
+        $this->assertFalse($e['publicado_sin_fecha']);
         $this->assertSame(4, $e['leads']);
         $this->assertSame(3, $e['leads_semana']);
         $this->assertSame(3, $e['leads_contestados']);
@@ -87,14 +87,68 @@ class PilotosTest extends TestCase
         $this->assertSame(2, $e['dias_en_etapa'], 'desde el ultimo lead');
     }
 
-    public function test_sin_fecha_de_publicacion_anotada_se_aproxima_y_se_dice(): void
+    public function test_publicado_sin_fecha_anotada_se_dice_y_no_se_inventa(): void
     {
+        // Dato de antes de que se anotara: publico, sin project_published.
+        AuditLog::where('action', 'project_published')->delete();
         $this->auditoria('viewer_ready', now()->subDays(10));
+        $this->proyecto->update(['name' => 'Residencial Bahia II']); // un retoque no es una publicacion
 
         $e = Embudo::de($this->ana);
 
-        $this->assertNotNull($e['publicado']);
-        $this->assertTrue($e['publicado_aproximado']);
+        $this->assertNull($e['publicado']);
+        $this->assertTrue($e['publicado_sin_fecha']);
+        $this->assertNull($e['dias_pedido_a_publicado']);
+        $this->assertSame('sin_leads', $e['etapa']);
+        $this->assertNull($e['dias_en_etapa']);
+    }
+
+    public function test_los_tiempos_son_de_un_solo_proyecto_y_nunca_negativos(): void
+    {
+        // Bahia: publicado hace 8 sin visor pedido. Otro: visor pedido ayer.
+        // Mezclarlos daba "de pedido a publicado" negativo.
+        $this->auditoria('project_published', now()->subDays(8));
+        $this->proyecto->update(['viewer_requested_at' => null]);
+        $otro = Project::create(['name' => 'Otro', 'slug' => 'otro', 'status' => 'draft', 'created_by' => $this->ana->id, 'viewer_requested_at' => now()->subDay()]);
+        $this->ana->assignedProjects()->attach($otro->id);
+
+        $e = Embudo::de($this->ana);
+        $this->assertNull($e['dias_pedido_a_publicado'], 'la publicacion de un proyecto no se mide contra el pedido de otro');
+        $this->assertSame($this->proyecto->id, $e['proyecto']->id, 'el de referencia es el que mas lejos llego');
+        $this->assertSame('sin_leads', $e['etapa'], 'con un proyecto publico no esta "esperando al equipo"');
+
+        // Visor pedido antes de dar de alta a la promotora: cero, no negativo.
+        $this->ana->forceFill(['created_at' => now()->subDays(2)])->save();
+        $otro->update(['viewer_requested_at' => now()->subDays(5)]);
+        $this->proyecto->update(['viewer_requested_at' => now()->subDays(5)]);
+        $this->assertSame(0, Embudo::de($this->ana->fresh())['dias_alta_a_pedido']);
+    }
+
+    public function test_despublicar_devuelve_la_etapa_atras(): void
+    {
+        $this->auditoria('viewer_ready', now()->subDays(10));
+        $this->auditoria('project_published', now()->subDays(8));
+        $this->assertSame('sin_leads', Embudo::de($this->ana)['etapa']);
+
+        $this->proyecto->update(['status' => 'draft']);
+        $this->assertSame('sin_publicar', Embudo::de($this->ana)['etapa']);
+    }
+
+    public function test_en_el_dia_mide_la_primera_respuesta_y_no_el_ultimo_cambio(): void
+    {
+        $this->auditoria('project_published', now()->subDays(8));
+        $lead = Inquiry::create(['project_id' => $this->proyecto->id, 'name' => 'Uno', 'email' => 'uno@ejemplo.invalid']);
+        $lead->forceFill(['created_at' => now()->subDays(6)])->save();
+
+        $this->travelTo(now()->subDays(6)->addHours(2));
+        $this->actingAs($this->ana)->patch(route('admin.inquiries.estado', $lead), ['estado' => 'contactado']);
+        $this->travelBack();
+        $this->actingAs($this->ana)->patch(route('admin.inquiries.estado', $lead), ['estado' => 'cerrado']);
+
+        $lead->refresh();
+        $this->assertSame('cerrado', $lead->estado);
+        $this->assertEqualsWithDelta(2, $lead->created_at->diffInHours($lead->contestado_en), 0.1, 'contestado_en es la primera respuesta');
+        $this->assertSame(1, Embudo::de($this->ana)['leads_en_el_dia']);
     }
 
     public function test_la_etapa_dice_donde_se_ha_quedado_cada_una(): void
@@ -126,6 +180,7 @@ class PilotosTest extends TestCase
     public function test_publicar_un_proyecto_deja_la_fecha_en_la_auditoria(): void
     {
         $this->proyecto->update(['status' => 'draft']);
+        AuditLog::where('action', 'project_published')->delete(); // el del setUp
         // Con visor: sin el, la lista para publicar lo para antes.
         ProjectFile::create(['project_id' => $this->proyecto->id, 'file_type' => 'image_360', 'original_name' => 'f.jpg', 'storage_path' => 'x/f.jpg', 'mime_type' => 'image/jpeg', 'file_size' => 5, 'upload_complete' => true]);
 
@@ -135,8 +190,13 @@ class PilotosTest extends TestCase
         $this->assertSame(1, AuditLog::where('action', 'project_published')->where('auditable_id', $this->proyecto->id)->count());
 
         // Publicar dos veces no es publicar dos veces.
-        $this->actingAs($this->ana)->put(route('admin.projects.update', $this->proyecto), ['name' => 'Residencial Bahia', 'status' => 'public']);
+        $this->actingAs($this->ana)->put(route('admin.projects.update', $this->proyecto), ['name' => 'Residencial Bahia', 'status' => 'public'])
+            ->assertSessionHasNoErrors();
         $this->assertSame(1, AuditLog::where('action', 'project_published')->where('auditable_id', $this->proyecto->id)->count());
+
+        // Y crearlo ya publico tambien lo anota: la fecha se pone desde el modelo.
+        $nuevo = Project::create(['name' => 'Directo', 'slug' => 'directo', 'status' => 'public', 'created_by' => $this->ana->id]);
+        $this->assertSame(1, AuditLog::where('action', 'project_published')->where('auditable_id', $nuevo->id)->count());
     }
 
     public function test_la_pagina_es_del_equipo_y_el_informe_dice_lo_mismo(): void
@@ -145,9 +205,12 @@ class PilotosTest extends TestCase
         $gestora = User::factory()->create(['role' => User::ROLE_GESTOR]);
 
         $this->actingAs($this->ana)->get(route('admin.pilotos.index'))->assertForbidden();
+        // Otra promotora en otra etapa, para que la regex no pueda saltar de fila.
+        $this->promotora('nueva', now()->subDays(1));
         $html = $this->actingAs($gestora)->get(route('admin.pilotos.index'))->assertOk()->getContent();
-        // La etapa en SU fila, no en la cabecera de "donde estan".
-        $this->assertMatchesRegularExpression('/data-piloto="'.$this->ana->id.'".*?Promotora Ana.*?Publicado, sin leads.*?<\/tr>/s', $html);
+        $fila = fn ($id) => '/data-piloto="'.$id.'"(?:(?!<\/tr>).)*?';
+        $this->assertMatchesRegularExpression($fila($this->ana->id).'Publicado, sin leads/s', $html);
+        $this->assertDoesNotMatchRegularExpression($fila($this->ana->id).'Sin proyecto/s', $html);
 
         $this->artisan('pilotos:informe')->expectsOutputToContain('Promotora Ana (professional)')->assertSuccessful();
         $this->artisan('pilotos:informe')->expectsOutputToContain('sin_leads (')->assertSuccessful();

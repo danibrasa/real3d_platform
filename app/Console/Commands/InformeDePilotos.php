@@ -31,7 +31,7 @@ class InformeDePilotos extends Command
                 ($e['promotora']->companyProfile?->company_name ?? $e['promotora']->name).' ('.($e['plan'] ?? 'sin plan').')',
                 $e['alta']->format('d/m/Y'),
                 $d($e['dias_alta_a_pedido']),
-                $d($e['dias_pedido_a_publicado']).($e['publicado_aproximado'] ? ' ~' : ''),
+                $e['publicado_sin_fecha'] ? 'sin fecha' : $d($e['dias_pedido_a_publicado']),
                 $e['leads'].'/'.$e['leads_semana'],
                 $e['leads_contestados'].' ('.$e['leads_en_el_dia'].')',
                 $e['visitas_30d'],

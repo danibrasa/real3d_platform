@@ -78,6 +78,24 @@ class Project extends Model
 
     protected static function booted(): void
     {
+        // La fecha de publicacion no vivia en ningun sitio: el embudo de los
+        // pilotos (de pedir el visor a publicar) la lee de la auditoria. Aqui
+        // y no en el controlador, para que valga tambien al crear un proyecto
+        // ya publico o al publicarlo por cualquier otro camino.
+        // Dos ganchos y no uno en saved(): wasRecentlyCreated se queda a true
+        // en la instancia toda su vida, y un retoque del nombre contaba como
+        // otra publicacion.
+        static::created(function (Project $project) {
+            if ($project->status === 'public') {
+                AuditLog::record('project_published', $project, ['status' => null], ['status' => 'public']);
+            }
+        });
+        static::updated(function (Project $project) {
+            if ($project->status === 'public' && $project->wasChanged('status') && $project->getOriginal('status') !== 'public') {
+                AuditLog::record('project_published', $project, ['status' => $project->getOriginal('status')], ['status' => 'public']);
+            }
+        });
+
         static::creating(function (Project $project) {
             if (empty($project->slug)) {
                 $project->slug = Str::slug($project->name);

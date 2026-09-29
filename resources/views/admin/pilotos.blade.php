@@ -59,7 +59,7 @@
                             <th class="px-4 py-3 text-left">Promotora</th>
                             <th class="px-4 py-3 text-left">Alta</th>
                             <th class="px-4 py-3 text-right" title="Días de alta a pedir el visor">→ pedido</th>
-                            <th class="px-4 py-3 text-right" title="Días de pedir el visor a publicar">→ publicado</th>
+                            <th class="px-4 py-3 text-right" title="Días de pedir el visor a publicar, en el proyecto que más lejos llegó">→ publicado</th>
                             <th class="px-4 py-3 text-right">Leads / sem.</th>
                             <th class="px-4 py-3 text-right" title="Contestados (en menos de 24 h)">Contestados</th>
                             <th class="px-4 py-3 text-right">Visitas 30 d</th>
@@ -75,7 +75,7 @@
                             </td>
                             <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $e['alta']->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-right tabular-nums">{{ $dias($e['dias_alta_a_pedido']) }}</td>
-                            <td class="px-4 py-3 text-right tabular-nums">{{ $dias($e['dias_pedido_a_publicado']) }}@if ($e['publicado_aproximado'])<span class="text-xs text-gray-400" title="Publicado antes de que se anotara la fecha: aproximado">≈</span>@endif</td>
+                            <td class="px-4 py-3 text-right tabular-nums">@if ($e['publicado_sin_fecha'])<span class="text-xs text-gray-500" title="Está publicado, pero de antes de que se anotara la fecha">sin fecha</span>@else{{ $dias($e['dias_pedido_a_publicado']) }}@endif</td>
                             <td class="px-4 py-3 text-right tabular-nums">{{ $e['leads'] }} / {{ $e['leads_semana'] }}</td>
                             <td class="px-4 py-3 text-right tabular-nums">{{ $e['leads_contestados'] }} <span class="text-xs text-gray-500">({{ $e['leads_en_el_dia'] }} en el día)</span></td>
                             <td class="px-4 py-3 text-right tabular-nums">{{ $e['visitas_30d'] }}</td>
@@ -92,7 +92,7 @@
                     </tbody>
                 </table>
             </div>
-            <p class="mt-3 text-xs text-gray-500">"Contestados" es cualquier estado distinto de "nuevo"; "en el día", en menos de {{ \App\Support\Pilotos\Embudo::HORAS_PARA_CONTESTAR }} horas desde que escribió el comprador. "Publicado" sale del registro de auditoría; ≈ es una fecha anterior a que se anotara.</p>
+            <p class="mt-3 text-xs text-gray-500">"Contestados" es cualquier estado distinto de "nuevo"; "en el día", en menos de {{ \App\Support\Pilotos\Embudo::HORAS_PARA_CONTESTAR }} horas desde que escribió el comprador. Los tiempos se miden en el proyecto que más lejos llegó. "Publicado" sale del registro de auditoría; lo publicado antes de que se anotara sale como "sin fecha".</p>
         </div>
     </div>
 </x-app-layout>

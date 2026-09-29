@@ -30,6 +30,7 @@ class Inquiry extends Model
     protected $casts = [
         'read' => 'boolean',
         'estado_en' => 'datetime',
+        'contestado_en' => 'datetime',
         'avisado_sin_atender_en' => 'datetime',
     ];
 

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\ProjectSetting;
 use App\Services\WebhookService;
@@ -192,9 +191,6 @@ class ProjectController extends Controller
 
         // Dispatch webhook if project was just published
         if (isset($validated['status']) && $validated['status'] === 'public' && $oldStatus !== 'public') {
-            // La fecha de publicacion no vivia en ningun sitio: el embudo de
-            // los pilotos (de pedir el visor a publicar) la lee de aqui.
-            AuditLog::record('project_published', $project, ['status' => $oldStatus], ['status' => 'public']);
             WebhookService::dispatch('project_published', [
                 'project_slug' => $project->slug,
                 'project_name' => $project->name,
