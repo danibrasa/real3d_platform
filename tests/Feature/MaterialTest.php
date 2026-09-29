@@ -145,6 +145,31 @@ class MaterialTest extends TestCase
         $this->assertSame(0, $this->ana->companyProfile->fresh()->storage_used_bytes);
     }
 
+    public function test_quitar_deja_rastro_de_quien_y_cuando(): void
+    {
+        $this->entregar($this->ana, 'planos', UploadedFile::fake()->create('planta-1.pdf', 10));
+        $pieza = MaterialDelProyecto::firstOrFail();
+
+        $this->actingAs($this->ana)->delete(route('admin.projects.material.destroy', [$this->suyo, $pieza]));
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'material_quitado', 'user_id' => $this->ana->id]);
+    }
+
+    public function test_el_fichero_se_va_con_el_proyecto_cuando_se_borra_del_todo(): void
+    {
+        // La fila cae por la cascada de la base, sin pasar por el modelo; el
+        // fichero se va porque el proyecto tira su carpeta entera al borrarse
+        // en firme, y el material vive dentro de ella. Esto lo demuestra.
+        $this->entregar($this->ana, 'planos', UploadedFile::fake()->create('planta-1.pdf', 10));
+        $ruta = MaterialDelProyecto::firstOrFail()->storage_path;
+        Storage::assertExists($ruta);
+
+        $this->suyo->forceDelete();
+
+        $this->assertDatabaseMissing('project_material', ['project_id' => $this->suyo->id]);
+        Storage::assertMissing($ruta);
+    }
+
     public function test_con_la_cuota_llena_no_entra_mas(): void
     {
         $this->ana->companyProfile->update(['storage_used_bytes' => 10_000_000]);

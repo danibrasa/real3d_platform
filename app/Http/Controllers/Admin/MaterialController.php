@@ -91,6 +91,11 @@ class MaterialController extends Controller
         abort_unless($request->user()->canAccessProject($project), 403);
         abort_unless($material->project_id === $project->id, 404);
 
+        AuditLog::record('material_quitado', $project, [
+            'tipo' => $material->tipo,
+            'nombre' => $material->original_name,
+        ], null);
+
         $material->delete();
         $project->assignedAgencies()->first()?->companyProfile?->recalculateStorage();
 
