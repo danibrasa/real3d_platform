@@ -73,10 +73,13 @@ return [
         // la comprobacion nocturna decia "el aviso salio" -- y no habia
         // salido a ningun sitio que se pudiera leer. Se activa con
         // MAIL_LOG_CHANNEL=correo en el .env.
+        // Rota por dias: el recorrido nocturno escribe cuatro o cinco correos
+        // cada noche y un fichero unico creceria sin fin.
         'correo' => [
-            'driver' => 'single',
+            'driver' => 'daily',
             'path' => storage_path('logs/correo.log'),
             'level' => 'debug',
+            'days' => 7,
             'replace_placeholders' => true,
         ],
 

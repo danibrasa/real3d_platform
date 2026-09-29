@@ -188,9 +188,14 @@ class AppServiceProvider extends ServiceProvider
         // la cuenta de correo. Sin freno, un guion con cincuenta envios deja a
         // produccion sin poder avisar de un lead de verdad el resto del dia,
         // que es justo lo que paso el 28-sep-2026 por otro camino. Una
-        // persona manda una consulta; cinco por minuto es de sobra.
+        // persona manda una consulta; cinco por minuto es de sobra. Y un tope
+        // al dia ademas, que es la unidad del cupo: a cinco por minuto, un
+        // guion paciente se lo comia igual en veinte minutos.
         RateLimiter::for('consultas', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            return [
+                Limit::perMinute(5)->by($request->ip()),
+                Limit::perDay(20)->by('dia:'.$request->ip()),
+            ];
         });
 
         // Los eventos del visor, que se guardan sin sesion ni CSRF y hasta

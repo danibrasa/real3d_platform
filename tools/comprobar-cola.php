@@ -26,6 +26,7 @@
  * Uso: php comprobar-cola.php /ruta/de/la/app [segundos] [correo-esperado] [marca]
  */
 
+use App\Support\Salud\CorreoEnElLog;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 
@@ -79,6 +80,11 @@ if (config("logging.channels.{$canal}.driver") === 'stack') {
 }
 $fichero = config("logging.channels.{$canal}.path");
 
+// El canal rota por dias, y el fichero del dia lleva la fecha en el nombre.
+if (config("logging.channels.{$canal}.driver") === 'daily') {
+    $fichero = preg_replace('/\.log$/', '', $fichero).'-'.date('Y-m-d').'.log';
+}
+
 if (! $fichero || ! is_readable($fichero)) {
     fwrite(STDERR, "el correo va al canal '{$canal}' y no se puede leer lo que escribe\n");
     fwrite(STDERR, "  (con MAIL_MAILER=log hace falta MAIL_LOG_CHANNEL=correo en el .env)\n");
@@ -86,16 +92,20 @@ if (! $fichero || ! is_readable($fichero)) {
 }
 
 // La direccion lleva el sello de esta vuelta, asi que basta con que aparezca
-// como destinatario en cualquier sitio del fichero: no hay que adivinar desde
-// que byte mirar, y da igual que el worker fuera mas rapido que nosotros.
+// en cualquier sitio del fichero: no hay que adivinar desde que byte mirar, y
+// da igual que el worker fuera mas rapido que nosotros. Pero destinatario y
+// marca se exigen sobre el MISMO mensaje: mirados por separado, el aviso del
+// formulario (a la promotora) mas cualquier cosa con la marca del chatbot
+// daban por bueno un aviso del chatbot que podia no haber ido a nadie.
 $contenido = file_get_contents($fichero);
-if (! preg_match('/^To:.*'.preg_quote($esperado, '/').'/mi', $contenido)) {
+
+if (! CorreoEnElLog::hayAvisoPara($contenido, $esperado)) {
     fwrite(STDERR, "la cola se vacio pero ningun correo va dirigido a {$esperado}\n");
     fwrite(STDERR, "  (mirado en {$fichero})\n");
     exit(1);
 }
 
-if ($marca !== '' && stripos($contenido, $marca) === false) {
+if ($marca !== '' && ! CorreoEnElLog::hayAvisoPara($contenido, $esperado, $marca)) {
     fwrite(STDERR, "hay correo para {$esperado}, pero ninguno es este: falta '{$marca}'\n");
     fwrite(STDERR, "  (mirado en {$fichero})\n");
     exit(1);
