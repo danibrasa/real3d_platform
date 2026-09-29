@@ -13,6 +13,7 @@ use App\Support\Facturacion\PruebaGratuita;
 use App\Support\Publicacion\ListaParaPublicar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 /**
  * La promotora avisa de que su proyecto esta listo para que le monten el visor.
@@ -49,6 +50,8 @@ class SolicitudDeVisorController extends Controller
         $project->update([
             'viewer_requested_at' => now(),
             'viewer_requested_by' => $user->id,
+            'visor_estado' => Project::VISOR_PEDIDO,
+            'visor_estado_en' => now(),
         ]);
 
         AuditLog::record('viewer_requested', $project, null, [
@@ -75,7 +78,7 @@ class SolicitudDeVisorController extends Controller
 
         abort_unless($user->canAccessProject($project), 403);
 
-        $project->update(['viewer_requested_at' => null, 'viewer_requested_by' => null]);
+        $project->update(['viewer_requested_at' => null, 'viewer_requested_by' => null, 'visor_estado' => null, 'visor_estado_en' => null]);
 
         AuditLog::record('viewer_request_withdrawn', $project);
 
@@ -108,7 +111,12 @@ class SolicitudDeVisorController extends Controller
 
         $quienLoPidio = $project->solicitanteDelVisor;
 
-        $project->update(['viewer_requested_at' => null, 'viewer_requested_by' => null]);
+        $project->update([
+            'viewer_requested_at' => null,
+            'viewer_requested_by' => null,
+            'visor_estado' => Project::VISOR_MONTADO,
+            'visor_estado_en' => now(),
+        ]);
 
         // Aqui empieza a contar la prueba, que es el primer momento en que hay
         // algo que probar. Contandola desde el pago, la promotora se gastaba
@@ -144,15 +152,54 @@ class SolicitudDeVisorController extends Controller
      * Es la otra mitad de la costura. Sin esta pantalla las solicitudes viven
      * solo en un correo, y un correo se pierde.
      */
+    /**
+     * La cola de trabajo: en que va cada visor, quien lo lleva, para cuando y
+     * cuantas horas. Cambiar de estado reinicia el reloj de "parado"; lo
+     * demas no. A "montado" no se llega por aqui sino dandolo por montado,
+     * que comprueba que hay algo montado.
+     */
+    public function actualizar(Request $request, Project $project)
+    {
+        abort_unless($request->user()->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR), 403);
+
+        $validated = $request->validate([
+            'estado' => ['required', Rule::in(array_diff(Project::ESTADOS_VISOR, [Project::VISOR_MONTADO]))],
+            'asignado_a' => ['nullable', Rule::exists('users', 'id')->whereIn('role', [User::ROLE_SUPERADMIN, User::ROLE_GESTOR])],
+            'objetivo' => ['nullable', 'date'],
+            'horas' => ['nullable', 'numeric', 'min:0', 'max:999'],
+        ]);
+
+        $cambios = [
+            'visor_asignado_a' => $validated['asignado_a'] ?? null,
+            'visor_objetivo' => $validated['objetivo'] ?? null,
+            'visor_horas' => $validated['horas'] ?? null,
+        ];
+        if ($validated['estado'] !== $project->visor_estado) {
+            $cambios['visor_estado'] = $validated['estado'];
+            $cambios['visor_estado_en'] = now();
+        }
+
+        $antes = $project->only(['visor_estado', 'visor_asignado_a', 'visor_objetivo', 'visor_horas']);
+        $project->update($cambios);
+        AuditLog::record('viewer_queue_updated', $project, $antes, $cambios);
+
+        return back()->with('success', __('visor.cola_guardada', ['proyecto' => $project->name]));
+    }
+
     public function pendientes(Request $request)
     {
         abort_unless($request->user()->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR), 403);
 
+        // Primero lo que mas lleva sin moverse, no lo que mas lleva pedido:
+        // un visor en revision desde ayer va detras de uno pedido hace una
+        // semana que nadie ha cogido.
         $proyectos = Project::whereNotNull('viewer_requested_at')
-            ->with(['assignedAgencies.companyProfile', 'solicitanteDelVisor'])
+            ->with(['assignedAgencies.companyProfile', 'solicitanteDelVisor', 'montador'])
             ->withCount(['units', 'material'])
-            ->orderBy('viewer_requested_at')
+            ->orderByRaw('coalesce(visor_estado_en, viewer_requested_at)')
             ->paginate(25);
+
+        $equipo = User::whereIn('role', [User::ROLE_SUPERADMIN, User::ROLE_GESTOR])->orderBy('name')->get(['id', 'name']);
 
         // Lo que falta en cada uno, para poder decir de un vistazo si ya se
         // puede publicar en cuanto se suba el fondo.
@@ -160,6 +207,6 @@ class SolicitudDeVisorController extends Controller
             fn ($p) => [$p->id => ListaParaPublicar::de($p)]
         );
 
-        return view('admin.visores-pendientes', compact('proyectos', 'listas'));
+        return view('admin.visores-pendientes', compact('proyectos', 'listas', 'equipo'));
     }
 }

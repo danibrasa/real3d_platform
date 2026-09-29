@@ -51,10 +51,17 @@ class Project extends Model
         'chatbot_instructions',
         'viewer_requested_at',
         'viewer_requested_by',
+        'visor_estado',
+        'visor_estado_en',
+        'visor_asignado_a',
+        'visor_objetivo',
+        'visor_horas',
     ];
 
     protected $casts = [
         'viewer_requested_at' => 'datetime',
+        'visor_estado_en' => 'datetime',
+        'visor_objetivo' => 'date',
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
         'latitude' => 'float',
@@ -102,6 +109,22 @@ class Project extends Model
     public function material(): HasMany
     {
         return $this->hasMany(MaterialDelProyecto::class);
+    }
+
+    /**
+     * Por donde pasa un visor en la cola del equipo. "montado" solo se llega
+     * dandolo por montado, que comprueba que hay algo montado.
+     */
+    public const VISOR_PEDIDO = 'pedido';
+
+    public const VISOR_MONTADO = 'montado';
+
+    public const ESTADOS_VISOR = ['pedido', 'en_preparacion', 'para_revisar', 'montado'];
+
+    /** Quien del equipo lo esta montando. */
+    public function montador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'visor_asignado_a');
     }
 
     /** Quien pidio que le montaran el visor. */
