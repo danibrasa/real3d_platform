@@ -108,8 +108,10 @@ def preguntar(texto):
             # razonamiento consume del mismo presupuesto. Con 4000 se gastaba
             # entero pensando y devolvia un bloque de pensamiento sin respuesta,
             # que ademas parecia "no interpretable" en vez de "te has quedado
-            # sin sitio".
-            "max_tokens": 16000,
+            # sin sitio". Y con 16000 se quedo dos veces seguidas sin sitio
+            # ante un diff de 16 KB, que no es grande: el presupuesto va con
+            # el tamano del diff, no con el de la respuesta.
+            "max_tokens": 32000,
             "system": INSTRUCCIONES,
             "messages": [{"role": "user", "content": texto}],
         }).encode(),
@@ -120,7 +122,7 @@ def preguntar(texto):
         },
     )
 
-    with urllib.request.urlopen(peticion, timeout=180) as r:
+    with urllib.request.urlopen(peticion, timeout=300) as r:
         respuesta = json.loads(r.read().decode())
 
     # No siempre viene el texto en el primer bloque: el modelo razona antes, y

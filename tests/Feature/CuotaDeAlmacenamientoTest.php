@@ -50,15 +50,35 @@ class CuotaDeAlmacenamientoTest extends TestCase
             'file_size' => 5_000_000,
             'upload_complete' => true,
         ]);
+        // Un segundo proyecto que se queda: asi se distingue "recalcular con
+        // lo que hay" de "poner a cero", que con un solo proyecto pasarian
+        // el mismo test.
+        $otro = Project::create([
+            'name' => 'Residencial que se queda',
+            'slug' => 'residencial-que-se-queda',
+            'status' => 'draft',
+            'created_by' => $promotora->id,
+        ]);
+        $promotora->assignedProjects()->attach($otro->id);
+        ProjectFile::create([
+            'project_id' => $otro->id,
+            'file_type' => 'image_360',
+            'original_name' => 'fondo.jpg',
+            'storage_path' => 'projects/'.$otro->id.'/fondo.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 1_500_000,
+            'upload_complete' => true,
+        ]);
+
         $perfil->recalculateStorage();
-        $this->assertSame(5_000_000, $perfil->fresh()->storage_used_bytes);
+        $this->assertSame(6_500_000, $perfil->fresh()->storage_used_bytes);
 
         // Borrar proyectos es del equipo, no de la promotora.
         $equipo = User::factory()->create(['role' => 'superadmin']);
         $this->actingAs($equipo)->delete(route('admin.projects.destroy', $proyecto));
 
         $this->assertDatabaseMissing('projects', ['id' => $proyecto->id]);
-        $this->assertSame(0, $perfil->fresh()->storage_used_bytes,
-            'el proyecto se fue y sus ficheros siguen contando en la cuota');
+        $this->assertSame(1_500_000, $perfil->fresh()->storage_used_bytes,
+            'el proyecto se fue y sus ficheros siguen contando en la cuota, o se llevo por delante los del otro');
     }
 }

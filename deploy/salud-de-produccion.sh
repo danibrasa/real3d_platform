@@ -31,7 +31,9 @@ CREDENCIALES=()
 HOST=$(printf '%s' "$URL" | sed -E 's#^https?://([^/:]+).*#\1#')
 DIAS_MINIMOS="${CERT_DIAS_MINIMOS:-14}"
 CERT_MAL=0
-CADUCA_CERT=$(echo | openssl s_client -connect "$HOST:443" -servername "$HOST" 2>/dev/null \
+# Con tiempo, como el curl de mas abajo: una conexion TLS que se queda colgada
+# dejaria la nocturna colgada, y sin nocturna no hay aviso de nada.
+CADUCA_CERT=$(echo | timeout 20 openssl s_client -connect "$HOST:443" -servername "$HOST" 2>/dev/null \
     | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
 if [ -z "$CADUCA_CERT" ]; then
     echo "        certificado: no se pudo leer el de $HOST"
