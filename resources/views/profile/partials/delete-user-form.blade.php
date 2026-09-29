@@ -9,6 +9,17 @@
         </p>
     </header>
 
+    {{-- Antes de borrar, llevarse lo suyo. Es un derecho y es lo que la
+         politica de privacidad promete que se hace desde aqui. --}}
+    <div class="rounded-md border border-gray-200 p-4">
+        <p class="text-sm text-gray-600 mb-2">{{ __('legal.exportar_explica') }}</p>
+        <a href="{{ route('profile.exportar') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50">{{ __('legal.exportar') }}</a>
+    </div>
+
+    @if ($errors->userDeletion->has('suscripcion'))
+        <p class="text-sm text-red-600">{{ $errors->userDeletion->first('suscripcion') }}</p>
+    @endif
+
     <x-danger-button
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"

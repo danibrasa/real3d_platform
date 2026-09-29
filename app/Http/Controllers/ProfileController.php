@@ -48,6 +48,16 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Con una suscripcion de pago activa no se borra: borrar al usuario
+        // de nuestra base no borra nada en Stripe, y el cobro seguiria cada
+        // mes a una cuenta que ya no existe. Primero se cancela desde
+        // facturacion, y entonces si.
+        if ($user->subscribed()) {
+            return back()->withErrors([
+                'suscripcion' => __('legal.baja_con_suscripcion'),
+            ], 'userDeletion');
+        }
+
         Auth::logout();
 
         $user->delete();

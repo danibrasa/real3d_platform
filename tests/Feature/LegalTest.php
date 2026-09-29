@@ -62,6 +62,22 @@ class LegalTest extends TestCase
 
         $this->assertNotNull($ana->legal_aceptado_en, 'acepto y no quedo la fecha');
         $this->assertSame(config('legal.version'), $ana->legal_version);
+
+        // Y por el otro formulario, que es otro controlador. Cerrando antes
+        // la sesion de Ana: el registro es solo para invitados y con ella
+        // dentro redirigiria sin crear a nadie.
+        $this->post(route('logout'));
+        $this->post('/register', [
+            'name' => 'Beni Comprador',
+            'email' => 'beni@ejemplo.invalid',
+            'password' => 'Contrasena-larga-1',
+            'password_confirmation' => 'Contrasena-larga-1',
+            'acepto' => '1',
+        ])->assertRedirect();
+
+        $beni = User::where('email', 'beni@ejemplo.invalid')->firstOrFail();
+        $this->assertNotNull($beni->legal_aceptado_en, 'por /register no quedo la fecha');
+        $this->assertSame(config('legal.version'), $beni->legal_version);
     }
 
     public function test_los_formularios_de_registro_enlazan_lo_que_se_acepta(): void
@@ -136,6 +152,12 @@ class LegalTest extends TestCase
         $visor->assertSee('cargarAnaliticas', false);
         $visor->assertSee('id="aviso-cookies"', false);
         $visor->assertSee(route('legal.cookies'), false);
+
+        // El pie, aparte del aviso: el enlace a cookies ya lo pone el aviso
+        // por su cuenta, y con el solo se podia quitar el pie sin que nada
+        // lo dijera.
+        $visor->assertSee(route('legal.privacidad'), false);
+        $visor->assertSee(route('legal.condiciones'), false);
     }
 
     public function test_sin_analiticas_no_hay_aviso_que_molestar(): void
