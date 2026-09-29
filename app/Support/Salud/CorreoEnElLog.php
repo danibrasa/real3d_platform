@@ -32,8 +32,11 @@ class CorreoEnElLog
         return array_values(array_filter(array_map(
             // Una cabecera larga se parte en varias lineas con un espacio
             // delante (RFC 5322). Con un nombre de proyecto largo, el asunto
-            // se partia por la mitad y la marca dejaba de encontrarse.
-            fn (string $m) => preg_replace('/\r?\n[ \t]+/', '', trim($m)),
+            // se partia por la mitad y la marca dejaba de encontrarse. Al
+            // desplegar se quita el salto y se deja UN espacio: quitarlo todo
+            // pegaba dos palabras, y una marca que cruzara el pliegue tampoco
+            // se encontraba.
+            fn (string $m) => preg_replace('/\r?\n[ \t]+/', ' ', trim($m)),
             $trozos
         ), fn (string $m) => $m !== ''));
     }

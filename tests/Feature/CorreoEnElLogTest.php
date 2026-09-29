@@ -87,8 +87,10 @@ class CorreoEnElLogTest extends TestCase
             ."Subject: Nueva consulta: Residencial Los Altos de la Bahia de\r\n"
             ." Samana Torre Norte - Comprador Extranjero\r\n\r\ncuerpo\n";
 
+        // La marca cruza el pliegue a proposito: con el salto quitado sin
+        // dejar espacio quedaba 'deSamana' y no se encontraba.
         $this->assertTrue(CorreoEnElLog::hayAvisoPara($log, 'ana@promotora.invalid',
-            'Samana Torre Norte - Comprador Extranjero'));
+            'Bahia de Samana Torre Norte - Comprador Extranjero'));
     }
 
     public function test_el_aviso_de_verdad_escrito_por_el_mailer_de_verdad_se_lee(): void

@@ -85,6 +85,34 @@ class LeadTest extends TestCase
         Mail::assertQueuedCount(10);
     }
 
+    public function test_ni_un_guion_paciente_gasta_el_cupo_en_un_dia(): void
+    {
+        // Cinco por minuto no protegia el cupo, que es diario: a ese ritmo un
+        // guion se lo comia en veinte minutos. Hay tope al dia ademas.
+        Mail::fake();
+
+        for ($minuto = 0; $minuto < 4; $minuto++) {
+            $this->travelTo(now()->addMinutes($minuto));
+            for ($i = 0; $i < 5; $i++) {
+                $this->preguntar();
+            }
+        }
+        Mail::assertQueuedCount(40);
+
+        $this->travelTo(now()->addMinutes(5));
+        $this->post(route('viewer.inquiry', $this->proyecto), [
+            'name' => 'El Guion Paciente',
+            'email' => 'paciente@ejemplo.com',
+            'message' => 'La veintiuna.',
+        ])->assertStatus(429);
+        Mail::assertQueuedCount(40);
+
+        // Y al dia siguiente, otra vez abierto: es un tope, no un castigo.
+        $this->travelTo(now()->addDay());
+        $this->preguntar();
+        Mail::assertQueuedCount(42);
+    }
+
     public function test_el_aviso_llega_a_la_promotora_aunque_no_haya_correo_de_contacto(): void
     {
         Mail::fake();
