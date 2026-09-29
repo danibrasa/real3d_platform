@@ -52,6 +52,9 @@
             @if ($project->viewer_requested_at)
                 <p class="text-xs text-emerald-800">
                     {{ __('visor.pedido_el', ['fecha' => $project->viewer_requested_at->translatedFormat('j \d\e F')]) }}
+                    @if ($project->visor_estado && $project->visor_estado !== 'pedido')
+                        <span class="block mt-0.5 font-medium">{{ __('visor.estado_'.$project->visor_estado) }}@if ($project->visor_objetivo) · {{ __('visor.previsto_para', ['fecha' => $project->visor_objetivo->translatedFormat('j \d\e F')]) }}@endif</span>
+                    @endif
                 </p>
                 <form method="POST" action="{{ route('admin.projects.visor.retirar', $project) }}" class="mt-1">
                     @csrf

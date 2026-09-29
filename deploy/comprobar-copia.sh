@@ -81,6 +81,24 @@ contar() {
 TABLAS=$(mysql -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$BASE'" 2>/dev/null)
 
 # Si el propio conteo falla, la comparacion de mas abajo seria un error de bash
+# --- Y, ya que esta restaurada, lo que solo se ve en la base de produccion -------
+#
+# Los visores que llevan demasiado en la cola del equipo sin moverse. Es una
+# averia del negocio, no del codigo: una promotora que pide el visor y no ve
+# movimiento en una semana se va. La copia se borra al salir de aqui, asi que
+# se mira ahora. El usuario de la aplicacion no tiene permiso sobre esta base
+# de pruebas: se le da lectura, y con eso corre el comando.
+APP_DEV=/var/www/dev
+USUARIO_APP=$(grep '^DB_USERNAME=' "$APP_DEV/.env" | cut -d= -f2- | tr -d '"')
+if [ -n "$USUARIO_APP" ]; then
+    mysql -e "GRANT SELECT ON \`$BASE\`.* TO '$USUARIO_APP'@'localhost'" 2>/dev/null
+    echo
+    echo "--- visores atascados (cola del equipo, en produccion)"
+    if ! DB_DATABASE="$BASE" php "$APP_DEV/artisan" visores:atascados --dias=5; then
+        FALLOS=$((FALLOS + 1))
+    fi
+fi
+
 # que se evalua como falso: el guion diria "la copia sirve" sin haber contado
 # nada. Un camino de fallo que termina en exito es el peor de todos.
 if ! [ "$TABLAS" -eq "$TABLAS" ] 2>/dev/null; then

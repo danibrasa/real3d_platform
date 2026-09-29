@@ -21,6 +21,7 @@
                                 <th class="text-right px-4 py-3 font-medium">Viviendas</th>
                                 <th class="text-left px-4 py-3 font-medium">{{ __('material.en_cola') }}</th>
                                 <th class="text-left px-4 py-3 font-medium">{{ __('visor.esperando_desde') }}</th>
+                                <th class="text-left px-4 py-3 font-medium">{{ __('visor.cola_estado') }}</th>
                                 <th class="text-left px-4 py-3 font-medium">Falta</th>
                             </tr>
                         </thead>
@@ -60,6 +61,34 @@
                                                 <span class="text-xs">({{ $dias }} d)</span>
                                             @endif
                                         </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {{-- En que va, quien lo lleva, para cuando y cuantas horas. Se
+                                             guarda desde la fila: la cola se mira, no se navega. --}}
+                                        @php
+                                            $reloj = $p->visor_estado_en ?? $p->viewer_requested_at;
+                                            $parado = (int) $reloj->diffInDays(now());
+                                        @endphp
+                                        <form method="POST" action="{{ route('admin.projects.visor.actualizar', $p) }}" class="flex flex-wrap items-center gap-1">
+                                            @csrf @method('PATCH')
+                                            <select name="estado" class="text-xs rounded border-gray-300 py-1" aria-label="{{ __('visor.cola_estado') }}">
+                                                @foreach (array_diff(\App\Models\Project::ESTADOS_VISOR, [\App\Models\Project::VISOR_MONTADO]) as $e)
+                                                    <option value="{{ $e }}" {{ ($p->visor_estado ?? 'pedido') === $e ? 'selected' : '' }}>{{ __('visor.estado_'.$e) }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="asignado_a" class="text-xs rounded border-gray-300 py-1" aria-label="{{ __('visor.cola_quien') }}">
+                                                <option value="">{{ __('visor.cola_nadie') }}</option>
+                                                @foreach ($equipo as $u)
+                                                    <option value="{{ $u->id }}" {{ $p->visor_asignado_a === $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <input type="date" name="objetivo" value="{{ $p->visor_objetivo?->toDateString() }}" class="text-xs rounded border-gray-300 py-1" aria-label="{{ __('visor.cola_objetivo') }}">
+                                            <input type="number" name="horas" step="0.5" min="0" value="{{ $p->visor_horas }}" placeholder="h" class="text-xs rounded border-gray-300 py-1 w-16" aria-label="{{ __('visor.cola_horas') }}">
+                                            <button type="submit" class="text-xs px-2 py-1 bg-gray-800 text-white rounded">{{ __('visor.cola_guardar') }}</button>
+                                        </form>
+                                        @if ($parado >= 5)
+                                            <div class="text-xs text-red-700 font-medium mt-1">{{ __('visor.parado_dias', ['dias' => $parado]) }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3">
                                         @forelse ($lista->bloqueos() as $b)
