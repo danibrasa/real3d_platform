@@ -86,15 +86,14 @@ class PmvTest extends TestCase
     public function test_el_equipo_lo_sigue_viendo_todo(): void
     {
         // No se exige 200 -- alguna pagina redirige o pide algo -- sino que
-        // no sea el 404 del muro. Con 200 exigido, un formulario que redirige
-        // pasaria por escondido.
+        // no sea el 404 del muro ni un error. "No es 404" a secas daba por
+        // bueno el 500 que devolvia el blog del panel a todo el mundo.
         foreach ($this->unaDeCadaZona() as $zona => $url) {
             $codigo = $this->actingAs($this->equipo)->get($url)->getStatusCode();
             $this->assertNotSame(404, $codigo, "al equipo se le esconde la zona '{$zona}'");
+            $this->assertLessThan(500, $codigo, "la zona '{$zona}' revienta para el equipo ({$codigo})");
         }
 
-        // Y una de ellas con 200 exigido: el blog del panel devolvia 500 a
-        // todo el mundo y "no es 404" lo daba por bueno.
         $this->actingAs($this->equipo)->get(route('admin.blog.posts.index'))->assertOk();
     }
 
