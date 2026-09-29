@@ -40,7 +40,12 @@ class DatosPersonalesController extends Controller
                 'condiciones_aceptadas_en' => $usuario->legal_aceptado_en?->toIso8601String(),
                 'version_de_las_condiciones' => $usuario->legal_version,
             ],
-            'empresa' => $usuario->companyProfile?->toArray(),
+            // Campo a campo, no toArray(): lo que la promotora escribio, y no
+            // lo que la casa apunta sobre ella (plan, cuota, verificacion).
+            'empresa' => $usuario->companyProfile?->only([
+                'company_name', 'legal_name', 'tax_id', 'phone', 'website',
+                'description', 'description_en', 'country', 'city', 'address',
+            ]),
             'proyectos' => $proyectos->map(fn ($p) => [
                 'proyecto' => $p->only(['id', 'name', 'slug', 'status', 'location', 'description', 'created_at']),
                 'viviendas' => $p->units->toArray(),

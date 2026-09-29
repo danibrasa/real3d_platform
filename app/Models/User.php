@@ -148,6 +148,11 @@ class User extends Authenticatable
     /**
      * Returns a query builder for projects this user can access in admin.
      */
+    /**
+     * Con los de la papelera en la lista de ids: la consulta que se devuelve
+     * ya los excluye por si misma, y sin ellos la papelera de la promotora
+     * saldria siempre vacia y no podria recuperar nada.
+     */
     public function accessibleProjects()
     {
         if ($this->isSuperadmin() || $this->isGestor()) {
@@ -155,13 +160,13 @@ class User extends Authenticatable
         }
 
         if ($this->isInmobiliaria()) {
-            $projectIds = $this->assignedProjects()->pluck('projects.id');
+            $projectIds = $this->assignedProjects()->withTrashed()->pluck('projects.id');
 
             return Project::whereIn('id', $projectIds);
         }
 
         if ($this->isAgente() && $this->agency_id) {
-            $projectIds = User::find($this->agency_id)?->assignedProjects()->pluck('projects.id') ?? collect();
+            $projectIds = User::find($this->agency_id)?->assignedProjects()->withTrashed()->pluck('projects.id') ?? collect();
 
             return Project::whereIn('id', $projectIds);
         }
@@ -179,11 +184,11 @@ class User extends Authenticatable
         }
 
         if ($this->isInmobiliaria()) {
-            return $this->assignedProjects()->where('projects.id', $project->id)->exists();
+            return $this->assignedProjects()->withTrashed()->where('projects.id', $project->id)->exists();
         }
 
         if ($this->isAgente() && $this->agency_id) {
-            return User::find($this->agency_id)?->assignedProjects()->where('projects.id', $project->id)->exists() ?? false;
+            return User::find($this->agency_id)?->assignedProjects()->withTrashed()->where('projects.id', $project->id)->exists() ?? false;
         }
 
         return false;

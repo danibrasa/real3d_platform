@@ -77,7 +77,7 @@ class CuotaDeAlmacenamientoTest extends TestCase
         $equipo = User::factory()->create(['role' => 'superadmin']);
         $this->actingAs($equipo)->delete(route('admin.projects.destroy', $proyecto));
 
-        $this->assertDatabaseMissing('projects', ['id' => $proyecto->id]);
+        $this->assertSoftDeleted('projects', ['id' => $proyecto->id]);
         $this->assertSame(1_500_000, $perfil->fresh()->storage_used_bytes,
             'el proyecto se fue y sus ficheros siguen contando en la cuota, o se llevo por delante los del otro');
     }

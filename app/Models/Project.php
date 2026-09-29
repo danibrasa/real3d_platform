@@ -9,11 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Project extends Model
 {
     use Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -66,12 +69,34 @@ class Project extends Model
                 $project->slug = Str::slug($project->name);
                 $original = $project->slug;
                 $count = 1;
-                while (static::where('slug', $project->slug)->exists()) {
+                // Con los de la papelera: el slug es unico en la tabla y el
+                // borrado sigue ahi. Sin esto, el segundo "Residencial Bahia"
+                // revienta contra la restriccion.
+                while (static::withTrashed()->where('slug', $project->slug)->exists()) {
                     $project->slug = $original.'-'.$count++;
                 }
             }
         });
+
+        // Al borrar del todo -- desde la papelera caducada o desde donde sea --
+        // se van los ficheros del disco y la cuota de la promotora se
+        // recalcula. Aqui y no en cada sitio que borre, para que no se olvide
+        // en ninguno. Las promotoras se cogen antes: al irse el proyecto se
+        // van sus asignaciones y no habria a quien devolverle el sitio.
+        static::forceDeleting(function (Project $project) {
+            $project->promotorasAntesDeBorrar = $project->assignedAgencies()->get();
+            Storage::deleteDirectory("projects/{$project->id}");
+        });
+
+        static::forceDeleted(function (Project $project) {
+            foreach ($project->promotorasAntesDeBorrar ?? [] as $promotora) {
+                $promotora->companyProfile?->recalculateStorage();
+            }
+        });
     }
+
+    /** Las promotoras del proyecto, cogidas justo antes de borrarlo del todo. */
+    public $promotorasAntesDeBorrar = null;
 
     /** Quien pidio que le montaran el visor. */
     public function solicitanteDelVisor(): BelongsTo

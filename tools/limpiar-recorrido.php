@@ -3,7 +3,6 @@
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Borra lo que deja el recorrido de alta.
@@ -39,8 +38,9 @@ foreach ($usuarios as $u) {
         $p->units()->delete();
         $p->assignedAgencies()->detach();
         $p->settings()?->delete();
-        Storage::deleteDirectory("projects/{$p->id}");
-        $p->delete();
+        // Del todo, no a la papelera: esto es basura del recorrido. Los
+        // ficheros los borra el modelo al borrar en firme.
+        $p->forceDelete();
         $proyectos++;
     }
 
@@ -55,8 +55,7 @@ foreach ($huerfanos as $p) {
     $viviendas += $p->units()->count();
     $p->units()->delete();
     $p->settings()?->delete();
-    Storage::deleteDirectory("projects/{$p->id}");
-    $p->delete();
+    $p->forceDelete();
     $proyectos++;
 }
 

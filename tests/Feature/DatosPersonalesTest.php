@@ -140,6 +140,36 @@ class DatosPersonalesTest extends TestCase
         $this->assertDatabaseHas('projects', ['id' => $this->suyo->id]);
     }
 
+    public function test_con_un_cobro_en_reintento_tampoco(): void
+    {
+        // past_due: Stripe sigue intentando cobrar. Cashier no la llama activa
+        // y aun asi no se puede borrar la cuenta debajo de ese cobro.
+        Subscription::create([
+            'user_id' => $this->ana->id,
+            'type' => 'default',
+            'stripe_id' => 'sub_de_prueba',
+            'stripe_status' => 'past_due',
+            'stripe_price' => 'price_x',
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($this->ana)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertSessionHasErrors('suscripcion', null, 'userDeletion');
+
+        $this->assertDatabaseHas('users', ['id' => $this->ana->id]);
+    }
+
+    public function test_la_exportacion_no_lleva_lo_que_apuntamos_nosotros(): void
+    {
+        $datos = json_decode($this->actingAs($this->ana)->get(route('profile.exportar'))->streamedContent(), true);
+
+        $this->assertArrayNotHasKey('plan_tier', $datos['empresa']);
+        $this->assertArrayNotHasKey('storage_used_bytes', $datos['empresa']);
+        $this->assertArrayNotHasKey('is_verified', $datos['empresa']);
+    }
+
     public function test_con_la_suscripcion_ya_cancelada_si_se_borra(): void
     {
         Subscription::create([
