@@ -25,4 +25,11 @@ return [
     'correo_montado_asunto' => 'Your 3D viewer is ready',
     'hace_falta_plan' => 'We build the 3D viewer ourselves, and it comes with the paid plans. The first 14 days are free, starting when your viewer is live.',
     'ver_planes' => 'See the plans',
+    'sin3d_titulo' => 'Your browser cannot show the 3D viewer',
+    'sin3d_texto' => 'No problem: here are the renders, the units with their prices and the contact. For the 3D, try an up-to-date Chrome, Safari or Firefox.',
+    'resumen_titulo' => 'Your project, in numbers',
+    'resumen_periodo' => 'last :dias days',
+    'resumen_visitas' => 'viewer visits',
+    'resumen_mas_vistas' => 'most viewed units',
+    'resumen_leads' => 'buyers who wrote',
 ];

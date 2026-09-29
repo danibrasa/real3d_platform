@@ -25,4 +25,11 @@ return [
     'correo_montado_asunto' => 'Tu visor 3D ya está listo',
     'hace_falta_plan' => 'El visor 3D lo montamos nosotros y va en los planes de pago. Los primeros 14 dias no se cobran, y empiezan cuando tu visor este montado.',
     'ver_planes' => 'Ver los planes',
+    'sin3d_titulo' => 'Tu navegador no puede mostrar el visor 3D',
+    'sin3d_texto' => 'No pasa nada: aquí tienes los renders, las viviendas con sus precios y el contacto. Para el 3D, prueba con Chrome, Safari o Firefox actualizados.',
+    'resumen_titulo' => 'Tu proyecto, en cifras',
+    'resumen_periodo' => 'últimos :dias días',
+    'resumen_visitas' => 'visitas al visor',
+    'resumen_mas_vistas' => 'viviendas más miradas',
+    'resumen_leads' => 'compradores que escribieron',
 ];
