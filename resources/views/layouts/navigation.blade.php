@@ -97,6 +97,12 @@
                                 </x-nav-link>
                             @endcan
 
+                            @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPERADMIN, \App\Models\User::ROLE_GESTOR))
+                                <x-nav-link :href="route('admin.pilotos.index')" :active="request()->routeIs('admin.pilotos.*')">
+                                    Pilotos
+                                </x-nav-link>
+                            @endif
+
                             {{-- Tenant / Companies --}}
                             @if(auth()->user()->isSuperadmin())
                                 <x-nav-link :href="route('admin.companies.index')" :active="request()->routeIs('admin.companies.*')">
@@ -299,6 +305,12 @@
                             Audit Log
                         </x-responsive-nav-link>
                     @endcan
+
+                    @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPERADMIN, \App\Models\User::ROLE_GESTOR))
+                        <x-responsive-nav-link :href="route('admin.pilotos.index')" :active="request()->routeIs('admin.pilotos.*')">
+                            Pilotos
+                        </x-responsive-nav-link>
+                    @endif
 
                     {{-- Tenant / Companies --}}
                     @if(auth()->user()->isSuperadmin())

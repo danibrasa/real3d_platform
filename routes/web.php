@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MaterialController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
+use App\Http\Controllers\Admin\PilotosController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ProjectSettingsController;
 use App\Http\Controllers\Admin\SolicitudDeVisorController;
@@ -115,6 +116,8 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
         ->name('projects.visor.actualizar');
     Route::get('visores-pendientes', [SolicitudDeVisorController::class, 'pendientes'])
         ->name('visores.pendientes');
+    // El embudo de cada piloto, para el ciclo semanal del equipo.
+    Route::get('pilotos', [PilotosController::class, 'index'])->name('pilotos.index');
     Route::post('projects/{project}/visor-montado', [SolicitudDeVisorController::class, 'marcarMontado'])
         ->name('projects.visor.montado');
 
