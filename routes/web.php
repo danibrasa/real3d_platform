@@ -64,7 +64,7 @@ Route::get('/llms-full.txt', [LlmsTxtController::class, 'full']);
 
 // MCP Server
 Route::get('/.well-known/mcp.json', [McpServerController::class, 'discover']);
-Route::post('/mcp', [McpServerController::class, 'handle']);
+Route::post('/mcp', [McpServerController::class, 'handle'])->middleware('throttle:mcp');
 
 // Landing page
 Route::get('/', [ViewerController::class, 'welcome'])->name('welcome');
@@ -243,7 +243,8 @@ Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
 // Registro SaaS
 Route::middleware('guest')->group(function () {
     Route::get('register/business', [OnboardingController::class, 'showRegistrationForm'])->name('register.business');
-    Route::post('register/business', [OnboardingController::class, 'register']);
+    Route::post('register/business', [OnboardingController::class, 'register'])
+        ->middleware('throttle:acceso');
 });
 
 // Onboarding (auth, NO admin middleware)
@@ -267,12 +268,13 @@ Route::prefix('api')->group(function () {
     Route::get('/units/{unit}/floor-plan', [ProjectApiController::class, 'serveFloorPlan']);
     Route::get('/projects/{project:slug}/gallery/{image}', [ProjectApiController::class, 'serveGalleryImage']);
     Route::get('/projects/{project:slug}/construction/{image}', [ConstructionProgressController::class, 'serveImage'])->name('api.construction.image');
-    Route::post('/viewer-events', [ViewerEventController::class, 'store']);
+    Route::post('/viewer-events', [ViewerEventController::class, 'store'])->middleware('throttle:eventos');
 
     // Chatbot
     Route::post('/projects/{project:slug}/chat', [ChatbotController::class, 'sendMessage'])
         ->middleware('throttle:chatbot');
-    Route::post('/projects/{project:slug}/chat/lead', [ChatbotController::class, 'captureLead']);
+    Route::post('/projects/{project:slug}/chat/lead', [ChatbotController::class, 'captureLead'])
+        ->middleware('throttle:chatbot');
 });
 
 // Embeddable widget
@@ -298,7 +300,9 @@ Route::get('/projects/{project:slug}/info', [ViewerController::class, 'landing']
 Route::get('/projects/{project:slug}/units/{unit}/pdf', [UnitPdfController::class, 'generate'])->name('viewer.unit.pdf');
 Route::get('/projects/{project:slug}/units/{unit}/payment-schedule', [UnitPdfController::class, 'paymentSchedule'])->name('viewer.payment-schedule.pdf');
 Route::get('/projects/{project:slug}/units/{unit}/investment', [UnitPdfController::class, 'investmentReport'])->name('viewer.investment.pdf');
-Route::post('/projects/{project:slug}/inquiry', [InquiryController::class, 'store'])->name('viewer.inquiry');
+Route::post('/projects/{project:slug}/inquiry', [InquiryController::class, 'store'])
+    ->middleware('throttle:consultas')
+    ->name('viewer.inquiry');
 Route::get('/projects/{project:slug}/units/{unit}', [ViewerController::class, 'unitDetail'])->name('viewer.unit.detail');
 Route::get('/projects/{project:slug}', [ViewerController::class, 'show'])->name('viewer.show');
 

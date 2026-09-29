@@ -62,6 +62,29 @@ class LeadTest extends TestCase
         ]);
     }
 
+    public function test_un_guion_no_gasta_el_cupo_de_correo_de_la_promotora(): void
+    {
+        // Cada consulta son dos correos del cupo de cien al dia. Sin freno,
+        // cincuenta envios de un guion dejan a produccion sin poder avisar de
+        // un lead de verdad el resto del dia. Una persona manda una.
+        Mail::fake();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->preguntar();
+        }
+        Mail::assertQueuedCount(10);
+
+        $this->post(route('viewer.inquiry', $this->proyecto), [
+            'name' => 'El Mismo Guion',
+            'email' => 'guion@ejemplo.com',
+            'message' => 'Y otra mas.',
+        ])->assertStatus(429);
+
+        // Ni se guarda ni gasta correo.
+        $this->assertDatabaseMissing('inquiries', ['email' => 'guion@ejemplo.com']);
+        Mail::assertQueuedCount(10);
+    }
+
     public function test_el_aviso_llega_a_la_promotora_aunque_no_haya_correo_de_contacto(): void
     {
         Mail::fake();

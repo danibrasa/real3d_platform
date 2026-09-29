@@ -182,6 +182,37 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('chatbot', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
         });
+
+        // El formulario de consulta. Cada envio son dos correos -- el aviso a
+        // la promotora y el acuse al comprador -- del cupo de cien al dia de
+        // la cuenta de correo. Sin freno, un guion con cincuenta envios deja a
+        // produccion sin poder avisar de un lead de verdad el resto del dia,
+        // que es justo lo que paso el 28-sep-2026 por otro camino. Una
+        // persona manda una consulta; cinco por minuto es de sobra.
+        RateLimiter::for('consultas', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
+        // Los eventos del visor, que se guardan sin sesion ni CSRF y hasta
+        // cincuenta por peticion. Un visor de verdad manda un lote cada pocos
+        // segundos; sesenta por minuto es mas de lo que hace nadie.
+        RateLimiter::for('eventos', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        // Registro, login y recuperacion de contrasena. Un registro y un
+        // "olvide mi contrasena" son un correo cada uno, del mismo cupo; y
+        // el login ya se frena por cuenta en LoginRequest, esto es por
+        // direccion. Diez por minuto: nadie se equivoca mas veces que eso.
+        RateLimiter::for('acceso', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // El servidor MCP solo lee datos publicos, pero cada llamada es una
+        // consulta a la base.
+        RateLimiter::for('mcp', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
     }
 
     private function registerViewComposers(): void
