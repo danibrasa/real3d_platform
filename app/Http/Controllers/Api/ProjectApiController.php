@@ -61,7 +61,12 @@ class ProjectApiController extends Controller
             ->where('upload_complete', true)
             ->firstOrFail();
 
-        $path = Storage::path($file->storage_path);
+        // El tamaño que se pide (?tam=2k): la version ligera si la hay, y si
+        // no, el original, que es lo que habia. Asi el visor puede pedir la
+        // ligera siempre sin saber si existe.
+        $tam = $request->query('tam');
+        $ruta = $file->rutaPara($tam);
+        $path = Storage::path($ruta);
 
         if (! file_exists($path)) {
             abort(404, 'File not found on disk.');
@@ -71,7 +76,7 @@ class ProjectApiController extends Controller
         // una direccion nueva es un fichero nuevo. Sin version, una hora, y
         // ETag para que la segunda visita pregunte y no vuelva a bajar 35 MB.
         // Antes: una hora y sin ETag, asi que a la hora se bajaba entero.
-        $etag = '"'.$file->version().'"';
+        $etag = '"'.$file->version().($file->tieneVariante($tam) ? '-'.$tam : '').'"';
         $inmutable = $request->query('v') === $file->version();
         $cabeceras = [
             'Content-Type' => $file->mime_type,
@@ -90,7 +95,10 @@ class ProjectApiController extends Controller
         // (deploy/nginx-ficheros.conf) con sendfile y rangos; por PHP, un
         // proceso php-fpm lee 35 MB y los escribe, que es lo que habia.
         if (config('ficheros.por_nginx')) {
-            return response('', 200, $cabeceras + ['X-Accel-Redirect' => '/_ficheros/'.$file->storage_path]);
+            // nginx pone Accept-Ranges y Content-Length por su cuenta.
+            unset($cabeceras['Accept-Ranges']);
+
+            return response('', 200, $cabeceras + ['X-Accel-Redirect' => '/_ficheros/'.$ruta]);
         }
 
         return response()->file($path, $cabeceras);

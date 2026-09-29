@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\PrepararFondo360;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\UploadChunk;
@@ -205,8 +206,22 @@ class FileUploadController extends Controller
         }
         fclose($outFile);
 
+        // El tope, contra los bytes que han llegado y no contra lo que el
+        // cliente declaro al empezar: declarar poco y mandar mas trozos se
+        // colaba. Lo que no cabe se tira, con sus trozos.
+        $maximoMb = config('ficheros.maximos_mb')[$upload->file_type] ?? null;
+        if ($maximoMb && filesize($destFullPath) > $maximoMb * 1048576) {
+            Storage::delete($destPath);
+            Storage::deleteDirectory($upload->temp_directory);
+            $upload->update(['completed' => false, 'total_chunks' => 0]);
+
+            return response()->json([
+                'error' => __('ficheros.demasiado_grande', ['tipo' => $upload->file_type, 'mb' => $maximoMb]),
+            ], 422);
+        }
+
         // Create file record
-        ProjectFile::create([
+        $ficheroNuevo = ProjectFile::create([
             'project_id' => $project->id,
             'file_type' => $upload->file_type,
             'original_name' => $upload->original_name,
@@ -215,6 +230,13 @@ class FileUploadController extends Controller
             'file_size' => filesize($destFullPath),
             'upload_complete' => true,
         ]);
+
+        // Del fondo 360 se saca una version ligera para que el visor empiece
+        // a pintar en segundos y no en medio minuto. En cola: decodificar un
+        // 8K tarda y no es cosa de la peticion.
+        if ($ficheroNuevo->file_type === 'image_360') {
+            PrepararFondo360::dispatch($ficheroNuevo->id);
+        }
 
         // Recalculate storage for tenant
         $agency = $project->assignedAgencies()->first();

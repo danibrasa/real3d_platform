@@ -224,7 +224,7 @@ class Project extends Model
      * volvia a pedir el modelo a la hora. Con ?v= la respuesta puede ser
      * inmutable un ano, y al reemplazar el fichero cambia la direccion.
      */
-    public function urlDeFichero(string $tipo): ?string
+    public function urlDeFichero(string $tipo, ?string $tam = null): ?string
     {
         $fichero = $this->getFileByType($tipo);
         if (! $fichero) {
@@ -232,6 +232,9 @@ class Project extends Model
         }
 
         $parametros = ['v' => $fichero->version()];
+        if ($tam) {
+            $parametros['tam'] = $tam;
+        }
         if ($tipo === 'model_3d') {
             // El cargador escoge GLB o FBX por la extension del nombre.
             $parametros['f'] = $fichero->original_name;

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProjectFile extends Model
 {
     protected $fillable = [
+        'variantes',
         'project_id',
         'file_type',
         'original_name',
@@ -20,6 +21,7 @@ class ProjectFile extends Model
     protected $casts = [
         'upload_complete' => 'boolean',
         'file_size' => 'integer',
+        'variantes' => 'array',
     ];
 
     /**
@@ -30,6 +32,17 @@ class ProjectFile extends Model
     public function version(): string
     {
         return $this->id.'-'.($this->updated_at?->timestamp ?? 0);
+    }
+
+    /** La ruta en disco del tamaño pedido, o la del original si no lo hay. */
+    public function rutaPara(?string $tam): string
+    {
+        return ($tam && isset($this->variantes[$tam])) ? $this->variantes[$tam] : $this->storage_path;
+    }
+
+    public function tieneVariante(?string $tam): bool
+    {
+        return (bool) ($tam && isset($this->variantes[$tam]));
     }
 
     public function project(): BelongsTo

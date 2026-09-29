@@ -118,11 +118,24 @@ COPIA=$?
 bash "$APP/deploy/salud-de-produccion.sh" >> "$SALIDA" 2>&1
 SALUD=$?
 
+# Lo que pesa el visor de produccion antes de poder mirar. El objetivo del
+# plan son 4 MB; hoy son 55. Mientras se baja, esto es un freno: si un dia
+# pesa mas de lo que pesaba, se avisa. Cuando se llegue al objetivo, bajar
+# el presupuesto aqui a 4 y dejarlo.
+{
+    echo
+    echo "--- peso del visor de produccion"
+} >> "$SALIDA"
+
+PRESUPUESTO_MB="${PRESUPUESTO_VISOR_MB:-60}" python3 "$APP/tools/medir-visor.py" \
+    "${VISOR_DE_REFERENCIA:-https://real3d.io/projects/salado}" >> "$SALIDA" 2>&1
+PESO=$?
+
 cat "$SALIDA"
 
 # Cualquiera de las dos cosas mal es motivo de aviso: un recorrido roto y
 # una copia que no restaura son igual de urgentes.
-[ "$RESULTADO" -eq 0 ] && [ "$COPIA" -eq 0 ] && [ "$SALUD" -eq 0 ] && exit 0
+[ "$RESULTADO" -eq 0 ] && [ "$COPIA" -eq 0 ] && [ "$SALUD" -eq 0 ] && [ "$PESO" -eq 0 ] && exit 0
 
 # Solo se avisa cuando algo va mal. Un correo cada noche diciendo que todo bien
 # se deja de leer a la semana, y entonces tampoco se lee el que importa.
