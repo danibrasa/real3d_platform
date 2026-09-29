@@ -441,9 +441,9 @@
             'slug' => $project->slug,
             'settings' => $project->settings,
             'files' => [
-                'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->slug . '/files/video_360' : null,
-                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->slug . '/files/image_360' : null,
-                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->slug . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
+                'video_360' => $project->urlDeFichero('video_360'),
+                'image_360' => $project->urlDeFichero('image_360'),
+                'model_3d' => $project->urlDeFichero('model_3d'),
             ],
             'routes' => [
                 'settings_update' => route('admin.projects.settings.update', $project),

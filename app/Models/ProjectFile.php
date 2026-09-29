@@ -22,6 +22,16 @@ class ProjectFile extends Model
         'file_size' => 'integer',
     ];
 
+    /**
+     * Lo que cambia cuando cambia el fichero: va en la direccion (?v=) y en
+     * el ETag. Con ella en la direccion, la respuesta puede ser inmutable un
+     * ano, porque una direccion nueva es un fichero nuevo.
+     */
+    public function version(): string
+    {
+        return $this->id.'-'.($this->updated_at?->timestamp ?? 0);
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

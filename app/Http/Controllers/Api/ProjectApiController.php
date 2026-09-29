@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectGalleryImage;
 use App\Models\Unit;
 use App\Support\Facturacion\AccesoAlVisor;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectApiController extends Controller
@@ -27,14 +28,10 @@ class ProjectApiController extends Controller
             ],
             'settings' => $project->settings,
             'files' => [
-                'video_360' => $project->getFileByType('video_360')
-                    ? "/api/projects/{$project->slug}/files/video_360" : null,
-                'model_3d' => $project->getFileByType('model_3d')
-                    ? "/api/projects/{$project->slug}/files/model_3d?f=".urlencode($project->getFileByType('model_3d')->original_name) : null,
-                'ground_texture' => $project->getFileByType('ground_texture')
-                    ? "/api/projects/{$project->slug}/files/ground_texture" : null,
-                'image_360' => $project->getFileByType('image_360')
-                    ? "/api/projects/{$project->slug}/files/image_360" : null,
+                'video_360' => $project->urlDeFichero('video_360'),
+                'model_3d' => $project->urlDeFichero('model_3d'),
+                'ground_texture' => $project->urlDeFichero('ground_texture'),
+                'image_360' => $project->urlDeFichero('image_360'),
             ],
         ]);
     }
@@ -48,7 +45,7 @@ class ProjectApiController extends Controller
      */
     private const DEL_VISOR = ['model_3d', 'image_360', 'video_360'];
 
-    public function serveFile(Project $project, string $fileType)
+    public function serveFile(Request $request, Project $project, string $fileType)
     {
         $this->authorizeAccess($project);
 
@@ -70,11 +67,33 @@ class ProjectApiController extends Controller
             abort(404, 'File not found on disk.');
         }
 
-        return response()->file($path, [
+        // La cache. Con la version en la direccion (?v=), un ano e inmutable:
+        // una direccion nueva es un fichero nuevo. Sin version, una hora, y
+        // ETag para que la segunda visita pregunte y no vuelva a bajar 35 MB.
+        // Antes: una hora y sin ETag, asi que a la hora se bajaba entero.
+        $etag = '"'.$file->version().'"';
+        $inmutable = $request->query('v') === $file->version();
+        $cabeceras = [
             'Content-Type' => $file->mime_type,
             'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'private, max-age=3600',
-        ]);
+            'ETag' => $etag,
+            'Last-Modified' => gmdate('D, d M Y H:i:s', (int) filemtime($path)).' GMT',
+            'Cache-Control' => $inmutable ? 'public, max-age=31536000, immutable' : 'public, max-age=3600',
+        ];
+
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304, $cabeceras);
+        }
+
+        // Quien lee el fichero. Por nginx, PHP solo ha decidido -- permiso,
+        // plan, cache -- y nginx lo sirve desde un location interno
+        // (deploy/nginx-ficheros.conf) con sendfile y rangos; por PHP, un
+        // proceso php-fpm lee 35 MB y los escribe, que es lo que habia.
+        if (config('ficheros.por_nginx')) {
+            return response('', 200, $cabeceras + ['X-Accel-Redirect' => '/_ficheros/'.$file->storage_path]);
+        }
+
+        return response()->file($path, $cabeceras);
     }
 
     public function units(Project $project)
