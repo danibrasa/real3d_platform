@@ -169,11 +169,15 @@ class SolicitudDeVisorController extends Controller
             'horas' => ['nullable', 'numeric', 'min:0', 'max:999'],
         ]);
 
-        $cambios = [
-            'visor_asignado_a' => $validated['asignado_a'] ?? null,
-            'visor_objetivo' => $validated['objetivo'] ?? null,
-            'visor_horas' => $validated['horas'] ?? null,
-        ];
+        // Solo lo que venga en la peticion: un cambio de estado a secas no
+        // puede borrar quien lo lleva, la fecha ni las horas. Lo dijo el
+        // revisor: con '?? null' bastaba un PATCH corto para perderlo todo.
+        $cambios = [];
+        foreach (['asignado_a' => 'visor_asignado_a', 'objetivo' => 'visor_objetivo', 'horas' => 'visor_horas'] as $campo => $columna) {
+            if ($request->has($campo)) {
+                $cambios[$columna] = $validated[$campo] ?? null;
+            }
+        }
         if ($validated['estado'] !== $project->visor_estado) {
             $cambios['visor_estado'] = $validated['estado'];
             $cambios['visor_estado_en'] = now();

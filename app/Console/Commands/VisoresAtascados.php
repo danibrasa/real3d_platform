@@ -34,7 +34,9 @@ class VisoresAtascados extends Command
         }
 
         $atascados = Project::whereNotNull('viewer_requested_at')
-            ->where('visor_estado', '!=', Project::VISOR_MONTADO)
+            // NULL != 'montado' no es verdadero en SQL: un pedido sin estado
+            // (dato viejo o inconsistente) se quedaria fuera del aviso.
+            ->where(fn ($q) => $q->whereNull('visor_estado')->orWhere('visor_estado', '!=', Project::VISOR_MONTADO))
             ->where(fn ($q) => $q->whereNull('visor_estado_en')->orWhere('visor_estado_en', '<=', now()->subDays($dias)))
             ->with('montador')
             ->orderBy('visor_estado_en')

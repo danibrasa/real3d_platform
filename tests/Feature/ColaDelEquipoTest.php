@@ -83,6 +83,34 @@ class ColaDelEquipoTest extends TestCase
         $this->assertLessThan(1, $this->proyecto->fresh()->visor_estado_en->diffInMinutes(now()));
     }
 
+    public function test_cambiar_solo_el_estado_no_borra_lo_demas(): void
+    {
+        $this->proyecto->forceFill(['visor_asignado_a' => $this->gestora->id, 'visor_objetivo' => now()->addDays(2), 'visor_horas' => 4])->save();
+
+        $this->actingAs($this->gestora)->patch(route('admin.projects.visor.actualizar', $this->proyecto), ['estado' => 'para_revisar']);
+
+        $p = $this->proyecto->fresh();
+        $this->assertSame('para_revisar', $p->visor_estado);
+        $this->assertSame($this->gestora->id, $p->visor_asignado_a, 'un cambio de estado borro quien lo lleva');
+        $this->assertNotNull($p->visor_objetivo);
+        $this->assertSame(4.0, (float) $p->visor_horas);
+
+        // Y mandar el campo vacio si lo quita, que es la otra mitad.
+        $this->actingAs($this->gestora)->patch(route('admin.projects.visor.actualizar', $this->proyecto), ['estado' => 'para_revisar', 'asignado_a' => '']);
+        $this->assertNull($this->proyecto->fresh()->visor_asignado_a);
+    }
+
+    public function test_un_pedido_sin_estado_tambien_cuenta_como_atascado(): void
+    {
+        // Dato viejo o inconsistente: pedido pero sin estado. NULL != 'montado'
+        // no es verdadero en SQL y se quedaba fuera del aviso.
+        $this->proyecto->forceFill(['visor_estado' => null, 'visor_estado_en' => null, 'viewer_requested_at' => now()->subDays(9)])->save();
+
+        $this->artisan('visores:atascados', ['--dias' => 5])
+            ->expectsOutputToContain('Residencial Bahia')
+            ->assertFailed();
+    }
+
     public function test_solo_se_asigna_a_gente_del_equipo(): void
     {
         $this->actingAs($this->gestora)
