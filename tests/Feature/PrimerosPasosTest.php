@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\WelcomeEmail;
 use App\Models\CompanyProfile;
+use App\Models\MaterialDelProyecto;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\Unit;
@@ -99,9 +100,21 @@ class PrimerosPasosTest extends TestCase
         $this->assertSame('cargar_viviendas', $this->actual());
     }
 
-    public function test_con_viviendas_le_toca_pedir_el_visor(): void
+    public function test_con_viviendas_le_toca_entregar_el_material(): void
     {
         $this->vivienda($this->proyecto());
+
+        $this->assertSame('entregar_material', $this->actual());
+    }
+
+    public function test_con_material_le_toca_pedir_el_visor(): void
+    {
+        $p = $this->proyecto();
+        $this->vivienda($p);
+        MaterialDelProyecto::create([
+            'project_id' => $p->id, 'tipo' => 'planos', 'original_name' => 'planta.pdf',
+            'enlace' => 'https://ejemplo.invalid/planta.pdf',
+        ]);
 
         $this->assertSame('pedir_visor', $this->actual());
     }
@@ -181,13 +194,13 @@ class PrimerosPasosTest extends TestCase
         $this->assertStringNotContainsString(__('emails.welcome_body'), $html);
     }
 
-    public function test_el_correo_enseña_los_mismos_cuatro_pasos(): void
+    public function test_el_correo_enseña_los_mismos_pasos(): void
     {
         // Si el correo contara otra cosa que el panel, ya serian dos verdades
         // que alguien tendria que mantener iguales a mano.
         $html = (new WelcomeEmail($this->promotora))->render();
 
-        foreach (['crear_proyecto', 'cargar_viviendas', 'pedir_visor', 'publicar'] as $paso) {
+        foreach (['crear_proyecto', 'cargar_viviendas', 'entregar_material', 'pedir_visor', 'publicar'] as $paso) {
             $this->assertStringContainsString(__('primeros_pasos.'.$paso), $html);
         }
     }

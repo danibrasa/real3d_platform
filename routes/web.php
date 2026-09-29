@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\ImportarViviendasController;
 use App\Http\Controllers\Admin\InquiryController as AdminInquiryController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\MaterialController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PaymentPlanController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -95,6 +96,12 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
         ->withTrashed()
         ->name('projects.restaurar');
     Route::resource('projects', ProjectController::class);
+    // El material con el que se monta el visor: la promotora lo entrega aqui
+    // y el equipo lo recoge de aqui, en vez de por correo.
+    Route::get('projects/{project}/material', [MaterialController::class, 'index'])->name('projects.material.index');
+    Route::post('projects/{project}/material', [MaterialController::class, 'store'])->name('projects.material.store');
+    Route::delete('projects/{project}/material/{material}', [MaterialController::class, 'destroy'])->name('projects.material.destroy');
+    Route::get('projects/{project}/material/{material}/descargar', [MaterialController::class, 'descargar'])->name('projects.material.descargar');
     // La costura del reparto: la promotora avisa de que ha terminado lo suyo.
     Route::post('projects/{project}/pedir-visor', [SolicitudDeVisorController::class, 'pedir'])
         ->name('projects.visor.pedir');

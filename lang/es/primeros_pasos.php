@@ -2,7 +2,7 @@
 
 return [
     'titulo' => 'Primeros pasos',
-    'entradilla' => 'Cuatro pasos para tener tu proyecto en la web. Tres los haces tú.',
+    'entradilla' => 'Cinco pasos para tener tu proyecto en la web. Cuatro los haces tú.',
 
     'crear_proyecto' => 'Crea tu proyecto',
     'crear_proyecto_ayuda' => 'Solo necesitas el nombre; lo demás se rellena después.',
@@ -11,6 +11,10 @@ return [
     'cargar_viviendas' => 'Carga tus viviendas',
     'cargar_viviendas_ayuda' => 'Vale el Excel, el CSV, el folleto en PDF o una foto del listado de precios.',
     'cargar_viviendas_boton' => 'Cargar',
+
+    'entregar_material' => 'Entrega el material del visor',
+    'entregar_material_ayuda' => 'Planos y renders, y si los tienes, la foto o el vídeo 360 y el modelo 3D. Lo que pese mucho, como enlace.',
+    'entregar_material_boton' => 'Entregar',
 
     'pedir_visor' => 'Pide el visor 3D al equipo',
     'pedir_visor_ayuda' => 'El modelo 3D y el fondo 360 los monta el equipo de Real3D con tus planos y renders.',

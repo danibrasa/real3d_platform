@@ -46,6 +46,7 @@ class PrimerosPasos
     {
         $proyecto = $this->primerProyecto();
         $conViviendas = $proyecto && $proyecto->units()->exists();
+        $conMaterial = $proyecto && $proyecto->material()->exists();
         $lista = $proyecto ? ListaParaPublicar::de($proyecto) : null;
 
         $conVisor = $lista && $lista->puedePublicarse();
@@ -68,12 +69,23 @@ class PrimerosPasos
                     : null,
             ],
             [
+                // Con lo que el equipo monta el visor. Antes llegaba por fuera
+                // y este paso no existia: se pedia el visor y luego se
+                // preguntaba por correo donde estaban los planos.
+                'clave' => 'entregar_material',
+                'hecho' => $conMaterial || $conVisor || $pedido,
+                'de' => ListaParaPublicar::PROMOTORA,
+                'enlace' => $conViviendas && ! $conMaterial && ! $conVisor && ! $pedido && $proyecto
+                    ? route('admin.projects.material.index', $proyecto)
+                    : null,
+            ],
+            [
                 // Este no lo hace ella: solo avisa. Se marca hecho en cuanto lo
                 // ha pedido, para que no parezca que sigue pendiente de algo suyo.
                 'clave' => 'pedir_visor',
                 'hecho' => $conVisor || $pedido,
                 'de' => ListaParaPublicar::EQUIPO,
-                'enlace' => $conViviendas && ! $conVisor && ! $pedido && $proyecto
+                'enlace' => $conMaterial && ! $conVisor && ! $pedido && $proyecto
                     ? route('admin.projects.edit', $proyecto)
                     : null,
             ],

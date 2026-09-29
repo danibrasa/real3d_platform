@@ -150,7 +150,7 @@ class SolicitudDeVisorController extends Controller
 
         $proyectos = Project::whereNotNull('viewer_requested_at')
             ->with(['assignedAgencies.companyProfile', 'solicitanteDelVisor'])
-            ->withCount('units')
+            ->withCount(['units', 'material'])
             ->orderBy('viewer_requested_at')
             ->paginate(25);
 

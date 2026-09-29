@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'titulo' => 'Material for the viewer',
+    'entradilla' => 'This is what the team builds your 3D viewer from. Floor plans and renders are essential; a 360 photo or video and the 3D model, if you have them, save days. Anything too big to upload here, leave as a link (Drive, WeTransfer…).',
+    'subir' => 'Hand over a piece',
+    'subir_ayuda' => 'A file of up to :mb MB, or a link for anything bigger.',
+    'que_es' => 'What it is',
+    'fichero' => 'File',
+    'o_enlace' => 'Or a link',
+    'entregar' => 'Hand over',
+    'entregado' => 'Handed over (:n)',
+    'nada_todavia' => 'Nothing handed over yet.',
+    'recibido' => 'Received. The team will see it as soon as you request the viewer.',
+    'quitado' => 'Removed.',
+    'quitar' => 'Remove',
+    'quitar_confirmar' => 'Remove this piece of material?',
+    'imprescindible' => 'essential',
+    'hace_falta_fichero_o_enlace' => 'Upload a file or provide a link.',
+    'demasiado_grande' => 'Up to :mb MB fit through the form. For more, leave a link.',
+    'tipo_planos' => 'Floor plans',
+    'tipo_renders' => 'Renders or photos',
+    'tipo_imagen_360' => '360 photo',
+    'tipo_video_360' => '360 video',
+    'tipo_modelo' => '3D model',
+    'tipo_otro' => 'Other',
+    'en_cola' => 'Material',
+];

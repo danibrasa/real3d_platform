@@ -10,6 +10,7 @@ formulario, eso es fricción y sale en el informe en vez de arreglarse por detra
 Uso: CLAVE_WEB=<pass http> onboarding.py https://dev.real3d.io
 """
 
+import base64
 import io
 import os
 import subprocess
@@ -24,6 +25,11 @@ import requests
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "https://dev.real3d.io").rstrip("/")
 CLAVE_WEB = os.environ.get("CLAVE_WEB", "")
 SELLO = time.strftime("%H%M%S")
+
+# Un PNG de 1x1, para entregar como render sin depender de ningun fichero.
+PNG_MINIMO = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+)
 
 # La promotora de esta vuelta. Es a quien deben llegar los avisos de los leads,
 # y por eso se le pasa al gancho del correo: que la cola se vacie no dice a
@@ -480,6 +486,26 @@ def pedir_visor(notas, idp):
         notas.append("sin GANCHO_PLAN no hay plan de pago: este paso no aplica")
         notas.append("el recorrido acabara antes del visor")
         return
+
+    # Primero entrega el material, que es con lo que el equipo monta. Antes
+    # llegaba por fuera y el recorrido no lo pisaba.
+    r = s.get(BASE + "/admin/projects/%d/material" % idp, timeout=30)
+    notas.append("la pagina del material devuelve %s" % r.status_code)
+    f = elegir(formularios(r.text), "/material")
+    if not f or "fichero" not in f["campos"]:
+        notas.append("PROBLEMA: no hay donde entregar el material")
+        raise RuntimeError("sin entrega de material")
+
+    datos = dict(f["campos"])
+    datos["tipo"] = "renders"
+    datos.pop("fichero", None)
+    datos.pop("enlace", None)
+    fachada = ("fachada.png", PNG_MINIMO, "image/png")
+    r = s.post(BASE + "/admin/projects/%d/material" % idp, data=datos,
+               files={"fichero": fachada}, timeout=60)
+    notas.append("entregar un render devuelve %s" % r.status_code)
+    if "fachada.png" not in r.text:
+        notas.append("PROBLEMA: se entrega y no aparece en la lista")
 
     r = s.get(BASE + "/admin/projects/%d/edit" % idp, timeout=30)
 

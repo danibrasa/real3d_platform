@@ -138,7 +138,10 @@ class CompanyProfile extends Model
     public function recalculateStorage(): void
     {
         $projectIds = $this->user->assignedProjects()->pluck('projects.id');
-        $totalBytes = ProjectFile::whereIn('project_id', $projectIds)->sum('file_size');
+        // Lo que sirve el visor y lo que la promotora entrego para montarlo:
+        // las dos cosas ocupan sitio y las dos son suyas.
+        $totalBytes = ProjectFile::whereIn('project_id', $projectIds)->sum('file_size')
+            + MaterialDelProyecto::whereIn('project_id', $projectIds)->sum('file_size');
         $this->update(['storage_used_bytes' => $totalBytes]);
     }
 }

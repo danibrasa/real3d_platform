@@ -98,6 +98,12 @@ class Project extends Model
     /** Las promotoras del proyecto, cogidas justo antes de borrarlo del todo. */
     public $promotorasAntesDeBorrar = null;
 
+    /** Lo que la promotora entrega para que se monte el visor. */
+    public function material(): HasMany
+    {
+        return $this->hasMany(MaterialDelProyecto::class);
+    }
+
     /** Quien pidio que le montaran el visor. */
     public function solicitanteDelVisor(): BelongsTo
     {

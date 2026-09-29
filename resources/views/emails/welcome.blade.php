@@ -29,6 +29,7 @@
                 <ol style="color:#374151; line-height:1.8; padding-left:20px;">
                     <li>{{ __('primeros_pasos.crear_proyecto') }}</li>
                     <li>{{ __('primeros_pasos.cargar_viviendas') }}</li>
+                    <li>{{ __('primeros_pasos.entregar_material') }}</li>
                     <li>{{ __('primeros_pasos.pedir_visor') }}</li>
                     <li>{{ __('primeros_pasos.publicar') }}</li>
                 </ol>
