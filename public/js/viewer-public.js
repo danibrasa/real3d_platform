@@ -291,28 +291,60 @@ function loadVideoFromURL(url) {
     video.addEventListener('error', () => { setLoading('Error cargando video.'); });
 }
 
+// La direccion del mismo fichero en otro tamaño (?tam=2k). El servidor
+// devuelve el original si no tiene ese tamaño, asi que se puede pedir siempre.
+function conTamano(url, tam) {
+    try {
+        const u = new URL(url, window.location.origin);
+        u.searchParams.set('tam', tam);
+        return u.pathname + u.search;
+    } catch (e) {
+        return url;
+    }
+}
+
+function ponerFondo(texture) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    const anterior = state.videoSphere.material.map;
+    state.videoSphere.material.map = texture;
+    state.videoSphere.material.color.setHex(0xffffff);
+    state.videoSphere.material.opacity = 1;
+    state.videoSphere.material.needsUpdate = true;
+    state.videoSphere.visible = true;
+    state.scene.background = null;
+    state.scene.fog = null;
+    if (anterior && anterior !== texture) anterior.dispose();
+}
+
+// El fondo 360 en dos tiempos: primero la version ligera (2K, medio mega),
+// que quita el cargador en segundos, y despues la grande (8K, veinte
+// megas), que la sustituye sin que se note. Antes se esperaba a la grande
+// para enseñar nada: en 4G, medio minuto de barra.
 function loadImageFromURL(url) {
     setLoading('Cargando imagen 360...');
     if (state.videoElement) { state.videoElement.pause(); state.videoElement.remove(); state.videoElement = null; }
     if (state.videoTexture) { state.videoTexture.dispose(); state.videoTexture = null; }
 
     const loader = new THREE.TextureLoader();
-    loader.load(url, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
+    let yaHayFondo = false;
 
-        state.videoSphere.material.map = texture;
-        state.videoSphere.material.color.setHex(0xffffff);
-        state.videoSphere.material.opacity = 1;
-        state.videoSphere.material.needsUpdate = true;
-        state.videoSphere.visible = true;
-        state.scene.background = null;
-        state.scene.fog = null;
+    const cargarGrande = () => {
+        loader.load(url, (texture) => {
+            ponerFondo(texture);
+            if (!yaHayFondo) { yaHayFondo = true; checkAllLoaded(); }
+        }, undefined, () => { if (!yaHayFondo) setLoading('Error cargando imagen 360.'); });
+    };
 
+    loader.load(conTamano(url, '2k'), (texture) => {
+        ponerFondo(texture);
+        yaHayFondo = true;
         checkAllLoaded();
-    }, undefined, () => { setLoading('Error cargando imagen 360.'); });
+        cargarGrande();
+    }, undefined, cargarGrande);
 }
 
 // =============================================================

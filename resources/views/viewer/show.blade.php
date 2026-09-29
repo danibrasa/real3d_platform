@@ -224,7 +224,9 @@
 <body>
 <x-env-banner />
     <div id="canvas-container">
-        <div id="loading-overlay">
+        {{-- La portada del proyecto detras del cargador: algo que mirar
+             mientras bajan el fondo y el modelo, en vez de negro. --}}
+        <div id="loading-overlay" @if($portada = $project->urlDeFichero('thumbnail')) style="background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.75)), url('{{ $portada }}'); background-size: cover; background-position: center;" @endif>
             <div class="spinner"></div>
             <p id="loading-text">Cargando proyecto...</p>
         </div>

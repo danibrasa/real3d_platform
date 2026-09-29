@@ -769,6 +769,23 @@ def darse_de_baja(notas, idp):
         notas.append("PROBLEMA: el fichero esta subido pero el servidor no lo puede leer")
         return
 
+    # Como se sirve, que es lo que la auditoria encontro mal: con cache, por
+    # rangos (eso lo hace nginx, y solo si el location interno esta bien), y
+    # con la version ligera pedible aunque no exista.
+    cache = antes_fichero.headers.get("Cache-Control", "")
+    notas.append("con cache: %s" % (cache or "SIN Cache-Control"))
+    if "max-age" not in cache:
+        notas.append("PROBLEMA: el fondo se sirve sin cache")
+    rango = pub.get(BASE + "/api/projects/%s/files/image_360" % slug,
+                    headers={"Range": "bytes=0-9"}, timeout=30)
+    notas.append("un rango de 10 bytes devuelve %s con %d bytes" % (rango.status_code, len(rango.content)))
+    if rango.status_code != 206:
+        notas.append("PROBLEMA: no se sirven rangos: el video 360 no podra reproducirse a saltos")
+    ligera = pub.get(BASE + "/api/projects/%s/files/image_360?tam=2k" % slug, timeout=30)
+    notas.append("la version ligera (tam=2k) devuelve %s" % ligera.status_code)
+    if ligera.status_code != 200 or len(ligera.content) > len(antes_fichero.content):
+        notas.append("PROBLEMA: la version ligera no se sirve, o pesa mas que la grande")
+
     proceso = subprocess.run(gancho.split() + [str(idp)], capture_output=True, text=True)
     for linea in (proceso.stdout + proceso.stderr).strip().splitlines():
         if linea:
