@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\SolicitudDeVisor;
 use App\Mail\VisorMontado;
+use App\Mail\VisorRevisado;
 use App\Models\AuditLog;
 use App\Models\Project;
 use App\Models\User;
@@ -190,6 +191,40 @@ class SolicitudDeVisorController extends Controller
         return back()->with('success', __('visor.cola_guardada', ['proyecto' => $project->name]));
     }
 
+    /**
+     * El visto bueno de la promotora: aprueba, o pide cambios diciendo cuales.
+     *
+     * Aprobar no cambia el estado -- darlo por montado sigue siendo del
+     * equipo, que comprueba que hay algo montado --; pedir cambios lo
+     * devuelve a preparacion con el comentario a la vista en la cola.
+     */
+    public function revisado(Request $request, Project $project)
+    {
+        $user = $request->user();
+        abort_unless($user->canAccessProject($project), 403);
+
+        $validated = $request->validate([
+            'veredicto' => ['required', Rule::in(['aprobado', 'cambios'])],
+            'comentario' => ['required_if:veredicto,cambios', 'nullable', 'string', 'max:2000'],
+        ]);
+        $aprobado = $validated['veredicto'] === 'aprobado';
+
+        $project->update($aprobado
+            ? ['visor_aprobado_en' => now(), 'visor_aprobado_por' => $user->id, 'visor_comentario' => $validated['comentario'] ?? null]
+            : ['visor_aprobado_en' => null, 'visor_aprobado_por' => null, 'visor_comentario' => $validated['comentario'], 'visor_estado' => 'en_preparacion', 'visor_estado_en' => now()]);
+
+        AuditLog::record($aprobado ? 'viewer_approved' : 'viewer_changes_requested', $project, null, [
+            'por' => $user->email,
+            'comentario' => $validated['comentario'] ?? null,
+        ]);
+
+        foreach (User::whereIn('role', [User::ROLE_SUPERADMIN, User::ROLE_GESTOR])->pluck('email') as $correo) {
+            Mail::to($correo)->queue(new VisorRevisado($project, $user, $aprobado, $validated['comentario'] ?? null));
+        }
+
+        return back()->with('success', __($aprobado ? 'visor.aprobado_gracias' : 'visor.cambios_pedidos'));
+    }
+
     public function pendientes(Request $request)
     {
         abort_unless($request->user()->hasRole(User::ROLE_SUPERADMIN, User::ROLE_GESTOR), 403);
@@ -198,7 +233,7 @@ class SolicitudDeVisorController extends Controller
         // un visor en revision desde ayer va detras de uno pedido hace una
         // semana que nadie ha cogido.
         $proyectos = Project::whereNotNull('viewer_requested_at')
-            ->with(['assignedAgencies.companyProfile', 'solicitanteDelVisor', 'montador'])
+            ->with(['assignedAgencies.companyProfile', 'solicitanteDelVisor', 'montador', 'aprobadorDelVisor'])
             ->withCount(['units', 'material'])
             ->orderByRaw('coalesce(visor_estado_en, viewer_requested_at)')
             ->paginate(25);

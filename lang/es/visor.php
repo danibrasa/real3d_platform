@@ -45,4 +45,13 @@ return [
     'cola_guardada' => 'Cola actualizada: :proyecto.',
     'parado_dias' => 'Lleva :dias días sin moverse',
     'previsto_para' => 'previsto para el :fecha',
+    'listo_para_revisar_texto' => 'Tu visor está montado. Míralo y dinos si lo damos por bueno o qué cambiarías.',
+    'ver_mi_visor' => 'Ver mi visor',
+    'aprobar' => 'Aprobar el visor',
+    'pedir_cambios' => 'Pedir cambios',
+    'comentario_ayuda' => 'Si pides cambios, di cuáles. Si lo apruebas, lo que quieras añadir.',
+    'aprobado_gracias' => 'Gracias. El equipo lo dará por montado y te avisará cuando puedas publicar.',
+    'cambios_pedidos' => 'Anotado. El equipo vuelve a por ello y te avisará cuando esté.',
+    'aprobado_el' => 'Visor aprobado el :fecha. El equipo lo dará por montado en breve.',
+    'aprobado_por' => 'Aprobado por :quien',
 ];
