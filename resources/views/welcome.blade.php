@@ -488,7 +488,7 @@
             </div>
 
             <div class="mt-12 pt-8 border-t border-white/5 text-center">
-                <p class="text-sm text-slate-600">&copy; {{ date('Y') }} Real3D · real3d.io · Real estate. Real 3D.</p>
+                <x-pie-legal :oscuro="true" class="text-center" />
             </div>
         </div>
     </footer>

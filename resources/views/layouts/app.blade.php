@@ -39,6 +39,8 @@
                 {{ $slot }}
             </main>
 
+            <x-pie-legal class="px-4 py-6 text-center" />
+
             <x-admin-version />
         </div>
     </body>

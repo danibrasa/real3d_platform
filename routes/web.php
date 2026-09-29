@@ -35,6 +35,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DeveloperDirectoryController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\McpServerController;
 use App\Http\Controllers\MiInversionController;
@@ -236,6 +237,14 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     Route::resource('blog/posts', BlogPostController::class)->names('blog.posts');
     Route::resource('blog/categories', BlogCategoryController::class)->except(['create', 'show', 'edit'])->names('blog.categories');
 });
+
+// Las paginas legales. Tres rutas con nombre, una por pagina, para que
+// route('legal.privacidad') exista y un enlace roto lo diga al pintar.
+foreach (LegalController::PAGINAS as $pagina) {
+    Route::get("/legal/{$pagina}", LegalController::class)
+        ->defaults('pagina', $pagina)
+        ->name("legal.{$pagina}");
+}
 
 // Stripe Webhook (no CSRF, no auth)
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('stripe.webhook');

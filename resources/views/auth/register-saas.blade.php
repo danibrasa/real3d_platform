@@ -31,6 +31,18 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <div class="mt-4">
+            <label for="acepto" class="flex items-start gap-2 text-sm text-gray-700">
+                <input id="acepto" name="acepto" type="checkbox" value="1" required
+                       class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" {{ old('acepto') ? 'checked' : '' }}>
+                <span>{!! __('legal.acepto', [
+                    'condiciones' => '<a href="'.route('legal.condiciones').'" target="_blank" rel="noopener" class="underline">'.__('legal.condiciones').'</a>',
+                    'privacidad' => '<a href="'.route('legal.privacidad').'" target="_blank" rel="noopener" class="underline">'.__('legal.privacidad').'</a>',
+                ]) !!}</span>
+            </label>
+            <x-input-error :messages="$errors->get('acepto')" class="mt-2" />
+        </div>
+
         <div class="mt-6">
             <button type="submit" class="w-full flex justify-center py-2.5 px-4 bg-emerald-600 text-white rounded-md font-semibold text-sm hover:bg-emerald-700 transition">
                 {{ app()->getLocale() === 'en' ? 'Create Account' : 'Crear Cuenta' }}

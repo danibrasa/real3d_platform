@@ -27,6 +27,11 @@ class OnboardingController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // Sin aceptar no hay cuenta, y queda constancia de cuando y de
+            // que version: sin eso no hay forma de demostrar que se acepto.
+            'acepto' => ['accepted'],
+        ], [
+            'acepto.accepted' => __('legal.acepto_obligatorio'),
         ]);
 
         $user = User::create([
@@ -35,6 +40,11 @@ class OnboardingController extends Controller
             'password' => Hash::make($request->password),
             'role' => User::ROLE_INMOBILIARIA,
         ]);
+
+        $user->forceFill([
+            'legal_aceptado_en' => now(),
+            'legal_version' => config('legal.version'),
+        ])->save();
 
         event(new Registered($user));
 

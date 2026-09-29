@@ -51,6 +51,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'legal_aceptado_en' => 'datetime',
             'password' => 'hashed',
         ];
     }

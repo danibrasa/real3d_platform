@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CompanyProfile;
 use App\Models\Project;
+use App\Models\Unit;
 use App\Models\User;
 use App\Support\Pmv;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,6 +30,8 @@ class PmvTest extends TestCase
 
     private Project $proyecto;
 
+    private Unit $vivienda;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -51,6 +54,26 @@ class PmvTest extends TestCase
             'created_by' => $this->promotora->id,
         ]);
         $this->promotora->assignedProjects()->attach($this->proyecto->id);
+
+        // Con lo que el informe de inversion necesita para existir.
+        $this->proyecto->update([
+            'avg_nightly_rate' => 185,
+            'average_occupancy' => 78,
+            'management_fee' => 20,
+            'property_tax_rate' => 1,
+            'appreciation_rate_annual' => 12,
+        ]);
+        $this->vivienda = Unit::create([
+            'project_id' => $this->proyecto->id,
+            'identifier' => 'A-101',
+            'floor' => 1,
+            'sort_order' => 1,
+            'bedrooms' => 2,
+            'bathrooms' => 2,
+            'area_m2' => 85,
+            'price' => 250000,
+            'status' => 'available',
+        ]);
     }
 
     /** Una direccion de cada zona escondida, para probar la puerta y no la lista. */
@@ -63,10 +86,28 @@ class PmvTest extends TestCase
             'analisis' => route('admin.strategic-analysis.index'),
             'obra' => route('admin.projects.construction.index', $this->proyecto),
             'pagos' => route('admin.projects.payment-plans.index', $this->proyecto),
+            'blog categorias' => route('admin.blog.categories.index'),
             'blog publico' => route('blog.index'),
+            'monedas' => route('admin.currencies.index'),
+            'mcp' => '/.well-known/mcp.json',
+            'inversion' => route('viewer.investment.pdf', [$this->proyecto->slug, $this->vivienda->id]),
             'directorio' => route('directory.index'),
             'widget' => route('embed.show', $this->proyecto->slug),
         ];
+    }
+
+    public function test_hay_una_direccion_de_prueba_por_cada_zona_escondida(): void
+    {
+        // Lo dijo el revisor: faltaban dos zonas en la lista de arriba, y
+        // una zona sin direccion de prueba es una zona que puede estar
+        // reventando para el equipo sin que nada lo diga.
+        $probadas = collect(array_keys($this->unaDeCadaZona()))
+            ->map(fn ($clave) => explode(' ', $clave)[0])
+            ->unique();
+
+        foreach (array_keys(config('pmv.fuera')) as $zona) {
+            $this->assertContains($zona, $probadas->all(), "la zona '{$zona}' no tiene direccion de prueba en unaDeCadaZona()");
+        }
     }
 
     public function test_para_la_promotora_lo_escondido_no_existe(): void

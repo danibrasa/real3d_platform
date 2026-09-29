@@ -29,26 +29,36 @@
     <meta name="twitter:image" content="{{ url('/storage/' . $project->thumbnail_path) }}">
     @endif
 
-    <!-- QW3: Google Analytics -->
+    {{-- Analiticas, solo con permiso. Antes la etiqueta de Google iba en el
+         HTML y se cargaba a todo el mundo; ahora la pone cargarAnaliticas()
+         cuando el aviso de cookies dice que si. --}}
     @php
         $gaId = $project->analytics_id ?? config('services.google_analytics.id');
     @endphp
     @if($gaId)
+    <script>
+    window.cargarAnaliticas = function () {
+        if (window.analiticasCargadas) return;
+        window.analiticasCargadas = true;
         @if(str_starts_with($gaId, 'GTM-'))
-        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','{{ $gaId }}');</script>
+        })(window,document,'script','dataLayer',@json($gaId));
         @else
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
-        <script>
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(@json($gaId));
+        document.head.appendChild(s);
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
         gtag('js', new Date());
-        gtag('config', '{{ $gaId }}');
-        </script>
+        gtag('config', @json($gaId));
         @endif
+    };
+    </script>
     @endif
 
     <style>
@@ -354,5 +364,10 @@
     <script type="module" src="/js/viewer-public.js"></script>
     <script src="/js/viewer-units.js"></script>
     <script src="/js/viewer-analytics.js" defer></script>
+
+    @if($gaId)
+    <x-aviso-cookies />
+    @endif
+    <x-pie-legal :oscuro="true" class="fixed bottom-1 left-2 z-40 opacity-60 hover:opacity-100" />
 </body>
 </html>
