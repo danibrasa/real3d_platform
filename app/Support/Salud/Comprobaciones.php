@@ -2,6 +2,7 @@
 
 namespace App\Support\Salud;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
@@ -26,6 +27,17 @@ class Comprobaciones
     /** Un trabajo cogido mas de esto es un worker que murio sujetandolo. */
     private const MINUTOS_COLGADO = 15;
 
+    /** Sin latido del planificador mas de esto, sus tareas no estan corriendo. */
+    private const MINUTOS_SIN_LATIDO = 15;
+
+    /** Donde deja el latido la tarea salud:latido, cada cinco minutos. */
+    public const CLAVE_LATIDO = 'salud.latido';
+
+    /** Por debajo de cualquiera de los dos, el disco cuenta como lleno. */
+    private const GB_MINIMOS = 2;
+
+    private const PORCENTAJE_MINIMO = 10;
+
     /**
      * @return array<string, array{ok: bool, detalle: string}>
      */
@@ -35,6 +47,8 @@ class Comprobaciones
             'base' => self::base(),
             'correo' => self::correo(),
             'cola' => self::cola(),
+            'latido' => self::latido(),
+            'disco' => self::disco(),
         ];
     }
 
@@ -157,6 +171,68 @@ class Comprobaciones
         } catch (\Throwable $e) {
             return ['ok' => false, 'detalle' => self::corto($e)];
         }
+    }
+
+    /**
+     * Si el planificador corre.
+     *
+     * Las tareas programadas -- limpiar subidas a medias, y las que vengan --
+     * no fallan cuando el planificador no corre: no ocurren. El timer parado,
+     * o arrancando en un directorio que un despliegue dejo atras, y nada lo
+     * dice. Por eso una de las tareas es dejar un latido, y esto lo lee.
+     */
+    private static function latido(): array
+    {
+        try {
+            $ultimo = (int) Cache::get(self::CLAVE_LATIDO, 0);
+
+            if ($ultimo === 0) {
+                return [
+                    'ok' => false,
+                    'detalle' => 'el planificador no ha dado señales nunca: sin timer de schedule:run, o sin salud:latido en la agenda',
+                ];
+            }
+
+            $minutos = (int) round((time() - $ultimo) / 60);
+
+            return [
+                'ok' => $minutos <= self::MINUTOS_SIN_LATIDO,
+                'detalle' => "el planificador dio señales hace {$minutos} min",
+            ];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'detalle' => self::corto($e)];
+        }
+    }
+
+    /**
+     * Si queda sitio donde se guardan los ficheros.
+     *
+     * Un disco lleno no tira la web: las paginas siguen saliendo, y lo que
+     * falla es la subida del visor de una promotora, a medias, con un error
+     * que ella no entiende y que nosotros no vemos.
+     */
+    private static function disco(): array
+    {
+        try {
+            $ruta = storage_path();
+
+            return self::evaluarDisco((int) disk_free_space($ruta), (int) disk_total_space($ruta));
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'detalle' => self::corto($e)];
+        }
+    }
+
+    /** Aparte y publica para probarla con numeros: el disco de los tests no se llena a voluntad. */
+    public static function evaluarDisco(int $libre, int $total): array
+    {
+        $gb = round($libre / 1024 ** 3, 1);
+        $porcentaje = $total > 0 ? (int) round($libre * 100 / $total) : 0;
+        $escaso = $libre < self::GB_MINIMOS * 1024 ** 3 || $porcentaje < self::PORCENTAJE_MINIMO;
+
+        return [
+            'ok' => ! $escaso,
+            'detalle' => "{$gb} GB libres ({$porcentaje}%)".($escaso ? ': se esta llenando' : ''),
+        ];
     }
 
     /** El mensaje de un fallo, sin la novela: esto acaba en un correo. */

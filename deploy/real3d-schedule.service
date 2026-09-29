@@ -1,0 +1,8 @@
+[Unit]
+Description=Tareas programadas de Laravel (Real3D.io)
+
+[Service]
+Type=oneshot
+User=www-data
+WorkingDirectory=/var/www/real3d/current
+ExecStart=/usr/bin/php artisan schedule:run
