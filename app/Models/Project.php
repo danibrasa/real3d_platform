@@ -56,12 +56,16 @@ class Project extends Model
         'visor_asignado_a',
         'visor_objetivo',
         'visor_horas',
+        'visor_aprobado_en',
+        'visor_aprobado_por',
+        'visor_comentario',
     ];
 
     protected $casts = [
         'viewer_requested_at' => 'datetime',
         'visor_estado_en' => 'datetime',
         'visor_objetivo' => 'date',
+        'visor_aprobado_en' => 'datetime',
         'estimated_delivery' => 'date',
         'total_floors' => 'integer',
         'latitude' => 'float',
@@ -120,6 +124,12 @@ class Project extends Model
     public const VISOR_MONTADO = 'montado';
 
     public const ESTADOS_VISOR = ['pedido', 'en_preparacion', 'para_revisar', 'montado'];
+
+    /** Quien de la promotora dio el visto bueno al visor. */
+    public function aprobadorDelVisor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'visor_aprobado_por');
+    }
 
     /** Quien del equipo lo esta montando. */
     public function montador(): BelongsTo

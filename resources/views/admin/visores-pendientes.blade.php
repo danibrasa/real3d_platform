@@ -89,6 +89,11 @@
                                         @if ($parado >= 5)
                                             <div class="text-xs text-red-700 font-medium mt-1">{{ __('visor.parado_dias', ['dias' => $parado]) }}</div>
                                         @endif
+                                        @if ($p->visor_aprobado_en)
+                                            <div class="text-xs text-emerald-700 mt-1">✓ {{ __('visor.aprobado_por', ['quien' => $p->aprobadorDelVisor?->name ?? '?']) }}</div>
+                                        @elseif ($p->visor_comentario)
+                                            <div class="text-xs text-amber-800 mt-1">“{{ $p->visor_comentario }}”</div>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3">
                                         @forelse ($lista->bloqueos() as $b)

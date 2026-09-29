@@ -47,6 +47,28 @@
     {{-- La costura del reparto. Sin este boton la promotora leia "lo hace el
          equipo de Real3D" y no tenia forma de avisar a nadie: se quedaba
          esperando a que alguien adivinara que habia terminado. --}}
+    @if ($project->visor_estado === 'para_revisar')
+        {{-- El visto bueno. Antes la promotora se enteraba del
+             resultado al publicarlo; ahora lo ve en borrador y decide. --}}
+        <div class="mt-2 rounded-md border border-emerald-200 bg-emerald-50 p-3">
+            @if ($project->visor_aprobado_en)
+                <p class="text-xs text-emerald-800">{{ __('visor.aprobado_el', ['fecha' => $project->visor_aprobado_en->translatedFormat('j \d\e F')]) }}</p>
+            @else
+                <p class="text-xs text-emerald-900 mb-2">{{ __('visor.listo_para_revisar_texto') }}</p>
+                <a href="{{ route('viewer.show', $project) }}" target="_blank" rel="noopener" class="inline-block mb-2 px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700">{{ __('visor.ver_mi_visor') }}</a>
+                <form method="POST" action="{{ route('admin.projects.visor.revisado', $project) }}" class="space-y-2">
+                    @csrf
+                    <textarea name="comentario" rows="2" class="w-full rounded-md border-gray-300 text-xs" placeholder="{{ __('visor.comentario_ayuda') }}">{{ old('comentario') }}</textarea>
+                    <x-input-error :messages="$errors->get('comentario')" class="mt-1" />
+                    <div class="flex gap-2">
+                        <button type="submit" name="veredicto" value="aprobado" class="px-3 py-1.5 bg-emerald-700 text-white rounded-md text-xs font-semibold hover:bg-emerald-800">{{ __('visor.aprobar') }}</button>
+                        <button type="submit" name="veredicto" value="cambios" class="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-md text-xs font-semibold hover:bg-gray-50">{{ __('visor.pedir_cambios') }}</button>
+                    </div>
+                </form>
+            @endif
+        </div>
+    @endif
+
     @if (collect($bloqueos)->contains(fn ($b) => $b['clave'] === 'sin_visor'))
         <div class="mt-3 pt-3 border-t border-amber-200">
             @if ($project->viewer_requested_at)

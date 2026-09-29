@@ -193,7 +193,10 @@ class ViewerController extends Controller
 
                 return;
             case 'draft':
-                if (! auth()->check() || ! auth()->user()->hasRole('superadmin', 'gestor')) {
+                // El equipo, y la promotora del proyecto: tiene que poder ver
+                // su visor antes de que se publique para dar el visto bueno.
+                // Antes se enteraba del resultado al publicarlo.
+                if (! auth()->check() || ! (auth()->user()->hasRole('superadmin', 'gestor') || auth()->user()->canAccessProject($project))) {
                     abort(404);
                 }
 

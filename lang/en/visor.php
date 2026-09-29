@@ -45,4 +45,13 @@ return [
     'cola_guardada' => 'Queue updated: :proyecto.',
     'parado_dias' => 'Stuck for :dias days',
     'previsto_para' => 'expected by :fecha',
+    'listo_para_revisar_texto' => 'Your viewer is built. Take a look and tell us whether it is good to go or what you would change.',
+    'ver_mi_visor' => 'See my viewer',
+    'aprobar' => 'Approve the viewer',
+    'pedir_cambios' => 'Request changes',
+    'comentario_ayuda' => 'If you request changes, say which. If you approve, anything you want to add.',
+    'aprobado_gracias' => 'Thanks. The team will mark it as built and let you know when you can publish.',
+    'cambios_pedidos' => 'Noted. The team is on it and will let you know when it is ready.',
+    'aprobado_el' => 'Viewer approved on :fecha. The team will mark it as built shortly.',
+    'aprobado_por' => 'Approved by :quien',
 ];
