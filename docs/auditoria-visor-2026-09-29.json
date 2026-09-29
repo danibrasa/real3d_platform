@@ -1,0 +1,46 @@
+{
+  "_que_es": "Lo crudo de la auditoria del visor del 29-sep-2026 (docs/auditoria-visor-2026-09-29.md): salida de performance.getEntriesByType() y fetch(HEAD) desde la consola de Chrome en real3d.io, v1.4.0, escritorio, fibra. Tamanos en KB transferidos.",
+  "visor": {
+    "url": "https://real3d.io/projects/salado",
+    "ttfb_ms": 39, "dcl_ms": 342, "load_ms": 1126, "html_kb": 7, "recursos": 16, "total_mb": "55.7",
+    "porTipo_mb": {"fetch": "34.80", "img": "20.50", "script": "0.39", "beacon": "0.00"},
+    "grandes": [
+      {"url": "/api/projects/1/files/model_3d?f=salado1-desde-ifcv2.glb", "kb": 35618, "ms": 1218},
+      {"url": "/api/projects/1/files/image_360", "kb": 20995, "ms": 776},
+      {"url": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js", "kb": 252, "ms": 64},
+      {"url": "/js/viewer-public.js", "kb": 36, "ms": 37},
+      {"url": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/GLTFLoader.js", "kb": 24, "ms": 65},
+      {"url": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/FBXLoader.js", "kb": 24, "ms": 83},
+      {"url": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/libs/fflate.module.js", "kb": 21, "ms": 24},
+      {"url": "/js/viewer-units.js", "kb": 10, "ms": 38},
+      {"url": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/controls/OrbitControls.js", "kb": 8, "ms": 26},
+      {"url": "/js/viewer-analytics.js", "kb": 7, "ms": 52}
+    ],
+    "webgl": true, "canvas": 1, "memoriaMB": 147, "video": [], "erroresConsola": 0,
+    "cabeceras": {
+      "modelo": {"content-type": "model/gltf-binary", "content-length": 36472328, "cache-control": "max-age=3600, public", "content-encoding": null, "etag": false, "last-modified": true},
+      "imagen360": {"content-type": "image/jpeg", "content-length": 21498487, "cache-control": "max-age=3600, public", "content-encoding": null, "etag": false, "last-modified": true}
+    },
+    "instrucciones": "Click izq + arrastrar = rotar | Scroll = zoom | Click der + arrastrar = mover",
+    "botonesVisibles": ["← Volver", "Ver detalles del proyecto"],
+    "detalleDeVivienda": {"abreDesde": "la tarjeta de la lista, no el modelo", "botones": ["WhatsApp", "Consultar", "Ver ficha completa", "Compartir"]},
+    "picking_en_el_3d": false
+  },
+  "ficha": {
+    "url": "https://real3d.io/projects/salado/info",
+    "ttfb_ms": 130, "dcl_ms": 380, "load_ms": 1301, "html_kb": 53, "recursos": 88, "total_mb": "53.3",
+    "lcp": {"ms": 7404, "el": "DIV"},
+    "imagenesGrandes_kb": [2777, 1762, 1035, 999, 990, 986, 950, 908],
+    "imgsDom": 46, "altVacios": 14, "lazy": 25,
+    "formulario": true, "chatbot": true, "mapa": true,
+    "cta": ["Consultas", "Escribenos por WhatsApp", "Contactar un asesor", "Enviar consulta"]
+  },
+  "disco_produccion": {
+    "1_salado": {"video_360_mb": 314.9, "model_3d_mb": 34.8, "image_360_mb": 20.5, "thumbnail_mb": 0.7},
+    "2_torre-mirador-del-caribe": {"video_360_mb": 314.9, "model_3d_mb": 22.8},
+    "3_sky-residence-punta-cana": {"video_360_mb": 314.9, "model_3d_mb": 15.1, "image_360_mb": 19.8},
+    "4_salado-iii": {"model_3d_mb": 69.0, "image_360_mb": 20.5},
+    "5_salado-v2": {"video_360_mb": 314.9, "model_3d_mb": 34.8, "image_360_mb": 20.5, "thumbnail_mb": 0.7},
+    "nota": "el mismo VID_20260205_131155_00_250.mp4 de 315 MB esta en los proyectos 1, 2, 3 y 5"
+  }
+}
