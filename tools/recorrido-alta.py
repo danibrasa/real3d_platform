@@ -35,6 +35,7 @@ PNG_MINIMO = base64.b64decode(
 # y por eso se le pasa al gancho del correo: que la cola se vacie no dice a
 # quien fue nada.
 CORREO_PROMOTORA = "ana.%s@recorrido-automatico.invalid" % SELLO
+CLAVE_PROMOTORA = "UnaClaveLarga2026!"
 
 s = requests.Session()
 s.auth = ("real3d", CLAVE_WEB) if CLAVE_WEB else None
@@ -233,8 +234,8 @@ def registrarse(notas, html):
     datos.update({
         "name": "Ana Promotora",
         "email": CORREO_PROMOTORA,
-        "password": "UnaClaveLarga2026!",
-        "password_confirmation": "UnaClaveLarga2026!",
+        "password": CLAVE_PROMOTORA,
+        "password_confirmation": CLAVE_PROMOTORA,
     })
     faltan = [k for k in datos if datos[k] == "" and k != "_token"]
     if faltan:
@@ -723,6 +724,29 @@ def preguntar_por_el_chatbot(notas, idp):
                                 "Recorrido automatico %s - Comprador Del Chat" % SELLO)
 
 
+@paso("9c. La promotora atiende el lead desde el telefono")
+def atender_desde_el_telefono(notas, idp):
+    """El aviso del lead llega al movil, y desde ahi se contesta.
+
+    Lo de arriba pregunta al servidor; esto abre el panel con un navegador de
+    390 px, entra como Ana y mira que la bandeja y la ficha del lead quepan,
+    tengan a mano el WhatsApp y el estado, y no dejen errores en la consola.
+    """
+    gancho = os.environ.get("GANCHO_PANEL", "").strip()
+    if not gancho:
+        notas.append("sin GANCHO_PANEL: el panel no se abre con un navegador")
+        return
+
+    entorno = dict(os.environ, CORREO=CORREO_PROMOTORA, CLAVE=CLAVE_PROMOTORA)
+    r = subprocess.run(gancho.split() + [BASE], capture_output=True, text=True,
+                       timeout=300, env=entorno)
+    for linea in (r.stdout + r.stderr).strip().splitlines():
+        if linea:
+            notas.append("navegador: " + linea)
+    if r.returncode != 0:
+        notas.append("PROBLEMA: el panel no se puede usar desde un telefono")
+
+
 @paso("10. Se da de baja y el visor deja de verse")
 def darse_de_baja(notas, idp):
     """La otra mitad del circuito del dinero.
@@ -853,6 +877,7 @@ if idp:
     publicar(idp)
     preguntar(idp)
     preguntar_por_el_chatbot(idp)
+    atender_desde_el_telefono(idp)
     # El ultimo, porque deja a la promotora sin plan: cualquier paso detras se
     # encontraria el producto a medias y contaria un fallo que no existe.
     darse_de_baja(idp)

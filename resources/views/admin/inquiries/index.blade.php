@@ -34,8 +34,47 @@
                 </form>
             </div>
 
+            @php $colores = ['nuevo' => 'bg-blue-100 text-blue-800', 'contactado' => 'bg-amber-100 text-amber-800', 'visita' => 'bg-purple-100 text-purple-800', 'cerrado' => 'bg-emerald-100 text-emerald-800', 'descartado' => 'bg-gray-100 text-gray-500']; @endphp
             @if($inquiries->count())
-            <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+            {{-- En el telefono, tarjetas: la tabla de siete columnas no cabe en
+                 390 px y lo que quedaba fuera era justo el estado y el "Ver".
+                 Una promotora lee el aviso del lead en el coche; desde aqui
+                 escribe por WhatsApp y marca "contactado" sin hacer zoom. --}}
+            <div class="sm:hidden space-y-3" data-tarjetas>
+                @foreach($inquiries as $inquiry)
+                <div class="bg-white shadow-sm p-4 {{ !$inquiry->read ? 'border-l-4 border-blue-500' : '' }}">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="min-w-0">
+                            <a href="{{ route('admin.inquiries.show', $inquiry) }}" class="block font-semibold text-gray-900 py-1 truncate">{{ $inquiry->name }}</a>
+                            <p class="text-xs text-gray-500">{{ $inquiry->created_at->format('d/m/Y H:i') }} · {{ $inquiry->project->name ?? '-' }}@if($inquiry->unit) · {{ $inquiry->unit->identifier }}@endif</p>
+                        </div>
+                        <form method="POST" action="{{ route('admin.inquiries.estado', $inquiry) }}" class="shrink-0">
+                            @csrf @method('PATCH')
+                            <select name="estado" onchange="this.form.submit()" class="text-sm rounded-full border-0 py-2 pl-3 pr-8 {{ $colores[$inquiry->estado] ?? '' }}" aria-label="{{ __('inquiry.estado') }}">
+                                @foreach (\App\Models\Inquiry::ESTADOS as $e)
+                                    <option value="{{ $e }}" {{ $inquiry->estado === $e ? 'selected' : '' }}>{{ __('inquiry.estado_'.$e) }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+                    @if($inquiry->message)
+                        <p class="mt-2 text-sm text-gray-600 line-clamp-2">{{ $inquiry->message }}</p>
+                    @endif
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @if ($inquiry->phone)
+                            <a href="https://wa.me/{{ preg_replace('/\D/', '', $inquiry->phone) }}?text={{ urlencode(__('inquiry.saludo_whatsapp', ['nombre' => $inquiry->name, 'proyecto' => $inquiry->project?->name ?? ''])) }}"
+                               target="_blank" rel="noopener"
+                               class="inline-flex items-center px-4 py-2.5 rounded-md bg-emerald-600 text-white text-sm font-semibold">WhatsApp</a>
+                            <a href="tel:{{ $inquiry->phone }}" class="inline-flex items-center px-4 py-2.5 rounded-md bg-gray-100 text-gray-800 text-sm font-semibold">Llamar</a>
+                        @endif
+                        <a href="mailto:{{ $inquiry->email }}" class="inline-flex items-center px-4 py-2.5 rounded-md bg-gray-100 text-gray-800 text-sm font-semibold">Email</a>
+                        <a href="{{ route('admin.inquiries.show', $inquiry) }}" class="inline-flex items-center px-4 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-semibold ml-auto">Ver</a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            <div class="hidden sm:block bg-white shadow-sm sm:rounded-lg overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -74,7 +113,6 @@
                             <td class="px-4 py-3">
                                 {{-- El estado se cambia desde aqui, sin entrar: contestar
                                      un lead son tres clics y cada clic de mas se nota. --}}
-                                @php $colores = ['nuevo' => 'bg-blue-100 text-blue-800', 'contactado' => 'bg-amber-100 text-amber-800', 'visita' => 'bg-purple-100 text-purple-800', 'cerrado' => 'bg-emerald-100 text-emerald-800', 'descartado' => 'bg-gray-100 text-gray-500']; @endphp
                                 <form method="POST" action="{{ route('admin.inquiries.estado', $inquiry) }}">
                                     @csrf @method('PATCH')
                                     <select name="estado" onchange="this.form.submit()" class="text-xs rounded-full border-0 py-1 pl-2 pr-7 {{ $colores[$inquiry->estado] ?? '' }}" aria-label="{{ __('inquiry.estado') }}">

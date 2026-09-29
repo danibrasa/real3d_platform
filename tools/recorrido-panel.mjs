@@ -108,7 +108,10 @@ try {
         await mirar('/admin/inquiries', 'bandeja', async (n) => {
             const enlace = await pagina.$('a[href*="/admin/inquiries/"]');
             if (!enlace) { notas.push('bandeja: sin consultas que abrir'); return; }
-            await visible(n, 'select[name="estado"]', 'el estado del lead');
+            // El filtro de arriba tambien se llama "estado": el del lead es
+            // el que va en su formulario.
+            await visible(n, 'form[action*="/estado"] select[name="estado"]', 'el estado del lead');
+            await visible(n, 'a[href^="https://wa.me/"], a[href^="mailto:"]', 'como contactar');
         });
         const enlace = await pagina.$('a[href*="/admin/inquiries/"]');
         const destino = enlace ? await enlace.getAttribute('href') : null;

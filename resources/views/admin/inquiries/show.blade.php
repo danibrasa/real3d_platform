@@ -34,7 +34,7 @@
                                  en Republica Dominicana escribe. --}}
                             <a href="https://wa.me/{{ preg_replace('/\D/', '', $inquiry->phone) }}?text={{ urlencode(__('inquiry.saludo_whatsapp', ['nombre' => $inquiry->name, 'proyecto' => $inquiry->project->name])) }}"
                                target="_blank" rel="noopener"
-                               class="ml-2 inline-flex items-center px-2.5 py-1 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+                               class="ml-2 inline-flex items-center px-4 py-2.5 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
                                 WhatsApp
                             </a>
                         </dd>
