@@ -36,6 +36,11 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // Sin aceptar no hay cuenta, y queda constancia de cuando y de
+            // que version: sin eso no hay forma de demostrar que se acepto.
+            'acepto' => ['accepted'],
+        ], [
+            'acepto.accepted' => __('legal.acepto_obligatorio'),
         ]);
 
         $user = User::create([
@@ -43,6 +48,11 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        $user->forceFill([
+            'legal_aceptado_en' => now(),
+            'legal_version' => config('legal.version'),
+        ])->save();
 
         event(new Registered($user));
 

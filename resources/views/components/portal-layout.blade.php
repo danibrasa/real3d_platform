@@ -124,7 +124,7 @@
                 </div>
             </div>
             <div class="mt-8 pt-6 border-t border-white/5 text-center text-xs text-slate-600">
-                &copy; {{ date('Y') }} Real3D. All rights reserved.
+                <x-pie-legal :oscuro="true" />
             </div>
         </div>
     </footer>
