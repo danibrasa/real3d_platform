@@ -1,0 +1,11 @@
+[Unit]
+Description=Tareas programadas de Laravel en el entorno de desarrollo de Real3D
+
+[Service]
+Type=oneshot
+User=www-data
+WorkingDirectory=/var/www/dev
+# Igual que en produccion. Sin esto, /salud de desarrollo diria que el
+# planificador no da señales, y no se podria comprobar aqui lo que se va a
+# vigilar alli.
+ExecStart=/usr/bin/php artisan schedule:run

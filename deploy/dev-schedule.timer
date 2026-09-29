@@ -1,0 +1,9 @@
+[Unit]
+Description=Lanza las tareas programadas de Laravel de desarrollo cada minuto
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

@@ -24,6 +24,28 @@ CADUCA="${CADUCA_PENDIENTE:-20261013}"
 CREDENCIALES=()
 [ -n "${CLAVE_WEB:-}" ] && CREDENCIALES=(-u "real3d:${CLAVE_WEB}")
 
+# El certificado. certbot lo renueva solo, hasta el dia que no: un cambio en
+# nginx que rompa el reto ACME y la renovacion falla en silencio durante
+# semanas mientras el certificado sigue valiendo. Se avisa con margen, que es
+# lo que la renovacion automatica no da.
+HOST=$(printf '%s' "$URL" | sed -E 's#^https?://([^/:]+).*#\1#')
+DIAS_MINIMOS="${CERT_DIAS_MINIMOS:-14}"
+CERT_MAL=0
+CADUCA_CERT=$(echo | openssl s_client -connect "$HOST:443" -servername "$HOST" 2>/dev/null \
+    | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+if [ -z "$CADUCA_CERT" ]; then
+    echo "        certificado: no se pudo leer el de $HOST"
+    CERT_MAL=1
+else
+    DIAS=$(( ( $(date -d "$CADUCA_CERT" +%s) - $(date +%s) ) / 86400 ))
+    if [ "$DIAS" -lt "$DIAS_MINIMOS" ]; then
+        echo "PRODUCCION: el certificado de $HOST caduca en $DIAS dias ($CADUCA_CERT)"
+        CERT_MAL=1
+    else
+        echo "        certificado ok, caduca en $DIAS dias"
+    fi
+fi
+
 RESPUESTA=$(curl -s -m 25 ${CREDENCIALES[@]+"${CREDENCIALES[@]}"} -w $'\n%{http_code}' "$URL" 2>/dev/null)
 CODIGO=$(printf '%s' "$RESPUESTA" | tail -n 1)
 CUERPO=$(printf '%s' "$RESPUESTA" | sed '$d')
@@ -41,7 +63,7 @@ except Exception as e:
 for nombre, c in d.get("comprobaciones", {}).items():
     print("        %-7s %-3s %s" % (nombre, "ok" if c.get("ok") else "MAL", c.get("detalle", "")))
 '
-        [ "$CODIGO" = "200" ] && exit 0
+        [ "$CODIGO" = "200" ] && exit "$CERT_MAL"
         echo "PRODUCCION: alguna comprobacion va mal (503)"
         exit 1
         ;;
@@ -60,7 +82,7 @@ for nombre, c in d.get("comprobaciones", {}).items():
             echo "        PENDIENTE: /salud no responde en produccion."
             echo "        Se activa en el proximo despliegue. A partir del"
             echo "        $CADUCA esto pasa a contar como averia."
-            exit 0
+            exit "$CERT_MAL"
         fi
 
         echo "PRODUCCION: /salud sigue sin responder despues del $CADUCA."

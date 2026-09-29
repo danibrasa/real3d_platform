@@ -1,7 +1,9 @@
 <?php
 
+use App\Support\Salud\Comprobaciones;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -16,3 +18,14 @@ Artisan::command('inspire', function () {
 Schedule::command('subidas:limpiar --horas=24')
     ->dailyAt('04:00')
     ->withoutOverlapping();
+
+// El latido que lee /salud. Si el planificador deja de correr -- el timer
+// parado, o arrancando en un directorio que un despliegue dejo atras --
+// ninguna de las tareas de arriba corre y nada lo dice: no fallan, no
+// ocurren. Con esto se nota en un cuarto de hora.
+Artisan::command('salud:latido', function () {
+    Cache::put(Comprobaciones::CLAVE_LATIDO, time());
+    $this->info('latido');
+})->purpose('Deja constancia de que el planificador corre, para /salud');
+
+Schedule::command('salud:latido')->everyFiveMinutes();

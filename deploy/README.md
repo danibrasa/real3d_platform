@@ -15,11 +15,16 @@ copia de referencia, para que no existan solo en la máquina.
 | `tools/revisor.py [rango]` | Revisa un cambio sin conocer el razonamiento de quien lo escribio: recibe el mensaje del commit -que es la afirmacion a comprobar- y el diff, y busca afirmaciones sin respaldo, tests que pasarian con el fallo presente, y caminos que devuelven exito sin hacer nada. Devuelve 1 solo con hallazgos graves. |
 | `comprobacion-nocturna.sh` | Recorre el alta entera en dev.real3d.io como una promotora nueva y avisa por correo si algo se rompe, o si algo responde 200 sin hacer lo que debe. Se limpia lo que crea. Lo lanza `real3d-comprobacion.timer` a las 4:15. |
 | `real3d-backup.sh` | Copia diaria (base de datos y `.env`) con réplica de los volcados y de `storage/app` en la VM .13. Lo lanza `real3d-backup.timer` a las 03:30. |
+| `comprobar-copia.sh` | Restaura la copia más reciente en una base aparte y comprueba que sirve: edad, tablas, migraciones, usuarios y proyectos. Lo llama la comprobación nocturna. |
+| `salud-de-produccion.sh [url]` | Lee `/salud` de producción (base, correo, cola, planificador y disco, que desde fuera no se ven) y mira cuánto le queda al certificado. Lo llama la comprobación nocturna. |
+| `real3d-schedule.service` + `.timer` | Lanza `schedule:run` cada minuto en producción. Sin esto las tareas programadas no fallan: no ocurren. `/salud` lo vigila con un latido. |
+| `dev-schedule.service` + `.timer`, `dev-queue.service` | Lo mismo para desarrollo en la VM .13: planificador y worker de colas, para que desarrollo se comporte como producción. |
 
 ## Instalar o actualizar en el servidor
 
 ```bash
 sudo install -m 755 deploy/*.sh /usr/local/bin/
+sudo install -m 644 deploy/real3d-*.service deploy/real3d-*.timer /etc/systemd/system/ && sudo systemctl daemon-reload
 ```
 
 Los scripts no llevan ninguna credencial dentro: leen lo que necesitan de

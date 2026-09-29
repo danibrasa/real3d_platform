@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Support\Salud\Comprobaciones;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -21,6 +23,14 @@ class SaludTest extends TestCase
     use RefreshDatabase;
 
     private const TOKEN = 'un-token-de-prueba-suficientemente-largo';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Un planificador vivo, salvo en los tests que lo matan a proposito.
+        Cache::put(Comprobaciones::CLAVE_LATIDO, time());
+    }
 
     public function test_el_vigilante_entra_por_su_ip_sin_token(): void
     {
@@ -79,7 +89,7 @@ class SaludTest extends TestCase
                 'ok',
                 'entorno',
                 'comprobado',
-                'comprobaciones' => ['base', 'correo', 'cola'],
+                'comprobaciones' => ['base', 'correo', 'cola', 'latido', 'disco'],
             ]);
     }
 
@@ -227,6 +237,60 @@ class SaludTest extends TestCase
         $this->assertFalse($cola['ok'],
             'un worker muerto con el trabajo cogido paso por cola sana');
         $this->assertStringContainsString('no lo suelta', $cola['detalle']);
+    }
+
+    public function test_sin_latido_del_planificador_se_nota(): void
+    {
+        // Las tareas programadas no fallan cuando el planificador no corre:
+        // no ocurren. Es el fallo mas silencioso de todos.
+        Cache::forget(Comprobaciones::CLAVE_LATIDO);
+
+        $latido = Comprobaciones::todas()['latido'];
+
+        $this->assertFalse($latido['ok'], 'un planificador que nunca corrio paso por sano');
+        $this->assertStringContainsString('nunca', $latido['detalle']);
+    }
+
+    public function test_un_latido_viejo_tambien(): void
+    {
+        Cache::put(Comprobaciones::CLAVE_LATIDO, time() - 3600);
+
+        $latido = Comprobaciones::todas()['latido'];
+
+        $this->assertFalse($latido['ok'], 'un planificador parado hace una hora paso por sano');
+        $this->assertStringContainsString('60 min', $latido['detalle']);
+    }
+
+    public function test_el_latido_esta_en_la_agenda_cada_cinco_minutos(): void
+    {
+        // La comprobacion de arriba no vale nada si nadie deja el latido. La
+        // agenda es la de verdad, la de routes/console.php, no una de prueba.
+        // schedule:list carga routes/console.php; despues se pregunta a la
+        // agenda y no a su salida, que va coloreada por trozos.
+        $this->artisan('schedule:list')->assertSuccessful();
+        $latido = collect(app(Schedule::class)->events())
+            ->first(fn ($evento) => str_contains($evento->command ?? '', 'salud:latido'));
+
+        $this->assertNotNull($latido, 'salud:latido no esta en la agenda');
+        $this->assertSame('*/5 * * * *', $latido->expression);
+
+        $this->artisan('salud:latido')->assertSuccessful();
+        $this->assertTrue(Comprobaciones::todas()['latido']['ok']);
+    }
+
+    public function test_el_disco_lleno_se_nota_y_el_holgado_no(): void
+    {
+        $gb = 1024 ** 3;
+
+        $this->assertTrue(Comprobaciones::evaluarDisco(35 * $gb, 50 * $gb)['ok']);
+
+        // Por gigas o por porcentaje: en un disco pequeno manda lo primero y
+        // en uno grande lo segundo.
+        $this->assertFalse(Comprobaciones::evaluarDisco(1 * $gb, 20 * $gb)['ok'], 'con 1 GB libre paso por holgado');
+        $this->assertFalse(Comprobaciones::evaluarDisco(40 * $gb, 1000 * $gb)['ok'], 'con el 4% libre paso por holgado');
+
+        // Y lo que dice: cuanto queda, no solo que va mal.
+        $this->assertStringContainsString('1 GB libres', Comprobaciones::evaluarDisco(1 * $gb, 20 * $gb)['detalle']);
     }
 
     public function test_la_base_caida_se_nota(): void
