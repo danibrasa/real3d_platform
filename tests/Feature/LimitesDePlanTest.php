@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -275,8 +276,33 @@ class LimitesDePlanTest extends TestCase
 
     public function test_el_chatbot_es_de_los_planes_de_pago(): void
     {
-        $this->assertFalse(Gate::forUser($this->promotora(CompanyProfile::PLAN_STARTER))->allows('use-chatbot'));
-        $this->assertTrue(Gate::forUser($this->promotora(CompanyProfile::PLAN_PROFESSIONAL))->allows('use-chatbot'));
+        // El gate del panel estaba, y este test lo miraba y daba el limite por
+        // cubierto. La puerta publica no estaba: el widget se pintaba y la API
+        // contestaba para cualquier proyecto publicado, y cada respuesta la
+        // paga esta casa al proveedor de IA. El visor otra vez, con factura.
+        // Por eso aqui se prueban las dos puertas publicas y no el gate.
+        config(['chatbot.enabled' => true, 'chatbot.provider' => 'anthropic']);
+        Http::fake([
+            'api.anthropic.com/*' => Http::response(['content' => [['text' => 'Claro, dime.']]]),
+        ]);
+
+        $gratuita = $this->promotora(CompanyProfile::PLAN_STARTER);
+        $suyo = $this->proyectoDe($gratuita, '-chat');
+
+        $this->assertFalse(Gate::forUser($gratuita)->allows('use-chatbot'));
+        $this->get(route('viewer.landing', $suyo))->assertOk()->assertDontSee('chatbotWidget()', false);
+        $this->postJson('/api/projects/'.$suyo->slug.'/chat', ['message' => 'Hola', 'session_id' => 'sesion-gratis-0001'])
+            ->assertStatus(503);
+        Http::assertNothingSent();
+
+        $pagando = $this->promotora(CompanyProfile::PLAN_PROFESSIONAL);
+        $deEsa = $this->proyectoDe($pagando, '-chat-pro');
+
+        $this->assertTrue(Gate::forUser($pagando)->allows('use-chatbot'));
+        $this->get(route('viewer.landing', $deEsa))->assertOk()->assertSee('chatbotWidget()', false);
+        $this->postJson('/api/projects/'.$deEsa->slug.'/chat', ['message' => 'Hola', 'session_id' => 'sesion-pago-0001'])
+            ->assertOk()
+            ->assertJsonPath('message', 'Claro, dime.');
     }
 
     public function test_las_analiticas_son_de_los_planes_de_pago(): void
