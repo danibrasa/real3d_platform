@@ -233,6 +233,37 @@ class ElBucleDeVerdad(unittest.TestCase):
 
         self.assertTrue(self.fusiono(), "una rama limpia no llego a fusionarse")
 
+    # --- Una pila no se salta la puerta -----------------------------------
+    #
+    # El 29-sep-2026 el revisor detuvo la primera rama de una pila de seis con
+    # un hallazgo grave, y la tercera -que llevaba dentro a la primera- salio
+    # limpia y se fusiono. El hallazgo entro en main sin que nadie lo leyera.
+
+    def preparar_pila(self, veredictos, contenidas):
+        fus = self.preparar("limpia", list(veredictos))
+        fus.revisar = lambda rama: veredictos[rama]
+        fus.contiene = lambda rama, otra: (rama, otra) in contenidas
+        return fus
+
+    def test_una_rama_apilada_sobre_una_detenida_no_se_fusiona(self):
+        fus = self.preparar_pila({"a": "hallazgos", "b": "limpia"}, {("b", "a")})
+
+        with self.assertRaises(SystemExit) as salida:
+            fus.main()
+
+        self.assertFalse(self.fusiono(), "b se fusiono llevando dentro a la a detenida")
+        self.assertNotEqual(salida.exception.code, 0)
+
+    def test_una_rama_independiente_sigue_adelante(self):
+        # Lo contrario importa igual: parar toda la tanda por una rama que
+        # no tiene nada que ver seria otra forma de no fusionar nunca.
+        fus = self.preparar_pila({"a": "hallazgos", "b": "limpia"}, set())
+
+        with self.assertRaises(SystemExit):
+            fus.main()          # termina en 1 por la a, pero despues de la b
+
+        self.assertTrue(self.fusiono(), "la b, independiente y limpia, no se fusiono")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
