@@ -19,14 +19,14 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Ubicacion</label>
+                        <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
                         <input type="text" name="location" id="location" value="{{ old('location') }}"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             placeholder="Ej: Buenos Aires, Argentina">
                     </div>
 
                     <div class="mb-6">
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea name="description" id="description" rows="4"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             placeholder="Describe el proyecto inmobiliario...">{{ old('description') }}</textarea>

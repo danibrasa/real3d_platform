@@ -20,7 +20,7 @@ return [
     'pedir_visor_ayuda' => 'El modelo 3D y el fondo 360 los monta el equipo de Real3D con tus planos y renders.',
     'pedir_visor_boton' => 'Avisar',
 
-    'publicar' => 'Publica el proyecto',
+    'publicar' => 'Pública el proyecto',
     'publicar_ayuda' => 'Cuando el visor esté montado podrás publicarlo y empezar a recibir consultas.',
     'publicar_boton' => 'Publicar',
 

@@ -94,17 +94,17 @@
                                 <span class="text-xs text-gray-600" id="val-cz">0.500</span>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Tamano X</label>
+                                <label class="block text-xs text-gray-500 mb-1">Tamaño X</label>
                                 <input type="range" id="slider-sx" min="0.001" max="0.5" step="0.001" value="0.05" class="w-full" disabled>
                                 <span class="text-xs text-gray-600" id="val-sx">0.050</span>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Tamano Y</label>
+                                <label class="block text-xs text-gray-500 mb-1">Tamaño Y</label>
                                 <input type="range" id="slider-sy" min="0.001" max="0.5" step="0.001" value="0.05" class="w-full" disabled>
                                 <span class="text-xs text-gray-600" id="val-sy">0.050</span>
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Tamano Z</label>
+                                <label class="block text-xs text-gray-500 mb-1">Tamaño Z</label>
                                 <input type="range" id="slider-sz" min="0.001" max="0.5" step="0.001" value="0.05" class="w-full" disabled>
                                 <span class="text-xs text-gray-600" id="val-sz">0.050</span>
                             </div>

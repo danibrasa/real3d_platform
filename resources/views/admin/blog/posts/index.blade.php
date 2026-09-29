@@ -8,7 +8,7 @@
                     Categorias
                 </a>
                 <a href="{{ route('admin.blog.posts.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
-                    + Nuevo Articulo
+                    + Nuevo Artículo
                 </a>
             </div>
         </div>
@@ -23,7 +23,7 @@
             {{-- Filters --}}
             <div class="mb-4 flex gap-3 items-center">
                 <form method="GET" class="flex gap-3 items-center">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por titulo..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por título..."
                            class="rounded-md border-gray-300 text-sm px-3 py-2 focus:border-blue-500 focus:ring-blue-500">
                     <select name="status" class="rounded-md border-gray-300 text-sm px-3 py-2 focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
                         <option value="">Todos los estados</option>
@@ -40,8 +40,8 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Titulo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoria</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Título</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vistas</th>
@@ -93,7 +93,7 @@
                                         <a href="{{ route('blog.show', $post->slug) }}" target="_blank" class="text-cyan-600 hover:underline">Ver</a>
                                     @endif
                                     <a href="{{ route('admin.blog.posts.edit', $post) }}" class="text-blue-600 hover:underline">Editar</a>
-                                    <form method="POST" action="{{ route('admin.blog.posts.destroy', $post) }}" onsubmit="return confirm('Eliminar este articulo?')">
+                                    <form method="POST" action="{{ route('admin.blog.posts.destroy', $post) }}" onsubmit="return confirm('Eliminar este artículo?')">
                                         @csrf @method('DELETE')
                                         <button class="text-red-600 hover:underline">Eliminar</button>
                                     </form>
@@ -107,8 +107,8 @@
             <div class="mt-4">{{ $posts->links() }}</div>
             @else
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-12 text-center">
-                <p class="text-gray-500 mb-4">No hay articulos todavia.</p>
-                <a href="{{ route('admin.blog.posts.create') }}" class="text-blue-600 hover:underline">Crear el primer articulo</a>
+                <p class="text-gray-500 mb-4">No hay articulos todavía.</p>
+                <a href="{{ route('admin.blog.posts.create') }}" class="text-blue-600 hover:underline">Crear el primer artículo</a>
             </div>
             @endif
         </div>

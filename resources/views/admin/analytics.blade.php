@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Analytics del Visor</x-slot>
+    <x-slot name="title">Estadísticas del visor</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Analytics del Visor 3D</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Estadísticas del visor 3D</h2>
     </x-slot>
 
     <div class="py-6">
@@ -20,9 +20,9 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Periodo</label>
                         <select name="days" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                            <option value="7" {{ ($stats['days'] ?? 30) == 7 ? 'selected' : '' }}>7 dias</option>
-                            <option value="30" {{ ($stats['days'] ?? 30) == 30 ? 'selected' : '' }}>30 dias</option>
-                            <option value="90" {{ ($stats['days'] ?? 30) == 90 ? 'selected' : '' }}>90 dias</option>
+                            <option value="7" {{ ($stats['days'] ?? 30) == 7 ? 'selected' : '' }}>7 días</option>
+                            <option value="30" {{ ($stats['days'] ?? 30) == 30 ? 'selected' : '' }}>30 días</option>
+                            <option value="90" {{ ($stats['days'] ?? 30) == 90 ? 'selected' : '' }}>90 días</option>
                         </select>
                     </div>
                 </form>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold text-gray-800">{{ number_format($stats['unique_visitors']) }}</div>
-                    <div class="text-xs text-gray-500 mt-1">Visitantes unicos</div>
+                    <div class="text-xs text-gray-500 mt-1">Visitantes únicos</div>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold text-gray-800">
@@ -47,7 +47,7 @@
                             {{ $stats['avg_duration'] }}s
                         @endif
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">Duracion media</div>
+                    <div class="text-xs text-gray-500 mt-1">Duración media</div>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold text-blue-600">{{ $stats['inquiry_count'] }}</div>
@@ -55,22 +55,22 @@
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold {{ $stats['conversion_rate'] > 5 ? 'text-green-600' : 'text-gray-800' }}">{{ $stats['conversion_rate'] }}%</div>
-                    <div class="text-xs text-gray-500 mt-1">Conversion</div>
+                    <div class="text-xs text-gray-500 mt-1">Conversión</div>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold text-green-600">{{ $stats['whatsapp_clicks'] }}</div>
-                    <div class="text-xs text-gray-500 mt-1">WhatsApp clicks</div>
+                    <div class="text-xs text-gray-500 mt-1">Clics en WhatsApp</div>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
                     <div class="text-3xl font-bold text-red-600">{{ $stats['pdf_downloads'] }}</div>
-                    <div class="text-xs text-gray-500 mt-1">PDF downloads</div>
+                    <div class="text-xs text-gray-500 mt-1">Fichas PDF descargadas</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Sessions chart -->
                 <div class="lg:col-span-2 bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="font-semibold mb-4">Sesiones por dia</h3>
+                    <h3 class="font-semibold mb-4">Sesiones por día</h3>
                     <canvas id="sessions-chart" height="200"></canvas>
                 </div>
 
@@ -92,7 +92,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <!-- Top units -->
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="font-semibold mb-4">Unidades mas vistas</h3>
+                    <h3 class="font-semibold mb-4">Unidades más vistas</h3>
                     @if($stats['top_units']->count())
                     <div class="space-y-2">
                         @php $maxViews = $stats['top_units']->max('views'); @endphp
@@ -108,7 +108,7 @@
                         @endforeach
                     </div>
                     @else
-                    <p class="text-sm text-gray-500">Sin datos aun</p>
+                    <p class="text-sm text-gray-500">Sin datos aún</p>
                     @endif
                 </div>
 
@@ -119,8 +119,8 @@
                     <div class="space-y-2">
                         @php
                             $eventLabels = [
-                                'session_start' => 'Inicios de sesion',
-                                'session_end' => 'Fines de sesion',
+                                'session_start' => 'Inicios de sesión',
+                                'session_end' => 'Fines de sesión',
                                 'model_loaded' => 'Modelo 3D cargado',
                                 'unit_selected' => 'Unidad seleccionada',
                                 'unit_focused' => 'Unidad enfocada en 3D',
@@ -131,7 +131,7 @@
                                 'share_clicked' => 'Compartido',
                                 'calculator_used' => 'Calculadora usada',
                                 'payment_plan_viewed' => 'Plan de pago visto',
-                                'gallery_viewed' => 'Galeria vista',
+                                'gallery_viewed' => 'Galería vista',
                                 'viewer_3d_opened' => 'Visor 3D abierto',
                             ];
                         @endphp
@@ -143,7 +143,7 @@
                         @endforeach
                     </div>
                     @else
-                    <p class="text-sm text-gray-500">Sin datos aun</p>
+                    <p class="text-sm text-gray-500">Sin datos aún</p>
                     @endif
                 </div>
             </div>

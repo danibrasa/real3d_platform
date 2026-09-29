@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'dashboard' => 'Dashboard',
+    'dashboard' => 'Inicio',
     'projects' => 'Proyectos',
     'inquiries' => 'Consultas',
     'users' => 'Usuarios',
     'my_agents' => 'Mis Agentes',
     'strategy' => 'Estrategia',
-    'analytics' => 'Analytics',
+    'analytics' => 'Estadísticas',
     'view_projects' => 'Ver Proyectos',
     'notifications' => 'Notificaciones',
     'no_notifications' => 'Sin notificaciones nuevas',

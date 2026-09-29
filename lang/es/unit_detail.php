@@ -5,7 +5,7 @@ return [
     'seo_description' => 'Unidad :unit en :project. :beds dormitorios, :area m2. Precio desde :price.',
     'unit_prefix' => 'Unidad',
     'floor_plan' => 'Plano de planta',
-    'about_this_type' => 'Sobre esta tipologia',
+    'about_this_type' => 'Sobre esta tipología',
     'similar_units' => 'Unidades similares',
     'view_in_3d' => 'Ver en 3D',
     'view_full_detail' => 'Ver ficha completa',

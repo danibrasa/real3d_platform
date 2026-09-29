@@ -29,7 +29,7 @@
                     <div class="bg-blue-600 h-4 rounded-full transition-all" style="width: {{ $overallProgress }}%"></div>
                 </div>
                 @if($latestUpdate)
-                <p class="text-xs text-gray-400 mt-2">Ultima actualizacion: {{ $latestUpdate->date->format('d/m/Y') }} - {{ $latestUpdate->title }}</p>
+                <p class="text-xs text-gray-400 mt-2">Última actualizacion: {{ $latestUpdate->date->format('d/m/Y') }} - {{ $latestUpdate->title }}</p>
                 @endif
             </div>
 
@@ -58,7 +58,7 @@
                                 <input type="number" name="target_percentage" value="0" min="0" max="100" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                                 <input type="text" name="description" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                                         <option value="in_progress" {{ $phase->status === 'in_progress' ? 'selected' : '' }}>En curso</option>
                                         <option value="completed" {{ $phase->status === 'completed' ? 'selected' : '' }}>Completada</option>
                                     </select>
-                                    <input type="text" name="description" value="{{ $phase->description }}" placeholder="Descripcion" class="rounded-md border-gray-300 text-sm">
+                                    <input type="text" name="description" value="{{ $phase->description }}" placeholder="Descripción" class="rounded-md border-gray-300 text-sm">
                                 </div>
                                 <div class="mt-2 flex gap-2">
                                     <button type="submit" class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">Guardar</button>
@@ -159,7 +159,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Titulo *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                                 <input type="text" name="title" required placeholder="Ej: Avance en cimentacion" class="w-full rounded-md border-gray-300 text-sm">
                             </div>
                         </div>
@@ -174,7 +174,7 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                             <textarea name="description" rows="3" class="w-full rounded-md border-gray-300 text-sm" placeholder="Detalle del avance..."></textarea>
                         </div>
                         <div class="mb-4">
@@ -190,7 +190,7 @@
 
                 {{-- Updates timeline --}}
                 @if($project->constructionUpdates->isEmpty())
-                    <p class="text-gray-400 text-sm">No hay actualizaciones. Crea fases primero y luego publica actualizaciones con fotos.</p>
+                    <p class="text-gray-400 text-sm">No hay actualizaciones. Crea fases primero y luego pública actualizaciones con fotos.</p>
                 @else
                 <div class="space-y-6">
                     @foreach($project->constructionUpdates as $update)

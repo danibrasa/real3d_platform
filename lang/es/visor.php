@@ -23,7 +23,7 @@ return [
     'aun_no_hay_visor' => 'Todavía no hay modelo 3D ni fondo 360 subidos: súbelos antes de darlo por montado.',
     'montado_boton' => 'Dar por montado',
     'correo_montado_asunto' => 'Tu visor 3D ya está listo',
-    'hace_falta_plan' => 'El visor 3D lo montamos nosotros y va en los planes de pago. Los primeros 14 dias no se cobran, y empiezan cuando tu visor este montado.',
+    'hace_falta_plan' => 'El visor 3D lo montamos nosotros y va en los planes de pago. Los primeros 14 días no se cobran, y empiezan cuando tu visor este montado.',
     'ver_planes' => 'Ver los planes',
     'sin3d_titulo' => 'Tu navegador no puede mostrar el visor 3D',
     'sin3d_texto' => 'No pasa nada: aquí tienes los renders, las viviendas con sus precios y el contacto. Para el 3D, prueba con Chrome, Safari o Firefox actualizados.',

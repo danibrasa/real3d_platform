@@ -27,7 +27,7 @@
                     </div>
                     @if($inquiry->phone)
                     <div>
-                        <dt class="text-xs font-medium text-gray-500 uppercase">Telefono</dt>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Teléfono</dt>
                         <dd class="mt-1 text-sm text-gray-900">
                             <a href="tel:{{ $inquiry->phone }}" class="text-blue-600 hover:underline">{{ $inquiry->phone }}</a>
                             {{-- Aqui es donde la promotora decide si llama o escribe, y

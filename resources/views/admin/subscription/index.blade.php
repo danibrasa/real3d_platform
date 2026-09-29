@@ -104,7 +104,7 @@
                                 @php $limits = \App\Models\CompanyProfile::PLAN_LIMITS[$tier]; @endphp
                                 <li class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                    {{ trans_choice('billing.features.projects', $limits['max_projects'], ['count' => $limits['max_projects'] >= 999 ? 'Unlimited' : $limits['max_projects']]) }}
+                                    {{ trans_choice('billing.features.projects', $limits['max_projects'], ['count' => $limits['max_projects'] >= 999 ? __('billing.ilimitados') : $limits['max_projects']]) }}
                                 </li>
                                 <li class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>

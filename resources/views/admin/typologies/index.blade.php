@@ -1,14 +1,14 @@
 <x-app-layout>
-    <x-slot name="title">Tipologias: {{ $project->name }}</x-slot>
+    <x-slot name="title">Tipologías: {{ $project->name }}</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Tipologias: {{ $project->name }}
+                Tipologías: {{ $project->name }}
             </h2>
             <div class="flex gap-2">
                 <a href="{{ route('admin.projects.edit', $project) }}" class="text-sm text-gray-600 hover:underline">&larr; Volver al proyecto</a>
                 @can('manage-typologies')
-                <a href="{{ route('admin.projects.typologies.create', $project) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">+ Nueva Tipologia</a>
+                <a href="{{ route('admin.projects.typologies.create', $project) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">+ Nueva Tipología</a>
                 @endcan
             </div>
         </div>
@@ -40,7 +40,7 @@
                                 <span class="font-medium">{{ $typology->bedrooms }}</span> Dorm.
                             </div>
                             <div>
-                                <span class="font-medium">{{ $typology->bathrooms }}</span> Banos
+                                <span class="font-medium">{{ $typology->bathrooms }}</span> Baños
                             </div>
                             <div>
                                 <span class="font-medium">{{ $typology->area_m2 }}</span> m2
@@ -53,7 +53,7 @@
                         @can('manage-typologies')
                         <div class="flex gap-2">
                             <a href="{{ route('admin.projects.typologies.edit', [$project, $typology]) }}" class="text-sm text-blue-600 hover:underline">Editar</a>
-                            <form method="POST" action="{{ route('admin.projects.typologies.destroy', [$project, $typology]) }}" onsubmit="return confirm('Eliminar esta tipologia?')">
+                            <form method="POST" action="{{ route('admin.projects.typologies.destroy', [$project, $typology]) }}" onsubmit="return confirm('Eliminar esta tipología?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="text-sm text-red-600 hover:underline">Eliminar</button>
                             </form>
@@ -65,9 +65,9 @@
             </div>
             @else
             <div class="bg-white shadow-sm sm:rounded-lg p-12 text-center">
-                <p class="text-gray-500 mb-4">No hay tipologias creadas.</p>
+                <p class="text-gray-500 mb-4">No hay tipologías creadas.</p>
                 @can('manage-typologies')
-                <a href="{{ route('admin.projects.typologies.create', $project) }}" class="text-blue-600 hover:underline">Crear primera tipologia</a>
+                <a href="{{ route('admin.projects.typologies.create', $project) }}" class="text-blue-600 hover:underline">Crear primera tipología</a>
                 @endcan
             </div>
             @endif

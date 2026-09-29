@@ -1,8 +1,8 @@
 <x-app-layout>
-    <x-slot name="title">Ubicacion: {{ $project->name }}</x-slot>
+    <x-slot name="title">Ubicación: {{ $project->name }}</x-slot>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Ubicacion y POIs: {{ $project->name }}</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Ubicación y alrededores: {{ $project->name }}</h2>
             <a href="{{ route('admin.projects.edit', $project) }}" class="text-sm text-gray-600 hover:underline">&larr; Volver al proyecto</a>
         </div>
     </x-slot>
@@ -19,7 +19,7 @@
 
             <!-- Section 1: Project Location -->
             <div class="bg-white shadow-sm sm:rounded-lg p-6 mb-6">
-                <h3 class="font-semibold text-lg mb-4">Ubicacion del proyecto</h3>
+                <h3 class="font-semibold text-lg mb-4">Ubicación del proyecto</h3>
 
                 {{-- Map --}}
                 <div x-ref="mapContainer" class="h-96 rounded-lg border border-gray-300 z-0 mb-4" x-init="$nextTick(() => initMap())"></div>
@@ -36,22 +36,22 @@
                             <input type="number" name="longitude" x-model="lng" step="0.0000001" min="-180" max="180" placeholder="-68.4475" @change="updateMarkerFromInputs()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400 mb-3">Haga clic en el mapa o arrastre el marcador azul para definir la ubicacion del proyecto.</p>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">Guardar ubicacion</button>
+                    <p class="text-xs text-gray-400 mb-3">Haz clic en el mapa o arrastra el marcador azul hasta donde está el proyecto.</p>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition">Guardar ubicación</button>
                 </form>
             </div>
 
             <!-- Section 2: Points of Interest -->
             <div class="bg-white shadow-sm sm:rounded-lg p-6 mb-6">
-                <h3 class="font-semibold text-lg mb-4">Puntos de interes</h3>
+                <h3 class="font-semibold text-lg mb-4">Puntos de interés</h3>
 
                 {{-- Add POI form --}}
                 <form method="POST" action="{{ route('admin.projects.location.storePoi', $project) }}" class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
                     @csrf
-                    <h4 class="text-sm font-semibold text-gray-600 mb-3">Agregar punto de interes</h4>
+                    <h4 class="text-sm font-semibold text-gray-600 mb-3">Agregar punto de interés</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                         <div>
-                            <label class="block text-xs font-medium text-gray-500 mb-1">Categoria</label>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
                             <select name="category" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                 <option value="">Seleccionar...</option>
                                 @foreach(\App\Models\PointOfInterest::CATEGORIES as $key => $labels)
@@ -64,7 +64,7 @@
                             <input type="text" name="name" required placeholder="Ej: Playa Bavaro" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-gray-500 mb-1">Name (EN)</label>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Nombre (EN)</label>
                             <input type="text" name="name_en" placeholder="Ej: Bavaro Beach" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         </div>
                         <div>
@@ -87,7 +87,7 @@
                                 <span>Marcar en mapa</span>
                             </template>
                             <template x-if="pickingPoi">
-                                <span>Haga clic en el mapa...</span>
+                                <span>Haz clic en el mapa…</span>
                             </template>
                         </button>
                     </div>
@@ -125,7 +125,7 @@
                             class="text-sm text-blue-600 hover:text-blue-800">
                             Editar
                         </button>
-                        <form method="POST" action="{{ route('admin.projects.location.destroyPoi', [$project, $poi]) }}" onsubmit="return confirm('Eliminar este punto de interes?')">
+                        <form method="POST" action="{{ route('admin.projects.location.destroyPoi', [$project, $poi]) }}" onsubmit="return confirm('Eliminar este punto de interés?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="text-sm text-red-600 hover:text-red-800">Eliminar</button>
                         </form>
@@ -138,7 +138,7 @@
                         @csrf @method('PUT')
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 mb-1">Categoria</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Categoría</label>
                                 <select name="category" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     @foreach(\App\Models\PointOfInterest::CATEGORIES as $key => $labels)
                                         <option value="{{ $key }}" {{ $poi->category === $key ? 'selected' : '' }}>{{ $labels['es'] }}</option>
@@ -150,7 +150,7 @@
                                 <input type="text" name="name" value="{{ $poi->name }}" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-500 mb-1">Name (EN)</label>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Nombre (EN)</label>
                                 <input type="text" name="name_en" value="{{ $poi->name_en }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div>
@@ -173,7 +173,7 @@
                     </form>
                 </div>
                 @empty
-                <p class="text-sm text-gray-400 py-4">No hay puntos de interes. Agrega el primero usando el formulario de arriba.</p>
+                <p class="text-sm text-gray-400 py-4">Todavía no hay puntos de interés. Añade el primero con el formulario de arriba.</p>
                 @endforelse
             </div>
         </div>

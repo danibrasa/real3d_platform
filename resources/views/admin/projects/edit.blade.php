@@ -22,7 +22,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-6">
                 <div class="flex flex-wrap gap-4">
                     <a href="{{ route('admin.projects.typologies.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-100 transition">
-                        Tipologias ({{ $project->typologies_count ?? 0 }})
+                        Tipologías ({{ $project->typologies_count ?? 0 }})
                     </a>
                     <a href="{{ route('admin.projects.units.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-emerald-50 text-emerald-700 rounded-md text-sm font-medium hover:bg-emerald-100 transition">
                         Unidades ({{ $project->units_count ?? 0 }})
@@ -41,10 +41,10 @@
                     </a>
 @endpmv
                     <a href="{{ route('admin.projects.location.index', $project) }}" class="inline-flex items-center px-4 py-2 bg-teal-50 text-teal-700 rounded-md text-sm font-medium hover:bg-teal-100 transition">
-                        Ubicacion y POIs
+                        Ubicación y alrededores
                     </a>
                     <span class="inline-flex items-center px-4 py-2 bg-amber-50 text-amber-700 rounded-md text-sm font-medium">
-                        Galeria ({{ $project->gallery_images_count ?? 0 }})
+                        Galería ({{ $project->gallery_images_count ?? 0 }})
                     </span>
                 </div>
             </div>
@@ -73,27 +73,27 @@
 
                             @can('edit-project-commercial', $project)
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tagline (ES)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Frase corta (ES)</label>
                                 <input type="text" name="tagline" value="{{ $project->tagline }}" placeholder="Frase comercial corta" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tagline (EN)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Frase corta (EN)</label>
                                 <input type="text" name="tagline_en" value="{{ $project->tagline_en }}" placeholder="Short commercial phrase (English)" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Ubicacion (ES)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación (ES)</label>
                                 <input type="text" name="location" value="{{ $project->location }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Location (EN)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación (EN)</label>
                                 <input type="text" name="location_en" value="{{ $project->location_en }}" placeholder="Location in English" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripcion (ES)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción (ES)</label>
                                 <textarea name="description" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ $project->description }}</textarea>
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción (EN)</label>
                                 <textarea name="description_en" rows="3" placeholder="Project description in English" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">{{ $project->description_en }}</textarea>
                             </div>
                             @endcan
@@ -122,13 +122,13 @@
 
                             @can('edit-project-commercial', $project)
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp (con codigo pais)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp (con código país)</label>
                                 <input type="text" name="whatsapp_number" value="{{ $project->whatsapp_number }}" placeholder="+5491112345678" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje WhatsApp (ES)</label>
                                 <input type="text" name="whatsapp_message" value="{{ $project->whatsapp_message }}" placeholder="Hola, me interesa el proyecto..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                <p class="text-xs text-gray-400 mt-1">Mensaje pre-cargado al hacer clic en WhatsApp. Dejar vacio para usar el predeterminado.</p>
+                                <p class="text-xs text-gray-400 mt-1">Lo que le sale escrito al comprador al pulsar WhatsApp. Vacío, se usa el mensaje por defecto.</p>
                             </div>
                             <div class="mb-3">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje WhatsApp (EN)</label>
@@ -139,14 +139,15 @@
                                 <input type="email" name="contact_email" value="{{ $project->contact_email }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             </div>
                             <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Google Analytics (opcional)</label>
                                 <input type="text" name="analytics_id" value="{{ $project->analytics_id }}" placeholder="G-XXXXXXXXXX o GTM-XXXXXXX" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                <p class="text-xs text-gray-400 mt-1">ID de GA4 o GTM para este proyecto. Deje vacio para usar el global.</p>
+                                <p class="text-xs text-gray-400 mt-1">El código GA4 o GTM de este proyecto. Si lo dejas vacío se usa el de la cuenta.</p>
                             </div>
 
                             {{-- Investment Calculator Settings --}}
+                            @pmv('inversion')
                             <div class="mt-4 pt-4 border-t border-gray-200">
-                                <h4 class="text-sm font-semibold text-gray-700 mb-3">Calculadora de Inversion</h4>
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3">Calculadora de Inversión</h4>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 mb-1">Tarifa noche (USD)</label>
@@ -157,11 +158,11 @@
                                         <input type="number" name="average_occupancy" value="{{ $project->average_occupancy }}" step="1" min="0" max="100" placeholder="70" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">Apreciacion anual (%)</label>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Apreciación anual (%)</label>
                                         <input type="number" name="appreciation_rate_annual" value="{{ $project->appreciation_rate_annual }}" step="0.5" placeholder="6" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">Fee administracion (%)</label>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Gastos de administración (%)</label>
                                         <input type="number" name="management_fee" value="{{ $project->management_fee }}" step="1" placeholder="20" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
                                     <div>
@@ -169,9 +170,11 @@
                                         <input type="number" name="property_tax_rate" value="{{ $project->property_tax_rate }}" step="0.1" placeholder="1" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-2">Parametros para la calculadora de inversion en la pagina publica. Deje vacio para usar valores por defecto.</p>
+                                <p class="text-xs text-gray-400 mt-2">Parámetros de la calculadora de inversión de la página pública. Vacíos, se usan los valores por defecto.</p>
                             </div>
                             @endcan
+
+                            @endpmv
 
                             {{-- Chatbot Configuration --}}
                             @can('use-chatbot')
@@ -216,11 +219,11 @@
                                 </div>
                                 <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                     <option value="draft" {{ $project->status === 'draft' ? 'selected' : '' }}>Borrador</option>
-                                    <option value="public" {{ $project->status === 'public' ? 'selected' : '' }}>Publico</option>
+                                    <option value="public" {{ $project->status === 'public' ? 'selected' : '' }}>Público</option>
                                     <option value="private" {{ $project->status === 'private' ? 'selected' : '' }}>Privado</option>
                                     <option value="unlisted" {{ $project->status === 'unlisted' ? 'selected' : '' }}>Oculto</option>
                                 </select>
-                                <p class="text-xs text-gray-400 mt-1">Publico: todos | Privado: solo logueados | Oculto: solo con enlace</p>
+                                <p class="text-xs text-gray-400 mt-1">Público: lo ve cualquiera · Privado: solo usuarios con cuenta · Oculto: solo quien tenga el enlace</p>
                             </div>
                             @endcan
 
@@ -233,9 +236,9 @@
                         <h3 class="font-semibold mb-4">Datos del proyecto</h3>
                         <dl class="space-y-2 text-sm">
                             <div><dt class="text-gray-500">Nombre</dt><dd class="font-medium">{{ $project->name }}</dd></div>
-                            @if($project->tagline)<div><dt class="text-gray-500">Tagline</dt><dd>{{ $project->tagline }}</dd></div>@endif
-                            @if($project->location)<div><dt class="text-gray-500">Ubicacion</dt><dd>{{ $project->location }}</dd></div>@endif
-                            @if($project->description)<div><dt class="text-gray-500">Descripcion</dt><dd>{{ $project->description }}</dd></div>@endif
+                            @if($project->tagline)<div><dt class="text-gray-500">Frase corta</dt><dd>{{ $project->tagline }}</dd></div>@endif
+                            @if($project->location)<div><dt class="text-gray-500">Ubicación</dt><dd>{{ $project->location }}</dd></div>@endif
+                            @if($project->description)<div><dt class="text-gray-500">Descripción</dt><dd>{{ $project->description }}</dd></div>@endif
                         </dl>
                     </div>
                     @endif
@@ -295,11 +298,11 @@
                     <!-- Gallery -->
                     @can('manage-gallery', $project)
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="font-semibold mb-4">Galeria de imagenes</h3>
+                        <h3 class="font-semibold mb-4">Galería de imágenes</h3>
                         <form method="POST" action="{{ route('admin.projects.gallery.store', $project) }}" enctype="multipart/form-data">
                             @csrf
                             <input type="file" name="images[]" multiple accept="image/*" class="w-full text-sm mb-2">
-                            <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-semibold hover:bg-indigo-700 transition">Subir imagenes</button>
+                            <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-semibold hover:bg-indigo-700 transition">Subir imágenes</button>
                         </form>
                         @if($project->galleryImages->count())
                         <div class="grid grid-cols-3 gap-2 mt-4">
@@ -333,7 +336,7 @@
                     <!-- Viewer Settings -->
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-semibold">Configuracion del visor</h3>
+                            <h3 class="font-semibold">Configuración del visor</h3>
                             <div class="flex gap-2">
                                 <button id="btn-save-settings" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition">
                                     Guardar settings

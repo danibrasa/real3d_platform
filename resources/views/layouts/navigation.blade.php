@@ -18,7 +18,7 @@
                         @if(auth()->user()->hasAdminAccess())
                             {{-- Core --}}
                             <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                                Dashboard
+                                Inicio
                             </x-nav-link>
                             <x-nav-link :href="route('admin.projects.index')" :active="request()->routeIs('admin.projects.*')">
                                 {{ __('general.projects') }}
@@ -35,7 +35,7 @@
                             {{-- Business --}}
                             @can('use-analytics')
                                 <x-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
-                                    Analytics
+                                    Estadísticas
                                 </x-nav-link>
                             @endcan
                             @can('use-chatbot')
@@ -196,7 +196,7 @@
                         </x-slot>
                         <x-slot name="content">
                             @if(auth()->user()->hasAdminAccess())
-                                <x-dropdown-link :href="route('admin.dashboard')">Admin Panel</x-dropdown-link>
+                                <x-dropdown-link :href="route('admin.dashboard')">Panel</x-dropdown-link>
                             @endif
                             <x-dropdown-link :href="route('profile.edit')">{{ __('general.profile') }}</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
@@ -230,7 +230,7 @@
                 @if(auth()->user()->hasAdminAccess())
                     {{-- Core --}}
                     <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                        Dashboard
+                        Inicio
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.projects.index')" :active="request()->routeIs('admin.projects.*')">
                         {{ __('general.projects') }}
@@ -247,7 +247,7 @@
                     {{-- Business --}}
                     @can('use-analytics')
                         <x-responsive-nav-link :href="route('admin.analytics.index')" :active="request()->routeIs('admin.analytics.*')">
-                            Analytics
+                            Estadísticas
                         </x-responsive-nav-link>
                     @endcan
                     @can('use-chatbot')

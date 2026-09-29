@@ -29,13 +29,13 @@
         <div class="mt-4">
             <x-input-label for="country" :value="__('billing.country')" />
             <select name="country" id="country" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-                <option value="DO" {{ old('country') === 'DO' ? 'selected' : '' }}>Republica Dominicana</option>
-                <option value="MX" {{ old('country') === 'MX' ? 'selected' : '' }}>Mexico</option>
+                <option value="DO" {{ old('country') === 'DO' ? 'selected' : '' }}>República Dominicana</option>
+                <option value="MX" {{ old('country') === 'MX' ? 'selected' : '' }}>México</option>
                 <option value="CO" {{ old('country') === 'CO' ? 'selected' : '' }}>Colombia</option>
-                <option value="PA" {{ old('country') === 'PA' ? 'selected' : '' }}>Panama</option>
+                <option value="PA" {{ old('country') === 'PA' ? 'selected' : '' }}>Panamá</option>
                 <option value="CR" {{ old('country') === 'CR' ? 'selected' : '' }}>Costa Rica</option>
                 <option value="US" {{ old('country') === 'US' ? 'selected' : '' }}>United States</option>
-                <option value="ES" {{ old('country') === 'ES' ? 'selected' : '' }}>Espana</option>
+                <option value="ES" {{ old('country') === 'ES' ? 'selected' : '' }}>España</option>
             </select>
             <x-input-error :messages="$errors->get('country')" class="mt-2" />
         </div>

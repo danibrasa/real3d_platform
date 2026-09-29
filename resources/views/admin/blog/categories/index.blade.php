@@ -15,7 +15,7 @@
 
             {{-- Create form --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-6 mb-6">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Nueva Categoria</h3>
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Nueva Categoría</h3>
                 <form method="POST" action="{{ route('admin.blog.categories.store') }}" class="flex flex-wrap gap-3 items-end">
                     @csrf
                     <div class="flex-1 min-w-[150px]">
@@ -86,7 +86,7 @@
                                 <template x-if="!editing">
                                     <div class="flex justify-end gap-2">
                                         <button @click="editing = true" class="text-blue-600 hover:underline">Editar</button>
-                                        <form method="POST" action="{{ route('admin.blog.categories.destroy', $cat) }}" onsubmit="return confirm('Eliminar esta categoria?')">
+                                        <form method="POST" action="{{ route('admin.blog.categories.destroy', $cat) }}" onsubmit="return confirm('Eliminar esta categoría?')">
                                             @csrf @method('DELETE')
                                             <button class="text-red-600 hover:underline">Eliminar</button>
                                         </form>

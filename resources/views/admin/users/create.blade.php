@@ -34,13 +34,13 @@
 
                     @if(auth()->user()->isSuperadmin())
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Contrasena</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                         <input type="password" name="password" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         @error('password') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contrasena</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
                         <input type="password" name="password_confirmation" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                     </div>
                     @endif
@@ -51,7 +51,7 @@
                         <select name="role" x-model="role" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                             <option value="">Seleccionar rol</option>
                             <option value="superadmin">Superadmin</option>
-                            <option value="gestor">Gestor (tecnico 3D)</option>
+                            <option value="gestor">Gestor (técnico 3D)</option>
                             <option value="inmobiliaria">Inmobiliaria</option>
                             <option value="agente">Agente</option>
                         </select>
