@@ -169,7 +169,11 @@ def revisar(rama):
     # lo estaba.
     try:
         r = subprocess.run(
-            ["python3", CLON + "/tools/revisor.py", "origin/main..origin/" + rama],
+            # Tres puntos, no dos: con dos, git compara las dos puntas, y una
+            # rama que se quedo atras de main "borra" todo lo que main gano
+            # despues. El revisor vio desaparecer una funcion entera en una
+            # rama de documentacion y la paro, con razon, por lo que veia.
+            ["python3", CLON + "/tools/revisor.py", "origin/main...origin/" + rama],
             capture_output=True, text=True, env=entorno, timeout=300,
         )
     except subprocess.TimeoutExpired:
