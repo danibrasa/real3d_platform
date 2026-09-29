@@ -80,15 +80,14 @@ class Embudo
         // se dice, no se inventa.
         $publicadoSinFecha = $hayPublico && ! $publicado;
 
-        $leads = Inquiry::whereIn('project_id', $ids)->get(['created_at', 'estado', 'estado_en', 'contestado_en']);
+        $leads = Inquiry::whereIn('project_id', $ids)->get(['created_at', 'estado', 'contestado_en']);
         $contestados = $leads->filter(fn ($l) => $l->estado !== null && $l->estado !== 'nuevo');
-        // La primera respuesta, no el ultimo cambio de estado: cerrar un lead
-        // una semana despues no lo saca de "en el dia".
-        $enElDia = $contestados->filter(function ($l) {
-            $primera = $l->contestado_en ?? $l->estado_en;
-
-            return $primera && $l->created_at->diffInHours($primera, false) <= self::HORAS_PARA_CONTESTAR;
-        });
+        // La primera respuesta (contestado_en, que pone el modelo la primera
+        // vez que el lead deja de ser nuevo), no el ultimo cambio de estado:
+        // cerrar un lead una semana despues no lo saca de "en el dia". Sin
+        // fecha de primera respuesta no cuenta: mejor corto que inventado.
+        $enElDia = $contestados->filter(fn ($l) => $l->contestado_en
+            && $l->created_at->diffInHours($l->contestado_en, false) <= self::HORAS_PARA_CONTESTAR);
 
         // La etapa mira todos los proyectos (el paso mas avanzado que haya
         // hoy), no solo el de referencia.
@@ -96,8 +95,10 @@ class Embudo
             'proyectos' => $proyectos->count(), 'alta' => $promotora->created_at, 'primer_proyecto' => self::fecha($proyectos->min('created_at')),
             'unidades' => self::fecha(Unit::whereIn('project_id', $ids)->max('created_at')),
             'material' => self::fecha(MaterialDelProyecto::whereIn('project_id', $ids)->max('created_at')),
-            'pedido' => $hitos->pluck('pedido')->filter()->max(),
-            'montado' => $hitos->pluck('montado')->filter()->max(),
+            // El reloj de la etapa es el proyecto que MAS lleva esperando en
+            // ella: un pedido de ayer no borra un atasco de treinta dias.
+            'pedido' => $hitos->filter(fn ($h) => $h['pedido'] && ! $h['montado'])->pluck('pedido')->min(),
+            'montado' => $hitos->filter(fn ($h) => $h['montado'] && ! $h['publico'])->pluck('montado')->min(),
             'publico' => $hayPublico, 'publicado' => $publicado,
             'leads' => $leads->count(), 'ultimo_lead' => self::fecha($leads->max('created_at')),
         ]);
@@ -115,7 +116,9 @@ class Embudo
             // Sin signo: si el equipo pidio el visor antes de dar de alta a la
             // promotora (pasa en pilotos), son cero dias, no dias negativos.
             'dias_alta_a_pedido' => $pedido ? max(0, (int) $promotora->created_at->diffInDays($pedido, false)) : null,
-            'dias_pedido_a_publicado' => ($pedido && $publicado) ? max(0, (int) $pedido->diffInDays($publicado, false)) : null,
+            // Publicado antes de pedir el visor (pasa: se publica sin 3D y luego
+            // se pide) no son cero dias: no hay dato.
+            'dias_pedido_a_publicado' => ($pedido && $publicado && $publicado->gte($pedido)) ? (int) $pedido->diffInDays($publicado, false) : null,
             'leads' => $leads->count(),
             'leads_semana' => $leads->filter(fn ($l) => $l->created_at->gte(now()->subDays(7)))->count(),
             'leads_contestados' => $contestados->count(),

@@ -58,7 +58,7 @@ class PilotosTest extends TestCase
     {
         // estado y estado_en no son fillable (los pone el controlador): forceFill.
         Inquiry::create(['project_id' => $this->proyecto->id, 'name' => $nombre, 'email' => strtolower($nombre).'@ejemplo.invalid'])
-            ->forceFill(['created_at' => $cuando, 'estado' => $estado ?? 'nuevo', 'estado_en' => $contestado])->save();
+            ->forceFill(['created_at' => $cuando, 'estado' => $estado ?? 'nuevo', 'estado_en' => $contestado, 'contestado_en' => $contestado])->save();
     }
 
     public function test_los_cinco_numeros_de_una_promotora_en_marcha(): void
@@ -121,7 +121,38 @@ class PilotosTest extends TestCase
         $this->ana->forceFill(['created_at' => now()->subDays(2)])->save();
         $otro->update(['viewer_requested_at' => now()->subDays(5)]);
         $this->proyecto->update(['viewer_requested_at' => now()->subDays(5)]);
-        $this->assertSame(0, Embudo::de($this->ana->fresh())['dias_alta_a_pedido']);
+        $e = Embudo::de($this->ana->fresh());
+        $this->assertSame(0, $e['dias_alta_a_pedido']);
+        // Bahia se publico hace 8 y el visor se pidio hace 5: no son "0 dias
+        // de pedido a publicado", es que no hay dato.
+        $this->assertNull($e['dias_pedido_a_publicado']);
+    }
+
+    public function test_el_reloj_de_la_etapa_es_el_proyecto_que_mas_lleva_esperando(): void
+    {
+        $this->proyecto->update(['status' => 'draft', 'visor_estado' => 'pedido', 'visor_estado_en' => now()->subDays(30), 'viewer_requested_at' => now()->subDays(30)]);
+        $otro = Project::create(['name' => 'Otro', 'slug' => 'otro', 'status' => 'draft', 'created_by' => $this->ana->id, 'viewer_requested_at' => now()->subDay()]);
+        $this->ana->assignedProjects()->attach($otro->id);
+
+        $e = Embudo::de($this->ana);
+        $this->assertSame('esperando_equipo', $e['etapa']);
+        $this->assertSame(30, $e['dias_en_etapa'], 'un pedido de ayer no borra un atasco de treinta dias');
+    }
+
+    public function test_la_primera_respuesta_se_anota_por_cualquier_camino(): void
+    {
+        $lead = Inquiry::create(['project_id' => $this->proyecto->id, 'name' => 'Uno', 'email' => 'uno@ejemplo.invalid']);
+        $this->assertNull($lead->contestado_en);
+
+        $this->travelTo(now()->addHours(3));
+        $lead->forceFill(['estado' => 'contactado', 'estado_en' => now()])->save(); // sin pasar por el panel
+        $primera = $lead->fresh()->contestado_en;
+        $this->assertNotNull($primera);
+
+        $this->travelTo(now()->addDays(7));
+        $lead->forceFill(['estado' => 'cerrado', 'estado_en' => now()])->save();
+        $this->assertTrue($primera->equalTo($lead->fresh()->contestado_en), 'la primera respuesta no se mueve con el siguiente cambio');
+        $this->travelBack();
     }
 
     public function test_despublicar_devuelve_la_etapa_atras(): void
@@ -205,8 +236,10 @@ class PilotosTest extends TestCase
         $gestora = User::factory()->create(['role' => User::ROLE_GESTOR]);
 
         $this->actingAs($this->ana)->get(route('admin.pilotos.index'))->assertForbidden();
-        // Otra promotora en otra etapa, para que la regex no pueda saltar de fila.
-        $this->promotora('nueva', now()->subDays(1));
+        // Otra promotora en otra etapa y con la fila DEBAJO de la de Ana (la
+        // lista va por alta, nuevas arriba): con la regex sin barrera de fila,
+        // el negativo de abajo pasaria a la fila siguiente y fallaria.
+        $this->promotora('vieja', now()->subDays(40));
         $html = $this->actingAs($gestora)->get(route('admin.pilotos.index'))->assertOk()->getContent();
         $fila = fn ($id) => '/data-piloto="'.$id.'"(?:(?!<\/tr>).)*?';
         $this->assertMatchesRegularExpression($fila($this->ana->id).'Publicado, sin leads/s', $html);

@@ -34,6 +34,20 @@ class Inquiry extends Model
         'avisado_sin_atender_en' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        // La primera vez que el lead deja de ser nuevo, por el camino que sea
+        // (el panel, un comando, un job): estado_en se mueve con cada cambio
+        // de estado, y "contestado en el dia" mide la primera respuesta.
+        static::saving(function (Inquiry $inquiry) {
+            if ($inquiry->contestado_en === null && $inquiry->isDirty('estado')
+                && $inquiry->estado !== null && $inquiry->estado !== 'nuevo'
+                && in_array($inquiry->getOriginal('estado'), [null, 'nuevo'], true)) {
+                $inquiry->contestado_en = now();
+            }
+        });
+    }
+
     public function atendidoPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'atendido_por');
