@@ -73,6 +73,22 @@ class PuertaDelRevisor(unittest.TestCase):
             run=lambda *a, **k: Salida(codigo), TimeoutExpired=ErrorDeCuelgue)
         return self.fus.revisar("rama-de-prueba")
 
+    def test_el_revisor_mira_desde_donde_la_rama_salio_de_main(self):
+        # Con dos puntos git compara las dos puntas, y una rama que se quedo
+        # atras de main "borra" lo que main gano despues: el revisor paro una
+        # rama de documentacion por borrar una funcion que no tocaba.
+        llamadas = []
+
+        def run(*a, **k):
+            llamadas.append(a[0])
+            return Salida(0)
+
+        self.fus.subprocess = types.SimpleNamespace(run=run, TimeoutExpired=ErrorDeCuelgue)
+        self.fus.revisar("rama-de-prueba")
+
+        rango = [x for x in llamadas[-1] if "origin/" in x][0]
+        self.assertEqual(rango, "origin/main...origin/rama-de-prueba")
+
     # --- Lo unico que deja fusionar ---------------------------------------
 
     def test_revision_limpia_deja_seguir(self):
