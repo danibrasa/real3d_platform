@@ -9,3 +9,8 @@ TOTAL antes de poder mirar                                55.31  (presupuesto 4.
 no medido: JS de Three.js (~0,4 MB por CDN), memoria, tiempo de pintado
 PESA DEMASIADO: 55.3 MB, y el objetivo es 4.0
 salida del medidor: 1
+
+Por que no da lo mismo que el JSON (55,7 MB): Chrome cuenta lo transferido de
+verdad, cabeceras y los 0,39 MB de Three.js por CDN incluidos; el medidor solo
+suma el HTML, el modelo y el fondo que el visor carga, por Content-Length. La
+diferencia (0,4 MB) es el JS, que el medidor dice explicitamente que no mide.
