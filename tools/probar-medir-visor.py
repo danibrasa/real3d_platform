@@ -94,6 +94,18 @@ class MedirElVisor(unittest.TestCase):
 
         self.assertEqual(fondo, "video")
 
+    def test_un_fichero_sin_tamano_para_en_vez_de_contar_cero(self):
+        class SinTamano(SesionDeMentira):
+            def head(self, url, timeout=0, allow_redirects=True):
+                r = super().head(url, timeout, allow_redirects)
+                r.headers.pop("Content-Length", None)
+                return r
+
+        with self.assertRaises(SystemExit) as salida:
+            self.mv.medir("https://x.invalid/projects/p", SinTamano(PAGINA), 4, self.lineas.append)
+
+        self.assertIn("no se puede medir", str(salida.exception))
+
     def test_sin_ficheros_se_niega_en_vez_de_aprobar(self):
         # Lo que hizo la primera vuelta: 0,02 MB y aprobado.
         with self.assertRaises(SystemExit) as salida:

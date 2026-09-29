@@ -75,7 +75,11 @@ def medir(url, sesion, presupuesto_mb, salida=print):
 
     for f in ficheros:
         h = sesion.head(base + f, timeout=60, allow_redirects=True)
-        tam = int(h.headers.get("Content-Length") or 0) / 1048576
+        if not h.headers.get("Content-Length"):
+            # Sin tamano no se suma 0 y se aprueba: se para. Un servidor que
+            # conteste en trozos (chunked) dejaria el visor "ligero" de mentira.
+            raise SystemExit("%s no dice cuanto pesa (sin Content-Length): no se puede medir" % f)
+        tam = int(h.headers["Content-Length"]) / 1048576
         if not se_carga(f, fondo):
             salida("%-52s %10.2f  (no se carga con fondo %s)" % (f[:52], tam, fondo))
             continue
