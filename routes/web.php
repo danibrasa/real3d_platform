@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\ProjectApiController;
 use App\Http\Controllers\Api\ViewerEventController;
 use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\DatosPersonalesController;
 use App\Http\Controllers\DeveloperDirectoryController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\InquiryController;
@@ -327,6 +328,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Lo que la politica de privacidad promete: llevarse los datos desde el panel.
+    Route::get('/profile/datos', [DatosPersonalesController::class, 'exportar'])->name('profile.exportar');
 });
 
 require __DIR__.'/auth.php';
