@@ -362,6 +362,14 @@ def resolver_conflicto(rama):
     return True
 
 
+def contiene(rama, otra):
+    """Si la rama lleva dentro los commits de la otra (esta apilada sobre ella)."""
+    return subprocess.run(
+        ["git", "-C", CLON, "merge-base", "--is-ancestor", "origin/" + otra, "origin/" + rama],
+        capture_output=True, text=True,
+    ).returncode == 0
+
+
 def main():
     ramas = [r for r in sys.argv[1:] if not r.startswith("-")]
     banderas = [a for a in sys.argv[1:] if a.startswith("-")]
@@ -373,6 +381,7 @@ def main():
         )
 
     detenidas = []
+    detenidas_ramas = []
 
     git("fetch", "-q", "origin", "--prune")
     log("main esta en %s\n" % git("log", "--oneline", "-1", "origin/main"))
@@ -395,6 +404,17 @@ def main():
             log("      ya esta dentro de main, nada que hacer\n")
             continue
 
+        # Una rama apilada sobre otra detenida lleva dentro lo que el revisor
+        # paro. Fusionarla es fusionar aquello por la puerta de atras, y sin
+        # que nadie lea el hallazgo: paso el 29-sep-2026, con un hallazgo
+        # grave que entro por la PR de la rama siguiente. La puerta cerraba
+        # bien para una rama y no para una pila.
+        for detenida in detenidas_ramas:
+            if contiene(rama, detenida):
+                sys.exit("      PARO: %s lleva dentro a %s, que el revisor detuvo.\n"
+                         "      Arregla %s primero, o repite con --aunque-haya-hallazgos."
+                         % (rama, detenida, detenida))
+
         pr = pr_de(rama)
         if pr:
             log("      PR #%d ya abierta" % pr["number"])
@@ -415,6 +435,7 @@ def main():
 
         if not puede_seguir(veredicto, banderas):
             detenidas.append("%s (%s)" % (rama, veredicto))
+            detenidas_ramas.append(rama)
             continue
 
         for intento in (1, 2, 3, 4):
