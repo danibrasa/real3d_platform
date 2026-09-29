@@ -69,6 +69,12 @@ CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 # devolvia 404 a cualquiera que lo abriera. Semanas diciendo que si sobre
 # ficheros que nadie podia ver.
 #
+# GANCHO_NAVEGADOR abre el visor del proyecto con un Chromium de verdad, como
+# un telefono, y mira lo que solo un navegador puede ver: que pinta, que la
+# lista de viviendas aparece y tocar una abre su ficha, que no desborda, que
+# la consola esta limpia. Necesita Playwright en esta maquina:
+#     npx playwright install --with-deps chromium
+#
 # GANCHO_BAJA es lo que hace una baja: deja a la promotora en el plan gratuito,
 # como haria el webhook de Stripe al cancelar. Sirve para el ultimo paso, que
 # comprueba que al dejar de pagar el visor deja de servirse y la pagina no.
@@ -84,6 +90,7 @@ CLAVE_WEB="$CLAVE_WEB" \
     GANCHO_BAJA="php $APP/tools/quitar-plan-de-prueba.php $APP" \
     GANCHO_VISOR="sudo -u www-data php $APP/tools/subir-visor-de-prueba.php $APP" \
     GANCHO_CORREO="php $APP/tools/comprobar-cola.php $APP 40" \
+    GANCHO_NAVEGADOR="node $APP/tools/recorrido-visor.mjs" \
     python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
 RESULTADO=$?
 

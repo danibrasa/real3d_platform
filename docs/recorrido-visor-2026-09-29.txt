@@ -1,0 +1,40 @@
+# Salida real de tools/recorrido-visor.mjs, 29-sep-2026, desde la VM auxiliar (Chromium de Playwright como un telefono).
+
+## Produccion, v1.4.0, Salado (modelo de 35 MB sin comprimir):
+la pagina devuelve 200
+el cargador desaparece a los 9691 ms
+modelo en la pagina: si; cargado: si
+en un telefono no desborda
+instrucciones para el dedo: NO
+viviendas en la lista: 61
+tocar una vivienda de la lista abre su ficha
+tocar el modelo no rompe nada
+bajado: 55.7 MB
+PROBLEMA: en un telefono se ven las instrucciones de raton, o ninguna
+salida: 1
+
+## Una pagina que no es el visor (debe negarse):
+la pagina devuelve 200
+modelo en la pagina: no; cargado: no
+en un telefono no desborda
+instrucciones para el dedo: NO
+viviendas en la lista: 0
+bajado: 0.9 MB
+PROBLEMA: no hay cargador (#loading-overlay): esta pagina no es el visor, o cambio el marcado
+PROBLEMA: no se pueden leer los datos del proyecto (#project-data con files): el visor no tiene con que cargar
+PROBLEMA: no hay lienzo: WebGL no arranco
+PROBLEMA: en un telefono se ven las instrucciones de raton, o ninguna
+PROBLEMA: la lista de viviendas no aparece
+salida: 1
+
+## Desarrollo, main de hoy, el proyecto del recorrido nocturno (paso 10, desde tools/recorrido-alta.py):
+       - navegador: la pagina devuelve 200
+       - navegador: el cargador desaparece a los 1342 ms
+       - navegador: modelo en la pagina: no; cargado: no
+       - navegador: en un telefono no desborda
+       - navegador: instrucciones para el dedo: si
+       - navegador: viviendas en la lista: 5
+       - navegador: tocar una vivienda de la lista abre su ficha
+       - navegador: tocar el modelo no rompe nada
+       - navegador: bajado: 0.4 MB
+pasos que fallaron: 0
