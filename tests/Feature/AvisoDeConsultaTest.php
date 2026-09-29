@@ -80,9 +80,7 @@ class AvisoDeConsultaTest extends TestCase
         ]);
 
         // La ruta no tiene nombre; se pide por su direccion, que es ademas
-        // como la llama el propio chatbot desde el navegador. Esta enlaza por
-        // slug -- las de /api/projects no son todas iguales, la de ficheros va
-        // por id -- asi que con el id devuelve 404 y no prueba nada.
+        // como la llama el propio chatbot desde el navegador.
         $this->postJson('/api/projects/'.$this->proyecto->slug.'/chat/lead', [
             'session_id' => $conversacion->session_id,
             'name' => 'Comprador Dos',

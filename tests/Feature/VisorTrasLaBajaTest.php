@@ -87,7 +87,7 @@ class VisorTrasLaBajaTest extends TestCase
         // La ruta no tiene nombre, asi que se pide por su direccion, que es
         // ademas como la pediria quien se la quiera descargar.
         foreach (['model_3d', 'image_360', 'video_360'] as $tipo) {
-            $this->get('/api/projects/'.$proyecto->getRouteKey().'/files/'.$tipo)
+            $this->get('/api/projects/'.$proyecto->slug.'/files/'.$tipo)
                 ->assertNotFound();
         }
     }
@@ -104,7 +104,7 @@ class VisorTrasLaBajaTest extends TestCase
         $proyecto = $this->proyectoPublicadoDe(CompanyProfile::PLAN_PROFESSIONAL);
         Storage::put('x/fondo.png', 'un fondo cualquiera');
 
-        $this->get('/api/projects/'.$proyecto->getRouteKey().'/files/image_360')
+        $this->get('/api/projects/'.$proyecto->slug.'/files/image_360')
             ->assertOk();
     }
 

@@ -1,6 +1,8 @@
-@props(['project', 'enabled' => false])
+@props(['project'])
 
-@if($enabled && $project->chatbot_enabled)
+{{-- Las mismas tres llaves que mira la API, en el mismo sitio. El widget
+     miraba dos y se pintaba en proyectos del plan gratuito. --}}
+@if(\App\Support\Facturacion\AccesoAlChatbot::abierto($project))
 <div x-data="chatbotWidget()" x-cloak class="fixed bottom-6 right-6 z-50" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
 
     {{-- Chat button --}}

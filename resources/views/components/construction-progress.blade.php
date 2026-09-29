@@ -89,7 +89,7 @@
                                     @if($update->images->count())
                                     <div class="flex gap-2 mt-2 overflow-x-auto">
                                         @foreach($update->images as $img)
-                                        <img src="/api/projects/{{ $project->id }}/construction/{{ $img->id }}"
+                                        <img src="/api/projects/{{ $project->slug }}/construction/{{ $img->id }}"
                                              alt="{{ $img->caption ?? '' }}"
                                              class="w-28 h-20 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                                              onclick="document.getElementById('lightbox-img').src=this.src; document.getElementById('lightbox').classList.remove('hidden');"

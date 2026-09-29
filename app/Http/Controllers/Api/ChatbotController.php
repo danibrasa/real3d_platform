@@ -7,6 +7,7 @@ use App\Models\ChatbotConversation;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Services\ChatbotService;
+use App\Support\Facturacion\AccesoAlChatbot;
 use App\Support\Leads\AvisoDeConsulta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,12 +16,12 @@ class ChatbotController extends Controller
 {
     public function sendMessage(Request $request, Project $project): JsonResponse
     {
-        if (! config('chatbot.enabled')) {
-            return response()->json(['error' => 'Chatbot is not enabled.'], 503);
-        }
-
-        if (! $project->chatbot_enabled) {
-            return response()->json(['error' => 'Chatbot is not enabled for this project.'], 503);
+        // Las tres llaves -- instalacion, proyecto y plan -- viven en un solo
+        // sitio, compartido con el widget. Aqui se miraban dos, y la tercera,
+        // el plan, no la miraba nadie: el chatbot era del plan gratuito de
+        // hecho, y cada respuesta la pagabamos al proveedor de IA.
+        if ($motivo = AccesoAlChatbot::porQueNo($project)) {
+            return response()->json(['error' => $motivo], 503);
         }
 
         if (! in_array($project->status, ['public', 'unlisted'])) {
@@ -31,6 +32,29 @@ class ChatbotController extends Controller
             'message' => 'required|string|max:500',
             'session_id' => 'required|string|max:36',
         ]);
+
+        // Tope de conversaciones nuevas por direccion y hora. Estaba en la
+        // configuracion desde el principio y no lo miraba nadie: con el
+        // limitador de diez mensajes por minuto, un guion podia abrir
+        // seiscientas conversaciones a la hora, cada una con su llamada al
+        // proveedor de IA. Cuenta solo las nuevas: seguir la que ya se tenia
+        // abierta no abre nada.
+        $yaAbierta = ChatbotConversation::where('project_id', $project->id)
+            ->where('session_id', $validated['session_id'])
+            ->exists();
+
+        if (! $yaAbierta) {
+            $tope = (int) config('chatbot.max_conversations_per_ip_hour', 5);
+            $abiertas = ChatbotConversation::where('ip_address', $request->ip())
+                ->where('created_at', '>=', now()->subHour())
+                ->count();
+
+            if ($abiertas >= $tope) {
+                return response()->json([
+                    'error' => 'Too many conversations from this address. Please try again later.',
+                ], 429);
+            }
+        }
 
         // Find or create conversation
         $conversation = ChatbotConversation::firstOrCreate(

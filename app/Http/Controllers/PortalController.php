@@ -179,7 +179,7 @@ class PortalController extends Controller
                 'available' => $p->available_units_count,
                 'url' => route('viewer.landing', $p->slug),
                 'thumbnail' => $p->thumbnail_path
-                    ? url('api/projects/'.$p->id.'/files/thumbnail')
+                    ? url('api/projects/'.$p->slug.'/files/thumbnail')
                     : null,
             ]);
 

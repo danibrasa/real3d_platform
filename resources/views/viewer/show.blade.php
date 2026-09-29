@@ -19,7 +19,7 @@
     @if($project->thumbnail_path)
     <meta property="og:image" content="{{ url('/storage/' . $project->thumbnail_path) }}">
     @elseif($project->galleryImages->first())
-    <meta property="og:image" content="{{ url('/api/projects/' . $project->id . '/gallery/' . $project->galleryImages->first()->id) }}">
+    <meta property="og:image" content="{{ url('/api/projects/' . $project->slug . '/gallery/' . $project->galleryImages->first()->id) }}">
     @endif
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -343,10 +343,10 @@
             'whatsapp_number' => $project->whatsapp_number,
             'settings' => $project->settings,
             'files' => [
-                'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->id . '/files/video_360' : null,
-                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->id . '/files/image_360' : null,
-                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
-                'ground_texture' => $project->getFileByType('ground_texture') ? '/api/projects/' . $project->id . '/files/ground_texture' : null,
+                'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->slug . '/files/video_360' : null,
+                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->slug . '/files/image_360' : null,
+                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->slug . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
+                'ground_texture' => $project->getFileByType('ground_texture') ? '/api/projects/' . $project->slug . '/files/ground_texture' : null,
             ],
         ]) !!}
     </script>

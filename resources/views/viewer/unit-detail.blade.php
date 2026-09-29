@@ -11,7 +11,7 @@
     ]);
     $seoImage = $project->thumbnail_path
         ? url('/storage/' . $project->thumbnail_path)
-        : ($project->galleryImages->first() ? url('/api/projects/' . $project->id . '/gallery/' . $project->galleryImages->first()->id) : null);
+        : ($project->galleryImages->first() ? url('/api/projects/' . $project->slug . '/gallery/' . $project->galleryImages->first()->id) : null);
 @endphp
 
 <!-- OG Meta Tags -->
@@ -252,8 +252,8 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ __('landing.gallery') }}</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     @foreach($project->galleryImages->take(8) as $img)
-                    <div class="cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition gallery-thumb" data-src="/api/projects/{{ $project->id }}/gallery/{{ $img->id }}">
-                        <img src="/api/projects/{{ $project->id }}/gallery/{{ $img->id }}" alt="{{ $img->caption ?? __('landing.gallery') }}" class="w-full h-48 object-cover" loading="lazy">
+                    <div class="cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition gallery-thumb" data-src="/api/projects/{{ $project->slug }}/gallery/{{ $img->id }}">
+                        <img src="/api/projects/{{ $project->slug }}/gallery/{{ $img->id }}" alt="{{ $img->caption ?? __('landing.gallery') }}" class="w-full h-48 object-cover" loading="lazy">
                         @if($img->caption)
                             <div class="p-2 bg-white text-xs text-gray-600">{{ $img->caption }}</div>
                         @endif
