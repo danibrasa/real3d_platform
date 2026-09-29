@@ -91,6 +91,7 @@ CLAVE_WEB="$CLAVE_WEB" \
     GANCHO_VISOR="sudo -u www-data php $APP/tools/subir-visor-de-prueba.php $APP" \
     GANCHO_CORREO="php $APP/tools/comprobar-cola.php $APP 40" \
     GANCHO_NAVEGADOR="node $APP/tools/recorrido-visor.mjs" \
+    GANCHO_PANEL="node $APP/tools/recorrido-panel.mjs" \
     python3 "$APP/tools/recorrido-alta.py" "$URL" >> "$SALIDA" 2>&1
 RESULTADO=$?
 
