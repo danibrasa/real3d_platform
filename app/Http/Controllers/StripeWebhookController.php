@@ -42,6 +42,47 @@ class StripeWebhookController extends WebhookController
         ]);
     }
 
+    /**
+     * El tercer aviso, que no se atendia.
+     *
+     * Subir o bajar de plan desde el portal de Stripe -- o desde su panel,
+     * a mano -- llega como "updated", no como "created". Sin esto, una
+     * promotora que subiera pagaba el plan caro y seguia con los limites
+     * del barato, y una que bajara al reves.
+     *
+     * Un precio que no es nuestro no cambia nada: es senal de que algo no
+     * cuadra, no un plan basico.
+     */
+    public function handleCustomerSubscriptionUpdated($payload): void
+    {
+        parent::handleCustomerSubscriptionUpdated($payload);
+
+        $stripeId = $payload['data']['object']['customer'] ?? null;
+        if (! $stripeId) {
+            return;
+        }
+
+        $user = User::where('stripe_id', $stripeId)->first();
+        if (! $user || ! $user->companyProfile) {
+            return;
+        }
+
+        $priceId = $payload['data']['object']['items']['data'][0]['price']['id'] ?? null;
+        $tier = PlanDeStripe::desdePrecio($priceId);
+        $actual = $user->companyProfile->plan_tier;
+
+        if (! $tier || $tier === $actual) {
+            return;
+        }
+
+        PlanDeStripe::aplicar($user->companyProfile, $tier);
+
+        AuditLog::record('subscription_updated', $user->companyProfile, ['plan_tier' => $actual], [
+            'plan_tier' => $tier,
+            'stripe_subscription_id' => $payload['data']['object']['id'] ?? null,
+        ]);
+    }
+
     public function handleCustomerSubscriptionDeleted($payload): void
     {
         parent::handleCustomerSubscriptionDeleted($payload);
