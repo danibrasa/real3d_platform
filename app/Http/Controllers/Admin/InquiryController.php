@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class InquiryController extends Controller
 {
@@ -26,6 +27,9 @@ class InquiryController extends Controller
         if ($request->filled('read')) {
             $query->where('read', $request->read === '1');
         }
+        if ($request->filled('estado') && in_array($request->estado, Inquiry::ESTADOS, true)) {
+            $query->where('estado', $request->estado);
+        }
 
         $inquiries = $query->paginate(20);
 
@@ -44,6 +48,33 @@ class InquiryController extends Controller
         $inquiry->load('project', 'unit');
 
         return view('admin.inquiries.show', compact('inquiry'));
+    }
+
+    /**
+     * El estado del lead, con la nota de quien lo atiende y cuando.
+     *
+     * Marcar leido sigue existiendo, pero es lo de menos: lo que le importa a
+     * una promotora a la segunda semana es a quien le falta contestar.
+     */
+    public function estado(Request $request, Inquiry $inquiry)
+    {
+        Gate::authorize('view-inquiries');
+        $this->authorizeInquiryAccess($inquiry);
+
+        $validated = $request->validate([
+            'estado' => ['required', Rule::in(Inquiry::ESTADOS)],
+            'nota' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $inquiry->forceFill([
+            'estado' => $validated['estado'],
+            'nota' => $validated['nota'] ?? $inquiry->nota,
+            'estado_en' => now(),
+            'atendido_por' => $request->user()->id,
+            'read' => true,
+        ])->save();
+
+        return back()->with('success', __('inquiry.estado_guardado', ['estado' => __('inquiry.estado_'.$validated['estado'])]));
     }
 
     public function markRead(Inquiry $inquiry)

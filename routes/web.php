@@ -163,6 +163,7 @@ Route::middleware(['auth', 'admin', 'onboarding'])->prefix('admin')->name('admin
     Route::get('inquiries', [AdminInquiryController::class, 'index'])->name('inquiries.index');
     Route::get('inquiries/{inquiry}', [AdminInquiryController::class, 'show'])->name('inquiries.show');
     Route::patch('inquiries/{inquiry}/read', [AdminInquiryController::class, 'markRead'])->name('inquiries.markRead');
+    Route::patch('inquiries/{inquiry}/estado', [AdminInquiryController::class, 'estado'])->name('inquiries.estado');
     Route::delete('inquiries/{inquiry}', [AdminInquiryController::class, 'destroy'])->name('inquiries.destroy');
 
     // Gallery

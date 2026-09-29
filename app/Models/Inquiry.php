@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Inquiry extends Model
 {
+    /**
+     * Por donde pasa un lead. "Leido" no decia nada de lo que importa: si
+     * alguien le ha escrito, si va a visitar, si compro o si era ruido.
+     */
+    public const NUEVO = 'nuevo';
+
+    public const ESTADOS = ['nuevo', 'contactado', 'visita', 'cerrado', 'descartado'];
+
     protected $fillable = [
         'project_id',
         'unit_id',
@@ -15,11 +23,20 @@ class Inquiry extends Model
         'phone',
         'message',
         'read',
+        'estado',
+        'nota',
     ];
 
     protected $casts = [
         'read' => 'boolean',
+        'estado_en' => 'datetime',
+        'avisado_sin_atender_en' => 'datetime',
     ];
+
+    public function atendidoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'atendido_por');
+    }
 
     public function project(): BelongsTo
     {
