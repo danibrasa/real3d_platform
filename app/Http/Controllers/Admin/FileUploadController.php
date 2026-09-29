@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ComprimirModelo;
 use App\Jobs\PrepararFondo360;
 use App\Models\Project;
 use App\Models\ProjectFile;
@@ -236,6 +237,10 @@ class FileUploadController extends Controller
         // 8K tarda y no es cosa de la peticion.
         if ($ficheroNuevo->file_type === 'image_360') {
             PrepararFondo360::dispatch($ficheroNuevo->id);
+        }
+        // Y del modelo, la version con Draco: de 35 MB a 5 u 8.
+        if ($ficheroNuevo->file_type === 'model_3d') {
+            ComprimirModelo::dispatch($ficheroNuevo->id);
         }
 
         // Recalculate storage for tenant
