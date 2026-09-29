@@ -262,11 +262,11 @@ Route::get('/developers/{developer:slug}', [DeveloperDirectoryController::class,
 // API routes (access control handled in controller)
 Route::prefix('api')->group(function () {
     Route::get('/projects/{project:slug}', [ProjectApiController::class, 'show']);
-    Route::get('/projects/{project}/files/{fileType}', [ProjectApiController::class, 'serveFile']);
+    Route::get('/projects/{project:slug}/files/{fileType}', [ProjectApiController::class, 'serveFile']);
     Route::get('/projects/{project:slug}/units', [ProjectApiController::class, 'units']);
     Route::get('/units/{unit}/floor-plan', [ProjectApiController::class, 'serveFloorPlan']);
-    Route::get('/projects/{project}/gallery/{image}', [ProjectApiController::class, 'serveGalleryImage']);
-    Route::get('/projects/{project}/construction/{image}', [ConstructionProgressController::class, 'serveImage'])->name('api.construction.image');
+    Route::get('/projects/{project:slug}/gallery/{image}', [ProjectApiController::class, 'serveGalleryImage']);
+    Route::get('/projects/{project:slug}/construction/{image}', [ConstructionProgressController::class, 'serveImage'])->name('api.construction.image');
     Route::post('/viewer-events', [ViewerEventController::class, 'store']);
 
     // Chatbot

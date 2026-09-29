@@ -18,7 +18,7 @@
     {{-- Thumbnail --}}
     <div class="h-44 relative overflow-hidden bg-gray-100">
         @if($thumbnail)
-            <img src="{{ url('api/projects/' . $project->id . '/files/thumbnail') }}"
+            <img src="{{ url('api/projects/' . $project->slug . '/files/thumbnail') }}"
                  alt="{{ $project->name }}"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                  loading="lazy">

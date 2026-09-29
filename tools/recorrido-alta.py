@@ -737,10 +737,7 @@ def darse_de_baja(notas, idp):
     # que el servidor web no puede atravesar, asi que el fichero estaba, la
     # base de datos decia upload_complete, el paso 7d decia "subido e identico
     # al original", y el visor devolvia 404 a cualquiera que lo abriera.
-    #
-    # Ojo con el id: esta ruta se enlaza por id y sus vecinas de /api/projects
-    # por slug. Con el slug devuelve 404 siempre y la comprobacion no mide nada.
-    antes_fichero = pub.get(BASE + "/api/projects/%d/files/image_360" % idp, timeout=30)
+    antes_fichero = pub.get(BASE + "/api/projects/%s/files/image_360" % slug, timeout=30)
     notas.append("y el fondo 360 se sirve: %s" % antes_fichero.status_code)
     if antes_fichero.status_code != 200:
         notas.append("PROBLEMA: el fichero esta subido pero el servidor no lo puede leer")
@@ -762,11 +759,12 @@ def darse_de_baja(notas, idp):
     # La otra puerta: el fondo y el modelo salen por la API, y con la direccion
     # se descargan sin pasar por la pagina.
     #
-    # Ojo con el id: esta ruta se enlaza por id, mientras sus vecinas de
-    # /api/projects lo hacen por slug. Pasandole el slug devuelve 404 siempre,
-    # asi que esta comprobacion parecia pasar y no miraba nada. Lo delato
-    # desactivando el muro a proposito: seguia dando 404.
-    fichero = pub.get(BASE + "/api/projects/%d/files/image_360" % idp, timeout=30)
+    # Esta ruta iba por id mientras sus vecinas iban por slug, y esta
+    # comprobacion paso una temporada pidiendo por slug: 404 siempre, "el 3D no
+    # se descarga", y no miraba nada. Lo delato desactivar el muro a proposito y
+    # ver que seguia dando 404. Hoy todas van por slug, y hay un test que lo
+    # exige para que no vuelva a pasar.
+    fichero = pub.get(BASE + "/api/projects/%s/files/image_360" % slug, timeout=30)
     notas.append("y el fondo 360 por la API devuelve %s" % fichero.status_code)
     if fichero.status_code != 404:
         notas.append("PROBLEMA: el 3D se descarga igual conociendo la direccion")

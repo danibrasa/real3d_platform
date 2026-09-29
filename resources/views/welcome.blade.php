@@ -298,7 +298,7 @@
                                     $thumbnail = $project->files->where('file_type', 'thumbnail')->first();
                                 @endphp
                                 @if($thumbnail)
-                                    <img src="{{ url('api/projects/' . $project->id . '/files/thumbnail') }}" alt="{{ $project->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <img src="{{ url('api/projects/' . $project->slug . '/files/thumbnail') }}" alt="{{ $project->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                 @else
                                     <div class="w-full h-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
                                         <svg class="w-16 h-16 text-cyan-500/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">

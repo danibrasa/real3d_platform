@@ -15,7 +15,7 @@
 {{-- SEO Meta --}}
 @php
     $seoDesc = $project->translated_tagline ?? Str::limit($project->translated_description, 160) ?? __('landing.seo_default');
-    $seoImage = $project->thumbnail_path ? url('/storage/' . $project->thumbnail_path) : ($project->galleryImages->first() ? url('/api/projects/' . $project->id . '/gallery/' . $project->galleryImages->first()->id) : null);
+    $seoImage = $project->thumbnail_path ? url('/storage/' . $project->thumbnail_path) : ($project->galleryImages->first() ? url('/api/projects/' . $project->slug . '/gallery/' . $project->galleryImages->first()->id) : null);
     $availableUnits = $project->units->where('status', 'available');
     $priceMin = $availableUnits->min('price');
     $priceMax = $availableUnits->max('price');
@@ -187,8 +187,8 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ __('landing.gallery') }}</h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     @foreach($project->galleryImages as $img)
-                    <div class="cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition gallery-thumb" data-src="/api/projects/{{ $project->id }}/gallery/{{ $img->id }}">
-                        <img src="/api/projects/{{ $project->id }}/gallery/{{ $img->id }}" alt="{{ $img->caption ?? 'Imagen del proyecto' }}" class="w-full h-48 object-cover" loading="lazy">
+                    <div class="cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition gallery-thumb" data-src="/api/projects/{{ $project->slug }}/gallery/{{ $img->id }}">
+                        <img src="/api/projects/{{ $project->slug }}/gallery/{{ $img->id }}" alt="{{ $img->caption ?? 'Imagen del proyecto' }}" class="w-full h-48 object-cover" loading="lazy">
                         @if($img->caption)
                             <div class="p-2 bg-white text-xs text-gray-600">{{ $img->caption }}</div>
                         @endif
@@ -206,7 +206,7 @@
                     @if($project->thumbnail_path)
                     <img src="/storage/{{ $project->thumbnail_path }}" alt="{{ $project->name }}" class="absolute inset-0 w-full h-full object-cover opacity-60">
                     @elseif($project->galleryImages->first())
-                    <img src="/api/projects/{{ $project->id }}/gallery/{{ $project->galleryImages->first()->id }}" alt="{{ $project->name }}" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                    <img src="/api/projects/{{ $project->slug }}/gallery/{{ $project->galleryImages->first()->id }}" alt="{{ $project->name }}" class="absolute inset-0 w-full h-full object-cover opacity-60">
                     @endif
                     <div class="relative z-10 text-center">
                         <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-blue-600/80 flex items-center justify-center shadow-lg">
@@ -622,10 +622,10 @@
             'name' => $project->name,
             'settings' => $project->settings,
             'files' => [
-                'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->id . '/files/video_360' : null,
-                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->id . '/files/image_360' : null,
-                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->id . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
-                'ground_texture' => $project->getFileByType('ground_texture') ? '/api/projects/' . $project->id . '/files/ground_texture' : null,
+                'video_360' => $project->getFileByType('video_360') ? '/api/projects/' . $project->slug . '/files/video_360' : null,
+                'image_360' => $project->getFileByType('image_360') ? '/api/projects/' . $project->slug . '/files/image_360' : null,
+                'model_3d' => $project->getFileByType('model_3d') ? '/api/projects/' . $project->slug . '/files/model_3d?f=' . urlencode($project->getFileByType('model_3d')->original_name) : null,
+                'ground_texture' => $project->getFileByType('ground_texture') ? '/api/projects/' . $project->slug . '/files/ground_texture' : null,
             ],
         ]) !!}
     </script>

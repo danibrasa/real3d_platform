@@ -119,7 +119,7 @@
         {!! json_encode([
             'projectId' => $project->id,
             'settings' => $project->settings,
-            'modelUrl' => '/api/projects/' . $project->id . '/files/model_3d',
+            'modelUrl' => '/api/projects/' . $project->slug . '/files/model_3d',
             'csrfToken' => csrf_token(),
         ]) !!}
     </script>
