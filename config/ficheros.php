@@ -18,6 +18,12 @@ return [
     | recomprimir antes: un video 360 de 315 MB son cinco minutos de 4G para
     | un comprador, y en produccion habia cuatro copias del mismo.
     */
+    /*
+    | Con que se comprime el modelo 3D al subirlo (Draco). Viene con npm ci
+    | (devDependencies). Sin ella el modelo se sirve sin comprimir y se avisa.
+    */
+    'gltf_pipeline' => env('GLTF_PIPELINE', base_path('node_modules/.bin/gltf-pipeline')),
+
     'maximos_mb' => [
         'video_360' => 100,
         'model_3d' => 60,

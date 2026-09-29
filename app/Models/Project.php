@@ -231,6 +231,16 @@ class Project extends Model
             return null;
         }
 
+        // El modelo comprimido con Draco, cuando lo hay, es el que se sirve:
+        // todos los que cargan GLB llevan DRACOLoader. Pedir 'original' lo
+        // salta.
+        if ($tipo === 'model_3d' && $tam === null && $fichero->tieneVariante('draco')) {
+            $tam = 'draco';
+        }
+        if ($tam === 'original') {
+            $tam = null;
+        }
+
         $parametros = ['v' => $fichero->version()];
         if ($tam) {
             $parametros['tam'] = $tam;
