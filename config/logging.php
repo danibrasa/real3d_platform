@@ -65,6 +65,21 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Donde va el correo cuando el mailer es 'log', que es el caso de
+        // desarrollo. Con su propio fichero y su propio nivel, a proposito:
+        // el transporte 'log' escribe cada mensaje como debug, y con el
+        // LOG_LEVEL=warning que tiene desarrollo el canal normal los tiraba
+        // sin decir nada. La cola se vaciaba, el worker decia DONE en 3 ms,
+        // la comprobacion nocturna decia "el aviso salio" -- y no habia
+        // salido a ningun sitio que se pudiera leer. Se activa con
+        // MAIL_LOG_CHANNEL=correo en el .env.
+        'correo' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/correo.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

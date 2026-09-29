@@ -57,6 +57,11 @@ CLAVE_WEB=$(cat /root/.dev-web-pass 2>/dev/null || echo "")
 # un comprobador que esquiva lo que suele romperse no comprueba gran cosa.
 # GANCHO_CORREO comprueba que el aviso del lead sale de la cola de verdad: que
 # el formulario responda 200 no prueba que la promotora se entere.
+# Y que va dirigido a la promotora, y que es el aviso de ese camino: con
+# MAIL_MAILER=log el correo se escribe en storage/logs/correo.log
+# (MAIL_LOG_CHANNEL=correo) y el gancho lo lee. Sin ese canal, con
+# LOG_LEVEL=warning, el mailer log no escribia nada, y "salio de la cola" se
+# decia de avisos que no iban a ninguna parte.
 # GANCHO_VISOR va como www-data, que es quien escribe cuando escribe la
 # aplicacion. Corriendo como root dejaba los directorios del proyecto con
 # permisos que el servidor web no puede atravesar: el fichero quedaba en disco,

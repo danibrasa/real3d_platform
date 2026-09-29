@@ -16,6 +16,7 @@ import subprocess
 import re
 import sys
 import time
+import uuid
 from html.parser import HTMLParser
 
 import requests
@@ -23,6 +24,11 @@ import requests
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "https://dev.real3d.io").rstrip("/")
 CLAVE_WEB = os.environ.get("CLAVE_WEB", "")
 SELLO = time.strftime("%H%M%S")
+
+# La promotora de esta vuelta. Es a quien deben llegar los avisos de los leads,
+# y por eso se le pasa al gancho del correo: que la cola se vacie no dice a
+# quien fue nada.
+CORREO_PROMOTORA = "ana.%s@recorrido-automatico.invalid" % SELLO
 
 s = requests.Session()
 s.auth = ("real3d", CLAVE_WEB) if CLAVE_WEB else None
@@ -127,6 +133,33 @@ def elegir(forms, pista=""):
     return utiles[0] if utiles else (forms[0] if forms else None)
 
 
+def comprobar_que_sale_el_aviso(notas, si_falla, marca):
+    """Que el aviso del lead salga de la cola de verdad.
+
+    Que el servidor responda 200 no significa nada: el aviso a la promotora se
+    encola, y si el worker no lo procesa el lead se pierde igual. Eso paso en
+    produccion y nadie se entero en semanas. Lo comparten los dos caminos por
+    los que entra un lead -el formulario y el chatbot- porque el segundo no
+    avisaba a nadie y tardo meses en notarse: solo se vigilaba el primero.
+
+    La marca es un texto que solo lleva el aviso de este camino. Los dos avisan
+    a la misma promotora, asi que mirar solo el destinatario dejaba que el
+    correo del formulario contara por el del chatbot.
+    """
+    comprobar = os.environ.get("GANCHO_CORREO", "").strip()
+    if not comprobar:
+        notas.append("sin GANCHO_CORREO: no se comprueba que el aviso salga")
+        return
+
+    r = subprocess.run(comprobar.split() + [CORREO_PROMOTORA, marca],
+                       capture_output=True, text=True)
+    for linea in (r.stdout + r.stderr).strip().split("\n"):
+        if linea:
+            notas.append(linea)
+    if r.returncode != 0:
+        notas.append("PROBLEMA: " + si_falla)
+
+
 def paso(nombre):
     def deco(fn):
         def envuelta(*a, **kw):
@@ -193,7 +226,7 @@ def registrarse(notas, html):
     datos = dict(f["campos"])
     datos.update({
         "name": "Ana Promotora",
-        "email": "ana.%s@recorrido-automatico.invalid" % SELLO,
+        "email": CORREO_PROMOTORA,
         "password": "UnaClaveLarga2026!",
         "password_confirmation": "UnaClaveLarga2026!",
     })
@@ -590,20 +623,78 @@ def preguntar(notas, idp):
     if r.status_code >= 400:
         raise RuntimeError("la consulta fue rechazada")
 
-    # Que responda 200 no significa nada: el aviso a la promotora se encola, y
-    # si el worker no lo procesa el lead se pierde igual. Eso paso en produccion
-    # y nadie se entero en semanas.
-    comprobar = os.environ.get("GANCHO_CORREO", "").strip()
-    if not comprobar:
-        notas.append("sin GANCHO_CORREO: no se comprueba que el aviso salga")
+    # La marca es el asunto de ESTE aviso: sin ella, el del chatbot y este
+    # se contarian el uno por el otro, porque avisan a la misma promotora.
+    comprobar_que_sale_el_aviso(notas, "la consulta se guarda pero el aviso no sale",
+                                "Recorrido automatico %s - Comprador Extranjero" % SELLO)
+
+
+@paso("9b. Un comprador pregunta por el chatbot y deja su contacto")
+def preguntar_por_el_chatbot(notas, idp):
+    """El otro camino por el que entra un lead.
+
+    Hasta ahora solo se vigilaba el formulario. El chatbot guardaba el
+    contacto y no avisaba a nadie, y como el recorrido no pasaba por ahi, nada
+    lo dijo. Se hace lo que hace el widget desde el navegador -mandar un
+    mensaje, dejar nombre y correo- y despues se mira lo que un comprador no
+    ve: que la promotora lo tiene en su bandeja y que el aviso sale de la cola.
+
+    Si el asistente contesta con su disculpa de siempre, el proveedor de IA
+    esta caido. El servidor responde 200 igual, asi que hay que leer lo que
+    dice, no el codigo.
+    """
+    pub = requests.Session()
+    pub.auth = s.auth
+
+    slug = slug_publico(idp)
+    if not slug:
+        notas.append("el proyecto no llego a publicarse: este paso no aplica")
         return
 
-    r = subprocess.run(comprobar.split(), capture_output=True, text=True)
-    for linea in (r.stdout + r.stderr).strip().split("\n"):
-        if linea:
-            notas.append(linea)
-    if r.returncode != 0:
-        notas.append("PROBLEMA: la consulta se guarda pero el aviso no sale")
+    sesion = str(uuid.uuid4())
+    r = pub.post(BASE + "/api/projects/%s/chat" % slug, json={
+        "message": "Hola, cual es la vivienda mas barata que teneis disponible?",
+        "session_id": sesion,
+    }, timeout=90)
+    notas.append("el chatbot devuelve %s" % r.status_code)
+
+    if r.status_code == 503:
+        notas.append("el chatbot esta apagado: %s" % r.json().get("error", ""))
+        notas.append("este paso no aplica hasta que se encienda")
+        return
+    if r.status_code != 200:
+        raise RuntimeError("el chatbot rechazo el mensaje")
+
+    respuesta = r.json().get("message", "")
+    if not respuesta.strip():
+        notas.append("PROBLEMA: el asistente contesta con un mensaje vacio")
+    elif ("problema para responder" in respuesta
+          or "trouble responding" in respuesta):
+        notas.append("PROBLEMA: el asistente pide disculpas: el proveedor de IA no contesta")
+    else:
+        notas.append("el asistente contesta (%d caracteres)" % len(respuesta))
+
+    correo = "chat.%s@recorrido-automatico.invalid" % SELLO
+    r = pub.post(BASE + "/api/projects/%s/chat/lead" % slug, json={
+        "session_id": sesion,
+        "name": "Comprador Del Chat",
+        "email": correo,
+        "phone": "+1 305 555 0101",
+    }, timeout=60)
+    notas.append("dejar el contacto devuelve %s" % r.status_code)
+    if r.status_code != 200 or not r.json().get("success"):
+        raise RuntimeError("el chatbot no guardo el contacto")
+
+    # Lo que ve la promotora: el lead en su bandeja, con este correo. Guardarlo
+    # en una tabla que nadie mira es perderlo con mas pasos.
+    bandeja = s.get(BASE + "/admin/inquiries", timeout=30)
+    if correo in bandeja.text:
+        notas.append("la promotora lo ve en su bandeja de consultas")
+    else:
+        notas.append("PROBLEMA: el lead del chat no aparece en la bandeja de la promotora")
+
+    comprobar_que_sale_el_aviso(notas, "el chat guarda el contacto pero el aviso no sale",
+                                "Recorrido automatico %s - Comprador Del Chat" % SELLO)
 
 
 @paso("10. Se da de baja y el visor deja de verse")
@@ -705,6 +796,7 @@ if idp:
     montar_visor(idp)
     publicar(idp)
     preguntar(idp)
+    preguntar_por_el_chatbot(idp)
     # El ultimo, porque deja a la promotora sin plan: cualquier paso detras se
     # encontraria el producto a medias y contaria un fallo que no existe.
     darse_de_baja(idp)
