@@ -1,0 +1,5 @@
+# Lote 6 (Vista Cana Developer, Blue Beach Development, Grupo Inmobiliario Azul)
+- Vista Cana Developer: no existe como empresa; VISTACANA es una urbanizacion (6.000 viviendas previstas, >60 proyectos de terceros) en Blvd. Turistico del Este, Bavaro. Web vistacana.com / realestatevistacana.com, WhatsApp general 1-849-505-6687, VistaCana Business Center. Sin 3D visible. Encaje medio: entrar por las constructoras que edifican dentro: Grupo Sencion (Panorama Lake, 1.200 unidades, presidencia.gob.do 28/04/2021), Wind Residences (40, canablue.com), The Tower (911realestategroup), Equilibrium Residences.
+- Blue Beach Development: no existe; el resort de Cabeza de Toro esta terminado (2016-2019) y en reventa; el de Av. Alemania es un hotel-apartamentos. Encaje bajo.
+- Grupo Inmobiliario Azul: es Azul Propiedades, AGENCIA de Santo Domingo Este (+1 809 551 8081, azulpropiedades.com), sin proyectos propios; "Torre Azul Residences" no existe. Encaje bajo (canal comercializador, no cliente).
+Nota: ese agente agoto la cuota de WebSearch de la sesion (200/200)?? -> comprobar si la segunda oleada aun puede buscar.
