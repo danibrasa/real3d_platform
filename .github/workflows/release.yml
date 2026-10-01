@@ -20,7 +20,7 @@ jobs:
     steps:
       # La configuracion va en release-please-config.json y en
       # .release-please-manifest.json; en la v4 el action solo acepta las rutas.
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
